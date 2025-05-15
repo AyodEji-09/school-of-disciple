@@ -1,0 +1,16 @@
+type Team = { id: number, name: string, title: string, desc: string, img: string }[]
+const team: Team = [
+    { id: 1, name: "Pastor E.A Adeboye", title: "General Overseer", desc: "Some quick example text to build on the card title and make up the bulk of the card's content.", img: "Pastor5.jpg" },
+    { id: 2, name: "Pastor/Mrs Folu Adeboye", title: "Mother-in-Israel", desc: "Some quick example text to build on the card title and make up the bulk of the card's content.", img: "Pastor2.jpg" },
+    { id: 4, name: "", title: "", desc: "Some quick example text to build on the card title and make up the bulk of the card's content.", img: "Pastor6.jpg" },
+    { id: 3, name: "Pastor Ademola Moses Olubode", title: "Director of Exams, Records, and Policy Issues", desc: "Pastor Olubode is the Parish Pastor of RCCG International Chapel, Long Island (RCCGHHH). He is also a AWS/GRC and Cybersecurity Analyst. He enjoys playing music and sports.", img: "p9.jpeg" },
+    { id: 5, name: "Pastor Michael Oluwafemi", title: "National coordinator RCCG Americas Continent 1", desc: "Pastor Oluwafemi is one of the Special Assistant to the Continental Overseer (SATCO) and the pastor in charge of Province 3, Region 6. He is the national coordinator of School of Disciples RCCG Americas 1.", img: "p2.jpeg" },
+    { id: 6, name: "Pastor Enoch Badamosi", title: "Assistant Director of Exams, Records, and Policy Issues", desc: "Pastor Enoch Badamosi is the Pastor in charge of PA Zone 2, The Americas. He is a senior health program Analyst with the City of Philadelphia.trained attorney with LL.M Health Law & LL.M Corporate Law & Finance from Widener Law School,", img: "p8.jpg" },
+    { id: 7, name: "", title: "", desc: "", img: "p4.jpg" },
+    { id: 8, name: "", title: "", desc: "", img: "p5.jpg" },
+    { id: 9, name: "Dr. Funto Oyewole", title: "Director of Publications", desc: "Dr. Oyewole is a clinical psychologist and an ordained minister. She is passionate about Christians living in good mental health. She is an educator, public speaker, and writer.", img: "p6.jpg" },
+    { id: 10, name: "Pastor Ademola Moses Olubode", title: "Director of Exams, Records, and Policy Issues", desc: "Pastor Olubode is the Parish Pastor of RCCG International Chapel, Long Island (RCCGHHH). He is also a AWS/GRC and Cybersecurity Analyst. He enjoys playing   music and sports.", img: "p7.jpg" },
+    { id: 11, name: "Pastor Mike Daniel", title: "Director of Events and Programs", desc: "Pastor Mike Daniel joined the Redeemed Christian Church of God in 1989. He completed the School of Disciples and graduated in 1999. In 2003, he started the School of Disciples in Dallas, TX, USA. Presently, he serves as the Director of Programs at SOD.", img: "p4.jpg" },
+]
+
+export default team
