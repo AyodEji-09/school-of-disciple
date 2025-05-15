@@ -2,8 +2,21 @@ import { Button } from "@mui/material";
 import Hero from "../components/hero/Hero";
 import TeamCard from "../components/team-card/TeamCard";
 import team from "../team";
+import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
 
 const Home = () => {
+  const [searchParams] = useSearchParams();
+  const paid = searchParams.get("success");
+
+  useEffect(() => {
+    if (paid === "true") {
+      toast.success("Payment successful");
+    } else if (paid === "false") {
+      toast.error("Payment failed, contact website host");
+    }
+  }, []);
   return (
     <div>
       <Hero
