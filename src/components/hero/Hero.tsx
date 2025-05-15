@@ -1,10 +1,9 @@
-import herobg from '../../assets/images/hero.jpg'
 
 const Hero = ({ title, subtitle }: { title: string; subtitle: string }) => {
   return (
     <div className="relative py-36">
       <div className="absolute inset-0 overflow-hidden">
-        <img src={herobg} alt="" className='object-cover w-full h-full' />
+        <img src="/images/hero.jpg" alt="" className='object-cover w-full h-full' />
       </div>
       <div className="absolute inset-0 bg-black opacity-70"></div>
       <div className="relative text-center container mx-auto space-y-4 px-4">

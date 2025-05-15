@@ -13,7 +13,7 @@ const TeamCard = ({
     <div className="rounded-lg overflow-hidden border border-gray-300">
       <div className="img h-[350px] overflow-hidden">
         <img
-          src={`/src/assets/images/${img}`}
+          src={`/images/${img}`}
           className="h-full w-full object-cover object-top"
           alt=""
         />

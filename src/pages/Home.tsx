@@ -12,7 +12,7 @@ const Home = () => {
       />
       <section className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 gap-8">
-          <img src="/src/assets/images/Pastor5.jpg" alt="" />
+          <img src="/images/Pastor5.jpg" alt="" />
           <div className="space-y-2 self-center">
             <h2 className="text-2xl font-bold">ABOUT US</h2>
             <p className="text-sm md:text-lg">

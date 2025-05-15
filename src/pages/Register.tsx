@@ -46,8 +46,8 @@ const Register = () => {
   };
   return (
     <div>
-      <Hero title="" subtitle="" />
-      <div className="container mx-auto">
+      <Hero title="Register for School of Disciples" subtitle="Kindly complete your registration and make payment for SOD" />
+      <div className="container mx-auto py-16">
         <form onSubmit={handleSubmit(onSubmit)} className="max-w-xl mx-aut">
           <div className="grid gap-4 grid-cols-2">
             <div>
@@ -141,6 +141,7 @@ const Register = () => {
                       onChange={onChange}
                       className="rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none placeholder:text-sm placeholder:text-[#C9C9C9]"
                     >
+                      <option value=""></option>
                       <option value="male">Male</option>
                       <option value="female">Female</option>
                     </select>
@@ -162,12 +163,13 @@ const Register = () => {
                 }}
                 render={({ field: { value, onChange } }) => (
                   <label className="text-header flex flex-col gap-1">
-                    Gender
+                    Year
                     <select
                       value={value}
                       onChange={onChange}
                       className="rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none placeholder:text-sm placeholder:text-[#C9C9C9]"
                     >
+                      <option value=""></option>
                       <option value="2025">2025</option>
                       <option value="2026">2026</option>
                     </select>

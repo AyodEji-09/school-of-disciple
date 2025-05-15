@@ -10,8 +10,6 @@ import {
   ListItemText,
 } from "@mui/material";
 import { IoMdMenu } from "react-icons/io";
-import sod from "../../assets/images/logo.png";
-import rccg from "../../assets/images/rcg.png";
 import Footer from "../footer/Footer";
 
 const routes = [
@@ -51,8 +49,8 @@ const Nav = () => {
             <div className="logo">
               <Link to={"/"}>
                 <div className="flex items-center">
-                  <img src={sod} alt="" className="h-16" />
-                  <img src={rccg} alt="" className="h-16" />
+                  <img src="/images/logo.png" alt="" className="h-16" />
+                  <img src="/images/rcg.png" alt="" className="h-16" />
                 </div>
               </Link>
             </div>
@@ -74,8 +72,8 @@ const Nav = () => {
               <div className="logo">
                 <Link to={"/"}>
                   <div className="flex items-center">
-                    <img src={sod} alt="" className="h-16" />
-                    <img src={rccg} alt="" className="h-16" />
+                    <img src="/images/logo.png" alt="" className="h-16" />
+                    <img src="/images/rcg.png" alt="" className="h-16" />
                   </div>
                 </Link>
               </div>

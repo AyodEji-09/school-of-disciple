@@ -29,7 +29,7 @@ const Payment = () => {
       makePayment();
     }
   });
-  return <div>Payment</div>;
+  return <div></div>;
 };
 
 export default Payment;
