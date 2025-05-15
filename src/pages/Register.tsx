@@ -27,7 +27,7 @@ const Register = () => {
       email: "",
       gender: "",
       phone: "",
-      year: "",
+      admissionYear: "",
       address: "",
     },
   });
@@ -156,7 +156,7 @@ const Register = () => {
             </div>
             <div>
               <Controller
-                name="year"
+                name="admissionYear"
                 control={control}
                 rules={{
                   required: "This field is required",
@@ -176,8 +176,8 @@ const Register = () => {
                   </label>
                 )}
               />
-              {errors.year && (
-                <p className="text-xs text-[#dc2626]">{errors.year.message}</p>
+              {errors.admissionYear && (
+                <p className="text-xs text-[#dc2626]">{errors.admissionYear.message}</p>
               )}
             </div>
             <div className="col-span-2">
