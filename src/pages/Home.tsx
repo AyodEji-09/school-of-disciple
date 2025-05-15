@@ -47,7 +47,7 @@ const Home = () => {
       <section className="relative py-16">
         <div className="absolute inset-0 overflow-hidden">
           <img
-            src="/src/assets/images/bg_4.jpg.webp"
+            src="/images/bg_4.jpg.webp"
             className="w-full h-full object-cover object-center"
             alt=""
           />
