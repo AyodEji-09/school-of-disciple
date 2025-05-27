@@ -28,7 +28,7 @@ export default function ControlledAccordions({items}: {items: ItemType[]}) {
           aria-controls="panel1bh-content"
           id="panel1bh-header"
         >
-          <Typography component="p" variant='h6' color='#999' fontWeight={600}>
+          <Typography component="p" variant='subtitle1' color='#999' fontWeight={500}>
           {item.title}
           </Typography>
         </AccordionSummary>

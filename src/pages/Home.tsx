@@ -176,23 +176,6 @@ const Home = () => {
             </div>
         </div>
       </ParallaxSection>
-
-      {/* <section className="py-16 container mx-auto px-4">
-        <h1 className="text-center text-4xl font-semibold uppercase">
-          Meet the team
-        </h1>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {team.map((team) => (
-            <TeamCard
-              key={team.id}
-              name={team.name}
-              title={team.title}
-              description={team.desc}
-              img={team.img}
-            />
-          ))}
-        </div>
-      </section> */}
     </div>
   );
 };

@@ -6,6 +6,9 @@ import Register from "./pages/Register";
 import Nav from "./components/nav/Nav";
 import { SetDefaultHeaders } from "./data/config";
 import Payment from "./pages/Payment";
+import Team from "./pages/Team";
+import Course from "./pages/Course";
+import About from "./pages/About";
 
 SetDefaultHeaders();
 
@@ -16,6 +19,9 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Nav />}>
           <Route index element={<Home />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/courses" element={<Course />} />
+          <Route path="/about-us" element={<About />} />
           <Route path="/register" element={<Register />} />
           <Route path="/payment/:token" element={<Payment />} />
         </Route>

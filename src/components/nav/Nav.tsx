@@ -13,10 +13,10 @@ import { IoMdMenu } from "react-icons/io";
 import Footer from "../footer/Footer";
 
 const routes = [
-  { id: 1, name: "About", url: "/" },
-  { id: 1, name: "Course", url: "/" },
-  { id: 1, name: "Team", url: "/" },
-  { id: 1, name: "Login", url: "/" },
+  { id: 1, name: "About", url: "/about-us" },
+  { id: 2, name: "Courses", url: "/courses" },
+  { id: 3, name: "Team", url: "/team" },
+  { id: 4, name: "Login", url: "/login" },
 ];
 const Nav = () => {
   const [open, setOpen] = useState(false);
