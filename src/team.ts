@@ -1,7 +1,9 @@
 type Team = { id: number, name: string, title: string, desc: string, img: string }[]
 const team: Team = [
-    { id: 1, name: "Pastor E.A Adeboye", title: "General Overseer", desc: "Some quick example text to build on the card title and make up the bulk of the card's content.", img: "Pastor5.jpg" },
-    { id: 2, name: "Pastor/Mrs Folu Adeboye", title: "Mother-in-Israel", desc: "Some quick example text to build on the card title and make up the bulk of the card's content.", img: "Pastor2.jpg" },
+    { id: 1, name: "Pastor E.A Adeboye", title: "General Overseer", desc: `The General Overseer of The Redeemed Christian Church of God is Pastor Enoch Adejare Adeboye. Popularly known as “Daddy G.O.” In 1981, Pastor E.A. Adeboye became the General Overseer (the spiritual and administrative head of the RCCG) since his appointment the church has since experienced unprecedented growth. Pastor Adeboye, holds a Ph.D. degree in Applied Mathematics (Hydrodynamics), was until then a Senior Lecturer in the University.`, img: "Pastor5.jpg" },
+    { id: 2, name: "Pastor/Mrs Folu Adeboye", title: "Mother-in-Israel", desc: `Pastor (Mrs) Folu Adeboye is the wife of the General Overseer and has a heart of pursuing the good of ordinary people. She is a veteran teacher and started her teaching career as a spinster and in the course of her life acquired various teaching skills.
+
+Her seasoned experience as a teacher qualified her to be appointed as the Headmistress of Christ the Redeemers’ Nursery and Primary School, Ebute-Metta, Lagos.`, img: "Pastor2.jpg" },
     // { id: 4, name: "", title: "", desc: "Some quick example text to build on the card title and make up the bulk of the card's content.", img: "Pastor6.jpg" },
     { id: 5, name: "Pastor Michael Oluwafemi", title: "National coordinator RCCG Americas Continent 1", desc: "Pastor Oluwafemi is one of the Special Assistant to the Continental Overseer (SATCO) and the pastor in charge of Province 3, Region 6. He is the national coordinator of School of Disciples RCCG Americas 1.", img: "p2.jpeg" },
     { id: 3, name: "Pastor Ademola Moses Olubode", title: "Director of Exams, Records, and Policy Issues", desc: "Pastor Olubode is the Parish Pastor of RCCG International Chapel, Long Island (RCCGHHH). He is also a AWS/GRC and Cybersecurity Analyst. He enjoys playing music and sports.", img: "p9.jpeg" },
