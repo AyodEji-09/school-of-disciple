@@ -14,7 +14,7 @@ import Footer from "../footer/Footer";
 
 const routes = [
   { id: 1, name: "About", url: "/about-us" },
-  { id: 2, name: "Courses", url: "/courses" },
+  // { id: 2, name: "Courses", url: "/courses" },
   { id: 3, name: "Team", url: "/team" },
   { id: 4, name: "Login", url: "/login" },
 ];

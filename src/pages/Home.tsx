@@ -15,23 +15,23 @@ import { IoDiamondOutline } from "react-icons/io5";
 import { IoLogoReact } from "react-icons/io5";
 import { RiProfileLine } from "react-icons/ri";
 import ParallaxSection from "../components/parallax-section/ParralaxSection";
-import ControlledAccordions from "../components/accordion/Accordion";
+// import ControlledAccordions from "../components/accordion/Accordion";
 
 const Home = () => {
   const [searchParams] = useSearchParams();
   const paid = searchParams.get("success");
-  const regFaq = [
-    {id: '1', title: "I didn't get a mail in my Inbox after signup.", text: "You will receive two mails after signup, one is welcoming you to the platform and the other contains a link for you to complete your sign up. Most times, the other might drop in your Promotions or Spam Folser because of the email confirmation link in the mail content."},
-    {id: '2', title: "Is The School of Disciples limited to only RCCG Members?", text: "No, any Christian around the world who wants to know more about God and Himself can enroll."},
-    {id: '3', title: "I can't find Refresher's Online Registration.", text: "For the meantime, our Refresher course are being done On-site, you can reach out to your Regional Coordinator for more. ."},
-  ]
+  // const regFaq = [
+  //   {id: '1', title: "I didn't get a mail in my Inbox after signup.", text: "You will receive two mails after signup, one is welcoming you to the platform and the other contains a link for you to complete your sign up. Most times, the other might drop in your Promotions or Spam Folser because of the email confirmation link in the mail content."},
+  //   {id: '2', title: "Is The School of Disciples limited to only RCCG Members?", text: "No, any Christian around the world who wants to know more about God and Himself can enroll."},
+  //   {id: '3', title: "I can't find Refresher's Online Registration.", text: "For the meantime, our Refresher course are being done On-site, you can reach out to your Regional Coordinator for more. ."},
+  // ]
 
-  const progFaq = [
-    {id: '1', title: "Can I attend Executive Class Online?", text: "No, you can only sign up online and attend classes On-site"},
-    {id: '2', title: "I have paid but want to postpone my course online.", text: "To postpone your course after payment, you must send a mail to info@rccgsod.com explaining reasons and your details."},
-    {id: '3', title: "I am unable to download my Manual", text: "Yes, manuals are released at the end of each year (month) through your dashboard, you also have the option of paying ahead"},
-    {id: '4', title: "How do I download my certificate?", text: "Students certificate are always available after completion of course via the dashboard."},
-  ]
+  // const progFaq = [
+  //   {id: '1', title: "Can I attend Executive Class Online?", text: "No, you can only sign up online and attend classes On-site"},
+  //   {id: '2', title: "I have paid but want to postpone my course online.", text: "To postpone your course after payment, you must send a mail to info@rccgsod.com explaining reasons and your details."},
+  //   {id: '3', title: "I am unable to download my Manual", text: "Yes, manuals are released at the end of each year (month) through your dashboard, you also have the option of paying ahead"},
+  //   {id: '4', title: "How do I download my certificate?", text: "Students certificate are always available after completion of course via the dashboard."},
+  // ]
 
   useEffect(() => {
     if (paid === "true") {
@@ -137,7 +137,7 @@ const Home = () => {
         <Itinerary icon={<IoLogoReact />} title="Online Lectures" text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way"/>
       </div>
       </section>
-      <section className="p-8 bg-[#f8f8f8]">
+      {/* <section className="p-8 bg-[#f8f8f8]">
         <article className="text-center">
           <h1 className="font-medium text-[#333] text-3xl md:text-4xl">Frequently Asked Questions</h1>
         </article>
@@ -159,7 +159,7 @@ const Home = () => {
           <ControlledAccordions items={progFaq} />
           </div>
         </div>
-      </section>
+      </section> */}
       <ParallaxSection backgroundImage="https://images.unsplash.com/photo-1634951401794-6c84f593db82?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
         <div className="absolute md:right-32 p-12 bg-[#121921] text-white max-w-sm">
           <article className="space-y-2">
