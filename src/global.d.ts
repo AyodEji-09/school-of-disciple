@@ -17,3 +17,40 @@ type ApiResponseN<T> = {
     data?: T;
     message: string;
 };
+
+type User = {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phone: string;
+    departmentCode: string;
+    admissionYear: number;
+    matricNumber: string;
+    paymentStatus: string
+    avatar: avatarObject;
+    emailVerified: boolean;
+    type: string;
+    address: string;
+    description: string;
+    age: string;
+    birthday: Date;
+    gender: string;
+    status: string;
+    loginLast: Date;
+    deactivated: boolean;
+    admin: boolean;
+}
+
+interface avatarObject {
+    publicId: string;
+    url: string;
+}
+
+type ApiError = {
+    response?: {
+        data: { message: string };
+    };
+    message: string;
+};

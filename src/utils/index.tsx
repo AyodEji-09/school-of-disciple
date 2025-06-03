@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export const handleError = (error: unknown): string => {
   const err = error as ApiError;
   if (err.response) {
@@ -5,4 +7,28 @@ export const handleError = (error: unknown): string => {
   } else {
     return err.message;
   }
+};
+
+export const getUserFullName = (user?: User) => {
+  if (user) {
+    const firstName = user.firstName;
+    const lastName = user.lastName;
+
+    return firstName + " " + lastName;
+  }
+  return "";
+};
+
+export const uploadAvatar = async (photo: File) => {
+  const res = await axios.post(
+    "/file",
+    { mic: photo, type: "image" },
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  console.log({ res });
+  return res;
 };

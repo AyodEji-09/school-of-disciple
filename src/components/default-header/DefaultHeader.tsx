@@ -1,0 +1,147 @@
+import {
+  Avatar,
+  Box,
+  Container,
+  Drawer,
+  Dropdown,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  Menu,
+  MenuButton,
+  Stack,
+} from "@mui/joy";
+import Profile from "../profile/Profile";
+import { useLocation, useNavigate } from "react-router-dom";
+import Brand from "../brand/brand";
+import { useState } from "react";
+import MenuIcon from "@mui/icons-material/Menu";
+
+const DefaultHeader = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [open, setOpen] = useState(false);
+  const toggleDrawer =
+    (inOpen: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
+      if (
+        event.type === "keydown" &&
+        ((event as React.KeyboardEvent).key === "Tab" ||
+          (event as React.KeyboardEvent).key === "Shift")
+      ) {
+        return;
+      }
+
+      setOpen(inOpen);
+    };
+
+  const routes = [
+    {
+      id: 1,
+      name: "home",
+      url: "/home",
+      role: ["facilityManager", "company"],
+    },
+    { id: 2, name: "estates", url: "/estates", role: ["company"] },
+    {
+      id: 3,
+      name: "wallet",
+      url: "/wallet",
+      role: ["facilityManager", "company"],
+    },
+    {
+      id: 4,
+      name: "payment Request",
+      url: "/payment-request",
+      role: ["facilityManager", "company"],
+    },
+    {
+      id: 5,
+      name: "chat",
+      url: "/chat",
+      role: ["facilityManager", "company"],
+    },
+  ];
+
+  return (
+    <Box component={"nav"} bgcolor={"white"} mb={4}>
+      <Container>
+        <Stack
+          direction={"row"}
+          justifyContent={"space-between"}
+          alignItems={"center"}
+          gap={2}
+          py={2}
+        >
+          <div className="hidden md:block"></div>
+          <div className="md:hidden">
+            <IconButton
+              sx={{
+                color: "white",
+                borderRadius: "25px",
+                border: "none",
+                background: "#001EC5",
+              }}
+              onClick={toggleDrawer(true)}
+            >
+              <MenuIcon />
+            </IconButton>
+          </div>
+          <div className="hidden md:flex gap-4">
+            {routes.map((route) => (
+              <button
+                key={route.id}
+                className={`border border-[#001F54] capitalize rounded-md text-[#001F54] active:bg-[#001EC51A] active:border-transparent h-10 px-4 ${
+                  location.pathname === route.url &&
+                  "bg-[#001EC51A] border-transparent"
+                }`}
+                onClick={() => navigate(route.url)}
+              >
+                {route.name}
+              </button>
+            ))}
+          </div>
+          <Dropdown>
+            <MenuButton
+              sx={{ border: "none", ":hover": { background: "none" } }}
+            >
+              <Avatar src="" size="sm" />
+            </MenuButton>
+            <Menu
+              //   sx={{ minWidth: 160, '--ListItemDecorator-size': '24px' }}
+              sx={{
+                "--List-padding": "0.5rem",
+                "--ListItemDecorator-size": "3rem",
+                background: "#F4F5F7",
+                maxWidth: 400,
+              }}
+            >
+              <Profile />
+            </Menu>
+          </Dropdown>
+        </Stack>
+      </Container>
+      <Drawer open={open} onClose={toggleDrawer(false)}>
+        <Box role="presentation" sx={{ background: "white" }} height={"100vh"}>
+          <Box padding={2}>
+            <Brand type="img" />
+          </Box>
+          <List>
+            {routes.map((route) => (
+              <ListItem
+                key={route.id}
+                onClick={() => navigate(route.url)}
+                onKeyDown={toggleDrawer(false)}
+              >
+                <ListItemButton>{route.name}</ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
+    </Box>
+  );
+};
+
+export default DefaultHeader;
