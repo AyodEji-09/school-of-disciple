@@ -12,8 +12,8 @@ export const SetAuthToken = (token: string) => {
     }
 };
 
-export const useURL = import.meta.env.VITE_BASE_URL;
-// export const useURL = "http://localhost:8080/api/v1"
+// export const useURL = import.meta.env.VITE_BASE_URL;
+export const useURL = "http://localhost:8080/api/v1"
 // import.meta.env.NODE_ENV === "development"
 //   ? "http://localhost:8080"
 //   : import.meta.env.VITE_BASE_URL;

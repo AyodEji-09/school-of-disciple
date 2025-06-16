@@ -11,10 +11,11 @@ import AppModal from "../components/modal/modal";
 import { useAppDispatch } from "../data/hooks";
 import { login } from "../data/reducers/userSlice";
 import Input from "../components/input/input.component";
+import OtpComponent from "../components/otp-component/OtpComponent";
 
 interface FormType {
   password: string;
-  username: string;
+  email: string;
 }
 
 const Login = () => {
@@ -38,14 +39,15 @@ const Login = () => {
     getValues,
   } = useForm({
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
   const requestEmailVerification = async () => {
-    const res = await axios.post("/auth/request-email-verification", {
-      email: getValues().username,
+    const res = await axios.post("/auth/request-token", {
+      email: getValues().email,
+      type:"verifyEmail"
     });
     return res;
   };
@@ -74,6 +76,12 @@ const Login = () => {
       navigate("/login");
     } catch (error) {
       console.log({ error });
+      if (
+        (axios.isAxiosError(error) && error.response?.data?.message) ===
+        "Your account has not been activated, Kindly verify your mail to activate your account"
+      ) {
+        return toggleModal;
+      }
       toast.error(handleError(error));
     }
     setLoading(false);
@@ -107,14 +115,11 @@ const Login = () => {
     <UseBox img="login-bg.png">
       <Stack mt={8}>
         <Typography level="h2">Login</Typography>
-        <form
-          className="mt-10"
-          onSubmit={handleSubmit(() => navigate("/dashboard"))}
-        >
+        <form className="mt-10" onSubmit={handleSubmit(onsubmit)}>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <Controller
-                name="username"
+                name="email"
                 control={control}
                 rules={{
                   required: "This field is required",
@@ -131,9 +136,9 @@ const Login = () => {
                   />
                 )}
               />
-              {errors.username && (
+              {errors.email && (
                 <p className="text-[#dc2626] text-xs">
-                  {errors.username.message}
+                  {errors.email.message}
                 </p>
               )}
             </div>
@@ -196,20 +201,13 @@ const Login = () => {
         </Typography>
       </Stack>
       <AppModal isOpen={isOpen} close={toggleModal}>
-        {/* <Box>
+        <Box>
           <Typography level="title-sm" textColor={"#000C51"}>
             beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia
             voluptas sit aspernatu
           </Typography>
           <Box marginTop={4} className="w-fit mx-auto">
-            <OtpComponent
-              stateData={code}
-              textChange={handleOtpChange}
-              css="borderColor"
-              loading={loading}
-              numInputs={4}
-              separator={""}
-            />
+            <OtpComponent onChange={handleOtpChange} loading={loading} />
             <p className="text-xs text-center font-semibold mt-2">
               Didn’t get the Code?{" "}
               <span
@@ -231,7 +229,7 @@ const Login = () => {
               Verify
             </AppButton>
           </Box>
-        </Box> */}
+        </Box>
       </AppModal>
     </UseBox>
   );

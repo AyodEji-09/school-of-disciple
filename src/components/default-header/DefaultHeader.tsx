@@ -39,27 +39,15 @@ const DefaultHeader = () => {
   const routes = [
     {
       id: 1,
-      name: "home",
-      url: "/home",
+      name: "Dashboard",
+      url: "/dashboard",
       role: ["facilityManager", "company"],
     },
-    { id: 2, name: "estates", url: "/estates", role: ["company"] },
+    { id: 2, name: "centers", url: "/manage-centers", role: ["company"] },
     {
       id: 3,
-      name: "wallet",
-      url: "/wallet",
-      role: ["facilityManager", "company"],
-    },
-    {
-      id: 4,
-      name: "payment Request",
-      url: "/payment-request",
-      role: ["facilityManager", "company"],
-    },
-    {
-      id: 5,
-      name: "chat",
-      url: "/chat",
+      name: "Payments",
+      url: "/payments",
       role: ["facilityManager", "company"],
     },
   ];

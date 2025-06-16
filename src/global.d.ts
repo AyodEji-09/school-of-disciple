@@ -54,3 +54,10 @@ type ApiError = {
     };
     message: string;
 };
+
+type Center = {
+    _id: string;
+    name: string;
+    address: string,
+    manager: User
+}

@@ -98,7 +98,7 @@ const Profile = () => {
               </Stack>
               <Stack direction={"row"} gap={4} paddingY={2}>
                 <Typography level="body-sm" textColor={"common.black"}>
-                  Company Address
+                  Address
                 </Typography>
                 <Typography level="title-sm" fontWeight={"bold"}>
                   {user?.address}

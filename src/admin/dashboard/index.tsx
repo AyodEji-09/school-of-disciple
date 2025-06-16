@@ -23,7 +23,7 @@ const Dashboard = () => {
         <div className="w-fit ml-auto flex gap-4 flex-wrap">
           <AppButton
             variant="outlined"
-            onClick={() => {}}
+            onClick={() => navigate('/manage-centers')}
           >
             Add Center
           </AppButton>
@@ -44,7 +44,6 @@ const Dashboard = () => {
 export default Dashboard;
 
 const FacilityManagerTable = () => {
-  const location = useLocation();
   const navigate = useNavigate();
 
   return (

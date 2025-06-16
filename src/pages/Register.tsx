@@ -6,16 +6,19 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { handleError } from "../utils";
 import Hero from "../components/hero/Hero";
+import { Option, Select } from "@mui/joy";
+import { useGetAllCenterQuery } from "../data/rtk/center";
 type Form = {
   firstName: string;
   lastName: string;
   email: string;
-  gender: string;
   phone: string;
-  address: string;
+  centerId: string;
+  password: string;
 };
 const Register = () => {
   const [loading, setLoading] = useState(false);
+  const { data: centers } = useGetAllCenterQuery();
   const {
     control,
     handleSubmit,
@@ -25,10 +28,9 @@ const Register = () => {
       firstName: "",
       lastName: "",
       email: "",
-      gender: "",
       phone: "",
-      admissionYear: "",
-      address: "",
+      centerId: "",
+      password: "",
     },
   });
   const onSubmit = async (data: Form) => {
@@ -46,10 +48,13 @@ const Register = () => {
   };
   return (
     <div>
-      <Hero title="Register for School of Disciples" subtitle="Kindly complete your registration and make payment for SOD" />
+      <Hero
+        title="Register for School of Disciples"
+        subtitle="Kindly complete your registration and make payment for SOD"
+      />
       <div className="container mx-auto py-16">
-        <form onSubmit={handleSubmit(onSubmit)} className="max-w-xl mx-aut">
-          <div className="grid gap-4 grid-cols-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="max-w-lg mx-auto">
+          <div className="grid gap-4">
             <div>
               <Controller
                 name="firstName"
@@ -127,85 +132,49 @@ const Register = () => {
               )}
             </div>
             <div>
+              <label htmlFor="">Center</label>
               <Controller
-                name="gender"
+                name="centerId"
                 control={control}
                 rules={{
-                  required: "This field is required",
+                  required: true,
                 }}
-                render={({ field: { value, onChange } }) => (
-                  <label className="text-header flex flex-col gap-1">
-                    Gender
-                    <select
-                      value={value}
-                      onChange={onChange}
-                      className="rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none placeholder:text-sm placeholder:text-[#C9C9C9]"
-                    >
-                      <option value=""></option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                    </select>
-                  </label>
+                render={({ field: { onChange } }) => (
+                  <Select
+                    onChange={(e, value) => onChange(value)}
+                    className="h-12"
+                  >
+                    {centers?.data?.map((item) => (
+                      <Option value={item._id}>{item.name}</Option>
+                    ))}
+                  </Select>
                 )}
               />
-              {errors.gender && (
-                <p className="text-xs text-[#dc2626]">
-                  {errors.gender.message}
+              {errors.centerId && (
+                <p className="text-[#dc2626] text-xs">
+                  This field is required.
                 </p>
               )}
             </div>
             <div>
               <Controller
-                name="admissionYear"
+                name="password"
                 control={control}
                 rules={{
-                  required: "This field is required",
+                  required: true,
                 }}
                 render={({ field: { value, onChange } }) => (
-                  <label className="text-header flex flex-col gap-1">
-                    Year
-                    <select
-                      value={value}
-                      onChange={onChange}
-                      className="rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none placeholder:text-sm placeholder:text-[#C9C9C9]"
-                    >
-                      <option value=""></option>
-                      <option value="2025">2025</option>
-                      <option value="2026">2026</option>
-                    </select>
-                  </label>
+                  <Input
+                    label="Create Password"
+                    type="password"
+                    value={value}
+                    onChange={onChange}
+                  />
                 )}
               />
-              {errors.admissionYear && (
-                <p className="text-xs text-[#dc2626]">{errors.admissionYear.message}</p>
-              )}
-            </div>
-            <div className="col-span-2">
-              <Controller
-                name="address"
-                control={control}
-                rules={{
-                  required: "This field is required",
-                }}
-                render={({ field: { value, onChange } }) => (
-                  <div>
-                    <label className="text-header flex flex-col gap-1">
-                      Address
-                      <textarea
-                        name=""
-                        id=""
-                        rows={5}
-                        value={value}
-                        onChange={onChange}
-                        className="rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none placeholder:text-sm placeholder:text-[#C9C9C9]"
-                      ></textarea>
-                    </label>
-                  </div>
-                )}
-              />
-              {errors.address && (
-                <p className="text-xs text-[#dc2626]">
-                  {errors.address.message}
+              {errors.password && (
+                <p className="text-[#dc2626] text-xs">
+                  This field is required.
                 </p>
               )}
             </div>
@@ -216,6 +185,7 @@ const Register = () => {
               type="submit"
               loading={loading}
               disabled={loading}
+              fullWidth
             >
               Submit
             </Button>

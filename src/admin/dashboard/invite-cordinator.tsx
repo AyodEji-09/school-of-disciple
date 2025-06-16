@@ -1,31 +1,23 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import UseBox from "../../components/usebox/UseBox";
-import { Stack, Typography } from "@mui/joy";
+import { Option, Select, Stack, Typography } from "@mui/joy";
 import AppButton from "../../components/Button/AppButton";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
 import { handleError } from "../../utils";
 import axios from "axios";
 import Input from "../../components/input/input.component";
+import { useGetAllCenterQuery } from "../../data/rtk/center";
 
 interface FormType {
-  firstName: string;
-  lastName: string;
   email: string;
-  phone: string;
+  centerId: string;
 }
 const AddCenterManager = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const defaultValue = {
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-  };
 
-
+  const { data: centers } = useGetAllCenterQuery();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -34,10 +26,8 @@ const AddCenterManager = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      firstName: "",
-      lastName: "",
       email: "",
-      phone: "",
+      centerId: "",
     },
   });
 
@@ -45,7 +35,7 @@ const AddCenterManager = () => {
     console.log({ data });
     setLoading(true);
     try {
-      const res = await axios.post("/auth/invite-facility-manager", data);
+      const res = await axios.post("/admin/invite-coordinator", data);
       console.log({ res });
       toast.success(res.data.message);
       navigate("/");
@@ -59,40 +49,10 @@ const AddCenterManager = () => {
   return (
     <UseBox img="facility-manager.png">
       <Stack mt={6}>
-        <Typography level="h3">Add Center Manager</Typography>
+        <Typography level="h3">Invite Center Manager</Typography>
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8">
         <div className="space-y-4 mt-8">
-          <div>
-            <Controller
-              name="firstName"
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={({ field: { value, onChange } }) => (
-                <Input label="First Name" value={value} onChange={onChange} />
-              )}
-            />
-            {errors.firstName && (
-              <p className="text-[#dc2626] text-xs">This field is required.</p>
-            )}
-          </div>
-          <div>
-            <Controller
-              name="lastName"
-              control={control}
-              rules={{
-                required: true,
-              }}
-              render={({ field: { value, onChange } }) => (
-                <Input label="Last Name" value={value} onChange={onChange} />
-              )}
-            />
-            {errors.lastName && (
-              <p className="text-[#dc2626] text-xs">This field is required.</p>
-            )}
-          </div>
           <div>
             <Controller
               name="email"
@@ -117,30 +77,29 @@ const AddCenterManager = () => {
             )}
           </div>
           <div>
+            <label htmlFor="">Center</label>
             <Controller
-              name="phone"
+              name="centerId"
               control={control}
               rules={{
-                required: { value: true, message: "This field is required" },
-                maxLength: { value: 11, message: "Cannot exceed 11 digits" },
+                required: true,
               }}
-              render={({ field: { value, onChange } }) => (
-                <Input
-                  label="Phone Number"
-                  type="number"
-                  value={value}
-                  onChange={(value) => onChange(value)}
-                />
+              render={({ field: { onChange } }) => (
+                <Select onChange={(e, value) => onChange(value)}>
+                  {centers?.data?.map((item) => (
+                    <Option value={item._id}>{item.name}</Option>
+                  ))}
+                </Select>
               )}
             />
-            {errors.phone && (
-              <p className="text-[#dc2626] text-xs">{errors.phone.message}</p>
+            {errors.centerId && (
+              <p className="text-[#dc2626] text-xs">This field is required.</p>
             )}
           </div>
         </div>
         <Stack marginTop={8}>
           <AppButton loading={loading} disabled={loading}>
-            Add Center Manager
+            Invite
           </AppButton>
         </Stack>
       </form>
