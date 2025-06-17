@@ -22,6 +22,7 @@ import { PrivateRoute } from "./utils/private-route.component";
 import Centers from "./admin/manage-centers/centers";
 import AddCenter from "./admin/manage-centers/add-center";
 import AcceptInvite from "./pages/accept-invite";
+import Payments from "./admin/payments";
 
 SetDefaultHeaders();
 
@@ -46,7 +47,7 @@ const App = () => {
             />
             <Route path="/dashboard/manager" element={<CenterManager />} />
             <Route path="/profile" element={<Login />} />
-            <Route path="/payments" element={<Login />} />
+            <Route path="/payments" element={<Payments />} />
             <Route path="/manage-centers" element={<Centers />} />
             <Route path="/manage-centers/add-center" element={<AddCenter />} />
           </Route>

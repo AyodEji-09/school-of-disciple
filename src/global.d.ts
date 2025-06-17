@@ -7,7 +7,7 @@ type ApiResponse<T> = {
         nextPage: number;
         page: number;
         previousPage: null;
-        totalDocs: number;
+        totalItems: number;
         totalPages: number;
     };
     message: string;
@@ -41,6 +41,7 @@ type User = {
     loginLast: Date;
     deactivated: boolean;
     admin: boolean;
+    center: Center;
 }
 
 interface avatarObject {

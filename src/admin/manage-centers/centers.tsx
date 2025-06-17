@@ -25,6 +25,8 @@ import Input from "../../components/input/input.component";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import { Empty } from "antd";
 import { FaSpinner } from "react-icons/fa6";
+import { useAppSelector } from "../../data/hooks";
+import { selectUser } from "../../data/selectors/authSelector";
 
 interface FormType {
   name: string;
@@ -38,6 +40,7 @@ const Centers = () => {
   const [loading, setLoading] = useState(false);
   const [selectedCenter, setSelectedCenter] = useState<Center | null>();
 
+  const user = useAppSelector(selectUser);
   const {
     data: centerData,
     isLoading,
@@ -48,8 +51,8 @@ const Centers = () => {
 
   const toggleModal = (mode?: string) => {
     if (mode) setMode(mode);
-    console.log({selectedCenter});
-    
+    console.log({ selectedCenter });
+
     // if (!isOpen) setSelectedCenter(null);
     setIsOpen(!isOpen);
   };
@@ -130,14 +133,19 @@ const Centers = () => {
         <ReportCard title="Unassigned centers" number={20} />
         <ReportCard title="Centers" number={20} />
       </div>
-      <Stack py={4}>
-        <div className="w-fit ml-auto flex gap-4 flex-wrap">
-          <AppButton variant="outlined" onClick={() => navigate("add-center")}>
-            Add Center
-          </AppButton>
-        </div>
-      </Stack>
-      <div className="grid gap-4">
+      {user?.type === "admin" && (
+        <Stack pt={4}>
+          <div className="w-fit ml-auto flex gap-4 flex-wrap">
+            <AppButton
+              variant="outlined"
+              onClick={() => navigate("add-center")}
+            >
+              Add Center
+            </AppButton>
+          </div>
+        </Stack>
+      )}
+      <div className="grid gap-4 mt-8">
         <div className="bg-white p-4">
           <Stack
             direction={"row"}
@@ -145,7 +153,7 @@ const Centers = () => {
             alignItems={"center"}
             gap={4}
           >
-            <Typography level="title-lg">Estates</Typography>
+            <Typography level="title-lg">Centers</Typography>
             <AppSearch />
           </Stack>
           <Box
@@ -202,22 +210,6 @@ const Centers = () => {
                             <MoreVert />
                           </MenuButton>
                           <Menu>
-                            {/* <MenuItem
-                              onClick={() => {
-                                setSelectedCenter(center);
-                                toggleModal("unassign");
-                              }}
-                            >
-                              Unassign Manager
-                            </MenuItem>
-                            <MenuItem
-                              onClick={() => {
-                                setSelectedCenter(center);
-                                toggleModal("assign");
-                              }}
-                            >
-                              Assign Manager
-                            </MenuItem> */}
                             <MenuItem
                               onClick={() => {
                                 setSelectedCenter(center);

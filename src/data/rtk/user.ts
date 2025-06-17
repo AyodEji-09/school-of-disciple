@@ -12,10 +12,10 @@ export const userApi = createApi({
   endpoints: (builder) => ({
     getUsers: builder.query<
       ApiResponse<User>,
-      { type: string; limit?: number; search?: string; page?: number | null, tribe?: string, tent?: string }
+      { type: string; limit?: number; search?: string; page?: number | null, center?: string }
     >({
-      query: ({ type, tribe, tent, limit = 20, search, page = 1 }) =>
-        `/user/all?type=${type}&page=${page}&limit=${limit}&tent=${tent}&tribe=${tribe}${search
+      query: ({ type, center, limit = 20, search, page = 1 }) =>
+        `/user/all?type=${type}&center=${center}&page=${page}&limit=${limit}${search
           ? `&search=${search}&searchFields=firstName,lastName` : ''}`,
     }),
     getUser: builder.query<

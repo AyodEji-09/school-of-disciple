@@ -17,10 +17,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Brand from "../brand/brand";
 import { useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
+import { useAppSelector } from "../../data/hooks";
+import { selectUser } from "../../data/selectors/authSelector";
 
 const DefaultHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const user = useAppSelector(selectUser);
 
   const [open, setOpen] = useState(false);
   const toggleDrawer =
@@ -41,14 +44,14 @@ const DefaultHeader = () => {
       id: 1,
       name: "Dashboard",
       url: "/dashboard",
-      role: ["facilityManager", "company"],
+      role: ["admin", "coordinator"],
     },
-    { id: 2, name: "centers", url: "/manage-centers", role: ["company"] },
+    { id: 2, name: "centers", url: "/manage-centers", role: ["admin"] },
     {
       id: 3,
       name: "Payments",
       url: "/payments",
-      role: ["facilityManager", "company"],
+      role: ["admin", "coordinator"],
     },
   ];
 
@@ -77,18 +80,20 @@ const DefaultHeader = () => {
             </IconButton>
           </div>
           <div className="hidden md:flex gap-4">
-            {routes.map((route) => (
-              <button
-                key={route.id}
-                className={`border border-[#001F54] capitalize rounded-md text-[#001F54] active:bg-[#001EC51A] active:border-transparent h-10 px-4 ${
-                  location.pathname === route.url &&
-                  "bg-[#001EC51A] border-transparent"
-                }`}
-                onClick={() => navigate(route.url)}
-              >
-                {route.name}
-              </button>
-            ))}
+            {routes
+              .filter((route) => route.role.includes(user!.type))
+              .map((route) => (
+                <button
+                  key={route.id}
+                  className={`border border-[#001F54] capitalize rounded-md text-[#001F54] active:bg-[#001EC51A] active:border-transparent h-10 px-4 ${
+                    location.pathname === route.url &&
+                    "bg-[#001EC51A] border-transparent"
+                  }`}
+                  onClick={() => navigate(route.url)}
+                >
+                  {route.name}
+                </button>
+              ))}
           </div>
           <Dropdown>
             <MenuButton
