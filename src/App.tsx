@@ -45,7 +45,7 @@ const App = () => {
               path="/dashboard/add-manager"
               element={<AddCenterManager />}
             />
-            <Route path="/dashboard/manager" element={<CenterManager />} />
+            <Route path="/dashboard/manager/:id" element={<CenterManager />} />
             <Route path="/profile" element={<Login />} />
             <Route path="/payments" element={<Payments />} />
             <Route path="/manage-centers" element={<Centers />} />

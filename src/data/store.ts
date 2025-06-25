@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { userApi } from "./rtk/user";
 import rootReducer from "./root-reducer";
 import { centerApi } from "./rtk/center";
+import { paymentApi } from "./rtk/payment";
 
 const store = configureStore({
   reducer: rootReducer,
@@ -9,6 +10,7 @@ const store = configureStore({
     getDefaultMiddleware()
       .concat(userApi.middleware)
       .concat(centerApi.middleware)
+      .concat(paymentApi.middleware)
 });
 
 export type RootState = ReturnType<typeof store.getState>;

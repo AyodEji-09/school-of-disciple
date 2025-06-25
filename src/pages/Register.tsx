@@ -37,7 +37,7 @@ const Register = () => {
     console.log(data);
     setLoading(true);
     try {
-      const res = await axios.post<ApiResponseN<null>>("/auth/signup", data);
+      const res = await axios.post<ApiResponseN<null>>("/auth/register", data);
       toast.success(res.data.message);
     } catch (error) {
       console.log({ error });
@@ -136,17 +136,21 @@ const Register = () => {
               <Controller
                 name="centerId"
                 control={control}
-                rules={{
-                  required: true,
-                }}
+                // rules={{
+                //   required: true,
+                // }}
                 render={({ field: { onChange } }) => (
                   <Select
-                    onChange={(e, value) => onChange(value)}
+                    onChange={(_, value) => onChange(value)}
                     className="h-12"
                   >
-                    {centers?.data?.map((item) => (
-                      <Option value={item._id}>{item.name}</Option>
-                    ))}
+                    {centers?.data.docs.length ? (
+                      centers?.data?.docs?.map((item) => (
+                        <Option value={item._id}>{item.name}</Option>
+                      ))
+                    ) : (
+                      <Option value={"mm"}>No Data</Option>
+                    )}
                   </Select>
                 )}
               />

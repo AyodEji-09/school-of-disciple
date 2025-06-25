@@ -14,7 +14,7 @@ const UseBox = ({
           <div className="max-w-lg mx-auto p-4 md:p-12">{children}</div>
         </div>
         <div className="overflow-hidden h-screen hidden md:block">
-          <img src={`/images/${img}`} alt="" className="w-full object-cover" />
+          <img src={`/images/${img}`} alt="" className="w-full h-full object-cover object-center" />
         </div>
       </div>
     </Box>

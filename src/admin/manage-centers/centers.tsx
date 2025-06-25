@@ -24,9 +24,10 @@ import AvatarText from "../../components/avatar-text/AvatarText";
 import Input from "../../components/input/input.component";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import { Empty } from "antd";
-import { FaSpinner } from "react-icons/fa6";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
+import { PulseLoader } from "react-spinners";
+import { useGetUsersQuery } from "../../data/rtk/user";
 
 interface FormType {
   name: string;
@@ -47,6 +48,7 @@ const Centers = () => {
     isFetching,
     refetch: refetchCenters,
   } = useGetCentersQuery({ limit: 20, page: 1 });
+  const { data: coordinators } = useGetUsersQuery({ type: "coordinator" });
   console.log({ centerData });
 
   const toggleModal = (mode?: string) => {
@@ -57,11 +59,12 @@ const Centers = () => {
     setIsOpen(!isOpen);
   };
 
-  const deleteEstate = async () => {
+  const deleteCenter = async () => {
     setLoading(true);
     try {
-      const res = await axios.delete(`/estate`);
+      const res = await axios.delete(`/center/${selectedCenter?._id}`);
       console.log({ res });
+      refetchCenters();
       setMode("deleted");
       toast.success(res.data.message);
     } catch (error) {
@@ -129,9 +132,21 @@ const Centers = () => {
   return (
     <Frame text="Centers">
       <div className="grid sm:grid-cols-3 gap-4 mt-8">
-        <ReportCard title="Center coordinator" number={20} />
-        <ReportCard title="Unassigned centers" number={20} />
-        <ReportCard title="Centers" number={20} />
+        <ReportCard
+          title="Center coordinator"
+          number={coordinators?.data.totalItems || "0"}
+        />
+        <ReportCard
+          title="Unassigned centers"
+          number={
+            (centerData?.data.totalItems || 0) -
+            (coordinators?.data.totalItems || 0)
+          }
+        />
+        <ReportCard
+          title="Centers"
+          number={centerData?.data.totalItems || "0"}
+        />
       </div>
       {user?.type === "admin" && (
         <Stack pt={4}>
@@ -182,7 +197,7 @@ const Centers = () => {
                 {isLoading || isFetching ? (
                   <td colSpan={7}>
                     <div className="flex min-h-96 items-center justify-center">
-                      <FaSpinner className="mx-auto" size="large" />
+                      <PulseLoader className="mx-auto" size="large" />
                     </div>
                   </td>
                 ) : centerData?.data?.docs?.length ? (
@@ -351,17 +366,17 @@ const Centers = () => {
           <Box maxWidth={400}>
             <div className="flex justify-center">{/* <TrashIcon /> */}</div>
             <Typography level="h2" textAlign={"center"} mb={2}>
-              Delete Property?
+              Delete Center?
             </Typography>
             <Typography level="body-md" textAlign={"center"} mb={2}>
-              You are about to this center
+              You are about to delete this center
             </Typography>
             <Typography level="body-md" textAlign={"center"} mb={2}>
               Do you want to proceed with this action?
             </Typography>
             <Stack mt={4}>
               <AppButton
-                onClick={() => deleteEstate}
+                onClick={() => deleteCenter()}
                 loading={loading}
                 disabled={loading}
               >
@@ -377,7 +392,7 @@ const Centers = () => {
           <Box maxWidth={400}>
             <div className="flex justify-center">{/* <TrashIcon /> */}</div>
             <Typography level="h2" textAlign={"center"} mb={2}>
-              Property Deleted
+              Center Deleted
             </Typography>
             <Typography level="body-md" textAlign={"center"} mb={2}>
               Center has been deleted successfully.

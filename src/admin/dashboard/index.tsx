@@ -23,11 +23,15 @@ const Dashboard = () => {
   return (
     <Frame text={`Welcome ${user ? getUserFullName(user) : ""}`}>
       <div className="grid sm:grid-cols-3 gap-4 mt-8">
-        <ReportCard
-          number={coordinators?.data?.totalItems || 0}
-          title="Center Coordinators"
-        />
-        <ReportCard number={centers?.data?.totalItems || 0} title="Centers" />
+        {user?.type === "admin" && (
+          <ReportCard
+            number={coordinators?.data?.totalItems || 0}
+            title="Center Coordinators"
+          />
+        )}
+        {user?.type === "admin" && (
+          <ReportCard number={centers?.data?.totalItems || 0} title="Centers" />
+        )}
         <ReportCard title="Students" number={students?.data?.totalItems || 0} />
       </div>
       {user?.type === "admin" && (
@@ -118,7 +122,7 @@ const CenterCoordinatorTable = () => {
                     <td className="px-6 py-4">{coordinator.center.name}</td>
                     <td className="px-6 py-4">{coordinator.email}</td>
                     <td className="px-6 py-4">
-                      <AppButton onClick={() => navigate("/dashboard/manager")}>
+                      <AppButton onClick={() => navigate(`/dashboard/manager/${coordinator._id}`)}>
                         View
                       </AppButton>
                     </td>
@@ -226,7 +230,7 @@ const StudentsTable = () => {
                       <AvatarText text={getUserFullName(student)} />
                     </td>
                     <td className="px-6 py-4">{student?.address}</td>
-                    <td className="px-6 py-4">{student.center.name}</td>
+                    <td className="px-6 py-4">{student?.center?.name}</td>
                   </tr>
                 ))
               ) : (

@@ -19,7 +19,7 @@ export const centerApi = createApi({
                     ? `&search=${search}&searchFields=name,address` : ''}`,
         }),
         getAllCenter: builder.query<
-            ApiResponseN<Center[]>,
+            ApiResponse<Center>,
             void
         >({
             query: () => `/center`,

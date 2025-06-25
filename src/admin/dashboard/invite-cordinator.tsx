@@ -18,6 +18,8 @@ const AddCenterManager = () => {
   const navigate = useNavigate();
 
   const { data: centers } = useGetAllCenterQuery();
+  console.log({centers});
+  
   const [loading, setLoading] = useState(false);
 
   const {
@@ -47,7 +49,7 @@ const AddCenterManager = () => {
     }
   };
   return (
-    <UseBox img="facility-manager.png">
+    <UseBox>
       <Stack mt={6}>
         <Typography level="h3">Invite Center Manager</Typography>
       </Stack>
@@ -86,7 +88,7 @@ const AddCenterManager = () => {
               }}
               render={({ field: { onChange } }) => (
                 <Select onChange={(e, value) => onChange(value)}>
-                  {centers?.data?.map((item) => (
+                  {centers?.data?.docs?.map((item) => (
                     <Option value={item._id}>{item.name}</Option>
                   ))}
                 </Select>

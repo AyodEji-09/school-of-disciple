@@ -42,6 +42,7 @@ type User = {
     deactivated: boolean;
     admin: boolean;
     center: Center;
+    createdAt: Date;
 }
 
 interface avatarObject {
@@ -61,4 +62,14 @@ type Center = {
     name: string;
     address: string,
     manager: User
+}
+
+type Payment = {
+    _id: string;
+    studentId: string;
+    stripeSessionId: string;
+    amount: number;
+    status: string;
+    paidAt: Date;
+    createdAt: Date
 }

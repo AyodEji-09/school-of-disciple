@@ -13,9 +13,10 @@ interface FormType {
   name: string;
   address: string;
 }
+
 const AddCenter = () => {
   const navigate = useNavigate();
-  const [, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const {
     control,
     handleSubmit,
@@ -26,7 +27,6 @@ const AddCenter = () => {
       address: "",
     },
   });
-  
 
   const onSubmit = async (data: FormType) => {
     console.log({ data });
@@ -62,7 +62,7 @@ const AddCenter = () => {
                   }}
                   render={({ field: { value, onChange } }) => (
                     <Input
-                      label="Estate Name"
+                      label="Center Name"
                       value={value}
                       onChange={onChange}
                     />
@@ -83,7 +83,7 @@ const AddCenter = () => {
                   }}
                   render={({ field: { value, onChange } }) => (
                     <Input
-                      label="Estate Address"
+                      label="Center Address"
                       value={value}
                       onChange={onChange}
                     />
@@ -99,7 +99,9 @@ const AddCenter = () => {
           </Stack>
         </div>
         <Stack marginTop={8}>
-          <AppButton>Add Center</AppButton>
+          <AppButton loading={loading} disabled={loading}>
+            Add Center
+          </AppButton>
         </Stack>
       </form>
     </UseBox>

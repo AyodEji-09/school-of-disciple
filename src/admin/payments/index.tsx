@@ -2,12 +2,19 @@ import { useState } from "react";
 import Frame from "../../components/frame/Frame";
 import { Box, Card, Typography } from "@mui/joy";
 import AppModal from "../../components/modal/modal";
+import { useGetPaymentsQuery } from "../../data/rtk/payment";
+import { PulseLoader } from "react-spinners";
+import { Empty } from "antd";
+import moment from "moment";
+import { useSelector } from "react-redux";
+import { selectUser } from "../../data/selectors/authSelector";
 
 const Payments = () => {
   const [isOpen, setIsOpen] = useState(false);
   const toggleModal = () => {
     setIsOpen(!isOpen);
   };
+
   return (
     <Frame text="Payments">
       {/* <Card variant="outlined">
@@ -53,6 +60,13 @@ const Payments = () => {
 export default Payments;
 
 const TransactionTable = () => {
+  const user = useSelector(selectUser);
+  const {
+    data: payments,
+    isLoading,
+    isFetching,
+  } = useGetPaymentsQuery({ limit: 20, center: user?.center?._id ?? ""});
+  console.log({ payments });
   return (
     <div>
       <Box
@@ -78,12 +92,30 @@ const TransactionTable = () => {
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b font-medium">
-              <td className="px-6 py-4 whitespace-nowrap">DD MMM YYYY</td>
-              <td className="px-6 py-4">{"reference"}</td>
-              <td className="px-6 py-4">{"amount"}</td>
-              <td className="px-6 py-4">{"status"}</td>
-            </tr>
+            {isLoading || isFetching ? (
+              <td colSpan={7}>
+                <div className="flex min-h-96 items-center justify-center">
+                  <PulseLoader className="mx-auto" size="large" />
+                </div>
+              </td>
+            ) : payments?.data?.docs?.length ? (
+              payments?.data.docs.map((payment) => (
+                <tr className="border-b font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {moment(payment.createdAt).format("DDD MMM YYYY")}
+                  </td>
+                  <td className="px-6 py-4">{payment._id}</td>
+                  <td className="px-6 py-4">{payment.amount}</td>
+                  <td className="px-6 py-4">{payment.status}</td>
+                </tr>
+              ))
+            ) : (
+              <td colSpan={7}>
+                <div className="flex min-h-96 items-center justify-center">
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                </div>
+              </td>
+            )}
           </tbody>
         </table>
       </Box>

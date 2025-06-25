@@ -28,8 +28,8 @@ const Payment = () => {
     if (token) {
       makePayment();
     }
-  });
-  return <div></div>;
+  },[token]);
+  return <div className="min-h-screen"></div>;
 };
 
 export default Payment;
