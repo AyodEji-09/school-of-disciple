@@ -75,7 +75,7 @@ const AddCenterManager = () => {
               )}
             />
             {errors.email && (
-              <p className="text-[#dc2626] text-xs">{errors.email.message}</p>
+              <p className="text-[#dc2626] text-xs">{errors?.email?.message}</p>
             )}
           </div>
           <div>
@@ -89,7 +89,7 @@ const AddCenterManager = () => {
               render={({ field: { onChange } }) => (
                 <Select onChange={(e, value) => onChange(value)}>
                   {centers?.data?.docs?.map((item) => (
-                    <Option value={item._id}>{item.name}</Option>
+                    <Option value={item?._id}>{item?.name}</Option>
                   ))}
                 </Select>
               )}
