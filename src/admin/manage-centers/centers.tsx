@@ -201,16 +201,16 @@ const Centers = () => {
                     </div>
                   </td>
                 ) : centerData?.data?.docs?.length ? (
-                  centerData?.data.docs.map((center) => (
+                  centerData?.data?.docs?.map((center) => (
                     <tr className="border-b font-medium">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <AvatarText text={center.name} />
+                        <AvatarText text={center?.name} />
                       </td>
-                      <td className="px-6 py-4">{center.address}</td>
+                      <td className="px-6 py-4">{center?.address}</td>
                       <td className="px-6 py-4">
                         <span className="text-center">
                           {center?.manager
-                            ? getUserFullName(center.manager)
+                            ? getUserFullName(center?.manager)
                             : "Nil"}
                         </span>
                       </td>
