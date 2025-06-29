@@ -124,8 +124,8 @@ const Centers = () => {
 
   useEffect(() => {
     if (selectedCenter) {
-      setValue("name", selectedCenter.name);
-      setValue("address", selectedCenter.address);
+      setValue("name", selectedCenter?.name);
+      setValue("address", selectedCenter?.address);
     }
   }, [selectedCenter]);
 
@@ -134,18 +134,18 @@ const Centers = () => {
       <div className="grid sm:grid-cols-3 gap-4 mt-8">
         <ReportCard
           title="Center coordinator"
-          number={coordinators?.data.totalItems || "0"}
+          number={coordinators?.data?.totalItems || "0"}
         />
         <ReportCard
           title="Unassigned centers"
           number={
-            (centerData?.data.totalItems || 0) -
-            (coordinators?.data.totalItems || 0)
+            (centerData?.data?.totalItems || 0) -
+            (coordinators?.data?.totalItems || 0)
           }
         />
         <ReportCard
           title="Centers"
-          number={centerData?.data.totalItems || "0"}
+          number={centerData?.data?.totalItems || "0"}
         />
       </div>
       {user?.type === "admin" && (
