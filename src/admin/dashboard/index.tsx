@@ -118,9 +118,9 @@ const CenterCoordinatorTable = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <AvatarText text={getUserFullName(coordinator)} />
                     </td>
-                    <td className="px-6 py-4">{coordinator.phone}</td>
-                    <td className="px-6 py-4">{coordinator.center.name}</td>
-                    <td className="px-6 py-4">{coordinator.email}</td>
+                    <td className="px-6 py-4">{coordinator?.phone}</td>
+                    <td className="px-6 py-4">{coordinator?.center?.name}</td>
+                    <td className="px-6 py-4">{coordinator?.email}</td>
                     <td className="px-6 py-4">
                       <AppButton onClick={() => navigate(`/dashboard/manager/${coordinator._id}`)}>
                         View
