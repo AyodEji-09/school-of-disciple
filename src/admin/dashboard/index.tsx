@@ -113,7 +113,7 @@ const CenterCoordinatorTable = () => {
               {isLoading || isFetching ? (
                 <tr></tr>
               ) : coordinators?.data?.docs?.length ? (
-                coordinators?.data.docs.map((coordinator, idx) => (
+                coordinators?.data?.docs?.map((coordinator, idx) => (
                   <tr className="border-b font-medium" key={idx}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <AvatarText text={getUserFullName(coordinator)} />
@@ -224,7 +224,7 @@ const StudentsTable = () => {
                   </td>
                 </tr>
               ) : students?.data?.docs?.length ? (
-                students?.data.docs.map((student, idx) => (
+                students?.data?.docs?.map((student, idx) => (
                   <tr className="border-b font-medium" key={idx}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <AvatarText text={getUserFullName(student)} />

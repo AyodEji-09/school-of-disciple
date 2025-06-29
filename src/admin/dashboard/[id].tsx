@@ -21,8 +21,8 @@ const CenterManager = () => {
           </div>
           <div className="p-4 space-y-4">
             <Details title="Name" text={getUserFullName(user?.data)} />
-            <Details title="Email address" text={user?.data.email ?? ""} />
-            <Details title="Phone number" text={user?.data.phone ?? ""} />
+            <Details title="Email address" text={user?.data?.email ?? ""} />
+            <Details title="Phone number" text={user?.data?.phone ?? ""} />
             <Details title="Date added" text={moment(user?.data?.createdAt).format("DD MMM YYYY")} />
           </div>
         </div>
