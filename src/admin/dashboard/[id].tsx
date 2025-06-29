@@ -23,7 +23,7 @@ const CenterManager = () => {
             <Details title="Name" text={getUserFullName(user?.data)} />
             <Details title="Email address" text={user?.data.email ?? ""} />
             <Details title="Phone number" text={user?.data.phone ?? ""} />
-            <Details title="Date added" text={moment(user?.data.createdAt).format("DD MMM YYYY")} />
+            <Details title="Date added" text={moment(user?.data?.createdAt).format("DD MMM YYYY")} />
           </div>
         </div>
         <div className="md:col-span-2 bg-white p-4">
@@ -49,9 +49,9 @@ const CenterManager = () => {
               <tbody>
                 <tr className="font-medium">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <AvatarText text={user?.data.center.name ?? ""} />
+                    <AvatarText text={user?.data?.center?.name ?? ""} />
                   </td>
-                  <td className="px-6 py-4">{user?.data.center.address}</td>
+                  <td className="px-6 py-4">{user?.data?.center?.address}</td>
                   <td className="px-6 py-4">
                     <AppButton onClick={() => {}} className="bg-red-700">
                       Unassign
