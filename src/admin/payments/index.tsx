@@ -102,11 +102,11 @@ const TransactionTable = () => {
               payments?.data.docs.map((payment) => (
                 <tr className="border-b font-medium">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {moment(payment.createdAt).format("DDD MMM YYYY")}
+                    {moment(payment?.createdAt).format("DDD MMM YYYY")}
                   </td>
-                  <td className="px-6 py-4">{payment._id}</td>
-                  <td className="px-6 py-4">{payment.amount}</td>
-                  <td className="px-6 py-4">{payment.status}</td>
+                  <td className="px-6 py-4">{payment?._id}</td>
+                  <td className="px-6 py-4">{payment?.amount}</td>
+                  <td className="px-6 py-4">{payment?.status}</td>
                 </tr>
               ))
             ) : (
