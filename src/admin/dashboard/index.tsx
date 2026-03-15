@@ -49,6 +49,12 @@ const Dashboard = () => {
             >
               Add Center Manager
             </AppButton>
+            <AppButton
+              variant="outlined"
+              onClick={() => navigate("/registration")}
+            >
+              Registration Window
+            </AppButton>
           </div>
         </Stack>
       )}
@@ -122,7 +128,11 @@ const CenterCoordinatorTable = () => {
                     <td className="px-6 py-4">{coordinator?.center?.name}</td>
                     <td className="px-6 py-4">{coordinator?.email}</td>
                     <td className="px-6 py-4">
-                      <AppButton onClick={() => navigate(`/dashboard/manager/${coordinator._id}`)}>
+                      <AppButton
+                        onClick={() =>
+                          navigate(`/dashboard/manager/${coordinator._id}`)
+                        }
+                      >
                         View
                       </AppButton>
                     </td>

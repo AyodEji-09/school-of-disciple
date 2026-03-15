@@ -23,6 +23,7 @@ import Centers from "./admin/manage-centers/centers";
 import AddCenter from "./admin/manage-centers/add-center";
 import AcceptInvite from "./pages/accept-invite";
 import Payments from "./admin/payments";
+import RegistrationWindow from "./admin/registration";
 
 SetDefaultHeaders();
 
@@ -50,6 +51,7 @@ const App = () => {
             <Route path="/payments" element={<Payments />} />
             <Route path="/manage-centers" element={<Centers />} />
             <Route path="/manage-centers/add-center" element={<AddCenter />} />
+            <Route path="/registration" element={<RegistrationWindow />} />
           </Route>
           <Route path="/team" element={<Team />} />
           <Route path="/courses" element={<Course />} />

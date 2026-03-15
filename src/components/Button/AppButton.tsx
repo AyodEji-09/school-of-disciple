@@ -1,5 +1,5 @@
 import { CircularProgress } from "@mui/joy";
-import React, { MouseEventHandler, PropsWithChildren } from "react";
+import type { MouseEventHandler, PropsWithChildren } from "react";
 
 type ButtonProps = {
   variant?: "primary" | "outlined" | "plain" | "red" | "link";
@@ -7,6 +7,7 @@ type ButtonProps = {
   className?: string;
   loading?: boolean;
   disabled?: boolean;
+  type?: "button" | "submit" | "reset";
 };
 
 const BUTTON_TYPES = {
@@ -25,9 +26,11 @@ const AppButton = ({
   onClick,
   loading,
   disabled,
+  type = "submit",
 }: PropsWithChildren<ButtonProps>) => {
   return (
     <button
+      type={type}
       className={`h-10 px-8 rounded-md font-semibold whitespace-nowrap ${BUTTON_TYPES[variant]} ${className}`}
       disabled={disabled}
       onClick={onClick}

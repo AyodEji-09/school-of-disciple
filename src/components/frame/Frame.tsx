@@ -1,7 +1,7 @@
 import { Box } from "@mui/joy";
 import DefaultHeader from "../../components/default-header/DefaultHeader";
 import Heading from "../../components/default-header/Heading";
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 
 type Props = {
   text?: string;
