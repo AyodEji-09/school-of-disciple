@@ -1,5 +1,4 @@
 import { Avatar, Stack, Typography } from "@mui/joy";
-import React from "react";
 
 const AvatarText = ({ text }: { text: string }) => {
   return (

@@ -1,7 +1,10 @@
-import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 import { SetAuthToken, SetDefaultHeaders, TOKEN } from "../config";
 import axios from "axios";
-
 
 interface UserState {
   isAuth: boolean;
@@ -17,7 +20,7 @@ export type Login = {
 const initialState: UserState = {
   isAuth: false,
   user: null,
-  loading: false,
+  loading: !!localStorage.getItem(TOKEN),
 };
 
 const UserSlice = createSlice({
@@ -34,7 +37,7 @@ const UserSlice = createSlice({
     },
     logout: (state) => {
       state.isAuth = false;
-      state.user = null
+      state.user = null;
       localStorage.removeItem(TOKEN);
     },
   },
@@ -81,5 +84,5 @@ export const loadUser = createAsyncThunk(
       const err = error as ApiError;
       return thunkApi.rejectWithValue(err);
     }
-  }
+  },
 );

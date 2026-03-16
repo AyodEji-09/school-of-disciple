@@ -47,7 +47,7 @@ const Login = () => {
   const requestEmailVerification = async () => {
     const res = await axios.post("/auth/request-token", {
       email: getValues().email,
-      type:"verifyEmail"
+      type: "verifyEmail",
     });
     return res;
   };
@@ -137,9 +137,7 @@ const Login = () => {
                 )}
               />
               {errors.email && (
-                <p className="text-[#dc2626] text-xs">
-                  {errors.email.message}
-                </p>
+                <p className="text-[#dc2626] text-xs">{errors.email.message}</p>
               )}
             </div>
             <div className="col-span-2">
