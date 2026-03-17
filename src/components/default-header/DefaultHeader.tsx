@@ -53,6 +53,12 @@ const DefaultHeader = () => {
       url: "/payments",
       role: ["admin", "coordinator"],
     },
+    {
+      id: 3,
+      name: "Registration",
+      url: "/registration",
+      role: ["admin"],
+    },
   ];
 
   return (

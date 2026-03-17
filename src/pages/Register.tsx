@@ -25,6 +25,7 @@ const Register = () => {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -43,6 +44,7 @@ const Register = () => {
     try {
       const res = await axios.post<ApiResponseN<null>>("/auth/register", data);
       toast.success(res.data.message);
+      reset();
       navigate("/login");
     } catch (error) {
       console.log({ error });

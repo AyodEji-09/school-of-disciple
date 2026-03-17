@@ -202,7 +202,7 @@ const Centers = () => {
                   </td>
                 ) : centerData?.data?.docs?.length ? (
                   centerData?.data?.docs?.map((center) => (
-                    <tr className="border-b font-medium">
+                    <tr className="border-b last:border-none font-medium">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <AvatarText text={center?.name} />
                       </td>
