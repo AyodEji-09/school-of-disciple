@@ -8,6 +8,7 @@ import { handleError } from "../utils";
 import Hero from "../components/hero/Hero";
 import { Option, Select } from "@mui/joy";
 import { useGetAllCenterQuery } from "../data/rtk/center";
+import { useNavigate } from "react-router-dom";
 type Form = {
   firstName: string;
   lastName: string;
@@ -17,8 +18,10 @@ type Form = {
   password: string;
 };
 const Register = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { data: centers } = useGetAllCenterQuery();
+
   const {
     control,
     handleSubmit,
@@ -33,12 +36,14 @@ const Register = () => {
       password: "",
     },
   });
+
   const onSubmit = async (data: Form) => {
     console.log(data);
     setLoading(true);
     try {
       const res = await axios.post<ApiResponseN<null>>("/auth/register", data);
       toast.success(res.data.message);
+      navigate("/login");
     } catch (error) {
       console.log({ error });
       toast.error(handleError(error));
