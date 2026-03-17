@@ -1,21 +1,16 @@
-import { useRef, useState } from "react";
-import { Avatar, Card, Chip, Stack, Typography } from "@mui/joy";
+import { useState } from "react";
+import { Card, Chip, Stack, Typography } from "@mui/joy";
 import { toast } from "react-toastify";
 import { Empty } from "antd";
 import moment from "moment";
 import axios from "axios";
-import { MdEdit, MdVerified } from "react-icons/md";
-import { IoWarningOutline } from "react-icons/io5";
 import { BsReceipt, BsBook } from "react-icons/bs";
 
 import Frame from "../components/frame/Frame";
 import AppButton from "../components/Button/AppButton";
-import AppModal from "../components/modal/modal";
-import OtpComponent from "../components/otp-component/OtpComponent";
-import { handleError } from "../utils";
-import { useAppDispatch, useAppSelector } from "../data/hooks";
+import { capitalizeWords, handleError } from "../utils";
+import { useAppSelector } from "../data/hooks";
 import { selectUser } from "../data/selectors/authSelector";
-import { loadUser } from "../data/reducers/userSlice";
 import { useGetPaymentsQuery } from "../data/rtk/payment";
 import { PulseLoader } from "react-spinners";
 
@@ -27,18 +22,8 @@ const UserDashboard = () => {
   return (
     <Frame text={`Welcome, ${user?.firstName ?? ""}`}>
       <div className="space-y-6 mt-6 pb-16">
-        {/* Email verification banner — only shown when not verified */}
-        {user && !user.emailVerified && <EmailVerificationBanner />}
-
-        {/* Profile + Pending payments side by side */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <ProfileCard />
-          <div className="md:col-span-2">
-            <PendingPayments />
-          </div>
-        </div>
-
-        {/* Full-width payment history */}
+        <ProfileCard />
+        <PendingPayments />
         <PaymentHistory />
       </div>
     </Frame>
@@ -47,235 +32,22 @@ const UserDashboard = () => {
 
 export default UserDashboard;
 
-// ─── Email Verification Banner ────────────────────────────────────────────────
-
-const EmailVerificationBanner = () => {
-  const user = useAppSelector(selectUser);
-  const dispatch = useAppDispatch();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [sending, setSending] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-
-  const sendOtp = async () => {
-    setSending(true);
-    try {
-      await axios.post("/auth/request-token", {
-        email: user?.email,
-        type: "verifyEmail",
-      });
-      toast.success("Verification code sent to your email");
-      setIsModalOpen(true);
-    } catch (error) {
-      toast.error(handleError(error));
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const resendOtp = async () => {
-    setSending(true);
-    try {
-      await axios.post("/auth/request-token", {
-        email: user?.email,
-        type: "verifyEmail",
-      });
-      toast.success("Code resent to your email");
-    } catch (error) {
-      toast.error(handleError(error));
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const verifyOtp = async () => {
-    if (!otp || otp.length < 6) {
-      return toast.error("Please enter the 6-digit code");
-    }
-    setVerifying(true);
-    try {
-      await axios.post("/auth/verify-Email", {
-        token: otp,
-        email: user?.email,
-      });
-      toast.success("Email verified successfully!");
-      setIsModalOpen(false);
-      dispatch(loadUser());
-    } catch (error) {
-      toast.error(handleError(error));
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  return (
-    <>
-      <div className="flex items-center justify-between gap-4 bg-[#FFFBEB] border border-[#FCD34D] rounded-lg px-4 py-3 flex-wrap">
-        <Stack direction="row" alignItems="center" gap={1.5}>
-          <IoWarningOutline size={20} color="#D97706" />
-          <Typography level="body-sm" textColor="#92400E" fontWeight="md">
-            Your email address has not been verified. Verify it to secure your
-            account.
-          </Typography>
-        </Stack>
-        <AppButton
-          type="button"
-          onClick={sendOtp}
-          loading={sending}
-          disabled={sending}
-        >
-          Verify Email
-        </AppButton>
-      </div>
-
-      <AppModal
-        isOpen={isModalOpen}
-        close={() => setIsModalOpen(false)}
-        title="Verify Your Email"
-        icon
-      >
-        <div className="w-[min(360px,80vw)] mt-2 space-y-5">
-          <Typography level="body-sm" textColor="#6B7280">
-            Enter the 6-digit code sent to{" "}
-            <span className="font-semibold text-[#001F54]">{user?.email}</span>
-          </Typography>
-
-          <div className="flex justify-center py-2">
-            <OtpComponent onChange={setOtp} loading={verifying} />
-          </div>
-
-          <p className="text-xs text-center text-[#6B7280]">
-            Didn't get the code?{" "}
-            <button
-              type="button"
-              onClick={resendOtp}
-              disabled={sending}
-              className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
-            >
-              Resend
-            </button>
-          </p>
-
-          <Stack direction="row" gap={2}>
-            <AppButton
-              type="button"
-              loading={verifying}
-              disabled={verifying}
-              onClick={verifyOtp}
-            >
-              Confirm
-            </AppButton>
-            <AppButton
-              type="button"
-              variant="outlined"
-              onClick={() => setIsModalOpen(false)}
-              disabled={verifying}
-            >
-              Cancel
-            </AppButton>
-          </Stack>
-        </div>
-      </AppModal>
-    </>
-  );
-};
-
-// ─── Profile Card ─────────────────────────────────────────────────────────────
-
 const ProfileCard = () => {
   const user = useAppSelector(selectUser);
-  const dispatch = useAppDispatch();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      return toast.error("Please select an image file");
-    }
-
-    const formData = new FormData();
-    formData.append("image", file);
-    setUploading(true);
-
-    try {
-      await axios.post("/user/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success("Profile picture updated");
-      dispatch(loadUser());
-    } catch (error) {
-      toast.error(handleError(error));
-    } finally {
-      setUploading(false);
-      // reset input so same file can be re-selected
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
 
   return (
     <Card variant="outlined" sx={{ height: "fit-content" }}>
-      {/* Avatar with upload overlay */}
-      <div className="flex flex-col items-center gap-3 py-2">
-        <div className="relative w-fit">
-          <Avatar
-            src={user?.avatar?.url ?? ""}
-            size="lg"
-            sx={{ width: 80, height: 80, fontSize: 28 }}
-          >
-            {!user?.avatar?.url &&
-              (user?.firstName?.[0] ?? "") + (user?.lastName?.[0] ?? "")}
-          </Avatar>
-          <button
-            type="button"
-            onClick={handleAvatarClick}
-            disabled={uploading}
-            className="absolute bottom-0 right-0 bg-[#001EC5] text-white rounded-full p-1 shadow-md hover:bg-[#0016A0] disabled:opacity-60 transition"
-          >
-            {uploading ? (
-              <PulseLoader size={4} color="white" />
-            ) : (
-              <MdEdit size={14} />
-            )}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-        </div>
-
-        {/* Name + verification badge */}
-        <div className="text-center">
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="center"
-            gap={0.5}
-          >
-            <Typography level="title-md" textColor="#001F54">
-              {user?.firstName} {user?.lastName}
-            </Typography>
-            {user?.emailVerified && (
-              <MdVerified size={16} color="#001EC5" title="Email verified" />
-            )}
-          </Stack>
-          <Typography level="body-xs" textColor="#6B7280">
-            {user?.center?.name ?? ""}
-          </Typography>
-        </div>
-      </div>
-
       {/* Details list */}
       <div className="divide-y divide-[#F3F4F6] mt-2">
+        <DetailRow
+          label="Name"
+          value={
+            [user?.firstName, user?.lastName]
+              .filter(Boolean)
+              .map((name) => capitalizeWords(name!))
+              .join(" ") || "—"
+          }
+        />
         <DetailRow label="Email" value={user?.email ?? "—"} />
         <DetailRow label="Phone" value={user?.phone ?? "—"} />
         <DetailRow
@@ -292,20 +64,7 @@ const ProfileCard = () => {
             )
           }
         />
-        <DetailRow
-          label="Payment"
-          value={
-            user?.paymentStatus === "paid" ? (
-              <Chip color="success" variant="soft" size="sm">
-                Paid
-              </Chip>
-            ) : (
-              <Chip color="danger" variant="soft" size="sm">
-                Unpaid
-              </Chip>
-            )
-          }
-        />
+        <DetailRow label="Center" value={user?.center?.name ?? ""} />
       </div>
     </Card>
   );

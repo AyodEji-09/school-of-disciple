@@ -128,7 +128,7 @@ const RegistrationWindowPage = () => {
             <Stack
               direction="row"
               justifyContent="space-between"
-              alignItems="flex-start"
+              alignItems="center"
               flexWrap="wrap"
               gap={2}
             >

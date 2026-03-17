@@ -98,6 +98,8 @@ const App = () => {
 
           <Route path="/accept-invite" element={<AcceptInvite />} />
           <Route path="/payment/:token" element={<Payment />} />
+
+          <Route path="*" element={<Navigate to="/" />} />
         </Route>
       </Routes>
     </>

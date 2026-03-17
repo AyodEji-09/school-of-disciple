@@ -27,8 +27,18 @@ export const uploadAvatar = async (photo: File) => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    }
+    },
   );
   console.log({ res });
   return res;
 };
+
+export function capitalizeWords(str: string): string {
+  if (!str) return "";
+
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}

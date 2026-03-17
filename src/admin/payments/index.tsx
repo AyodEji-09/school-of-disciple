@@ -65,7 +65,7 @@ const TransactionTable = () => {
     data: payments,
     isLoading,
     isFetching,
-  } = useGetPaymentsQuery({ limit: 20, center: user?.center?._id ?? ""});
+  } = useGetPaymentsQuery({ limit: 20, center: user?.center?._id ?? "" });
   console.log({ payments });
   return (
     <div>
@@ -100,12 +100,14 @@ const TransactionTable = () => {
               </td>
             ) : payments?.data?.docs?.length ? (
               payments?.data.docs.map((payment) => (
-                <tr className="border-b font-medium">
+                <tr className="border-b last:border-none font-medium">
                   <td className="px-6 py-4 whitespace-nowrap">
                     {moment(payment?.createdAt).format("DDD MMM YYYY")}
                   </td>
                   <td className="px-6 py-4">{payment?._id}</td>
-                  <td className="px-6 py-4">{payment?.amount}</td>
+                  <td className="px-6 py-4">
+                    ${(payment.amount / 100).toFixed(2)}
+                  </td>
                   <td className="px-6 py-4">{payment?.status}</td>
                 </tr>
               ))
