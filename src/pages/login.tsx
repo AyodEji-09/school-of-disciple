@@ -14,108 +14,110 @@ import Input from "../components/input/input.component";
 import OtpComponent from "../components/otp-component/OtpComponent";
 
 interface FormType {
-  password: string;
   email: string;
+  password: string;
 }
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [code, setCode] = useState("");
 
-  const toggleModal = () => {
-    setIsOpen(!isOpen);
-  };
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [otp, setOtp] = useState("");
 
-  const handleOtpChange = (data: string): void => {
-    setCode(data);
-  };
   const {
     control,
     handleSubmit,
     formState: { errors },
     getValues,
-  } = useForm({
+  } = useForm<FormType>({
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const requestEmailVerification = async () => {
-    const res = await axios.post("/auth/request-token", {
-      email: getValues().email,
+  const sendVerificationOtp = async (email: string) => {
+    await axios.post("/auth/request-token", {
+      email,
       type: "verifyEmail",
     });
-    return res;
   };
 
-  const resendOtp = async () => {
-    setLoading(true);
+  const performLogin = async (data: FormType) => {
+    const res = await axios.post("/auth/login", data);
+    const userType: string = res.data.data.user?.type;
+    toast.success(res.data.message);
+    dispatch(login(res.data.data));
+    navigate(userType === "user" ? "/my-dashboard" : "/dashboard", {
+      replace: true,
+    });
+  };
+
+  const onSubmit = async (data: FormType) => {
+    setLoginLoading(true);
     try {
-      const res = await requestEmailVerification();
-      console.log({ res });
-      toast.success(res.data.message);
+      await performLogin(data);
     } catch (error) {
-      console.log({ error });
-      toast.error(handleError(error));
+      // 402 = email not yet verified — send OTP and open the modal
+      if (axios.isAxiosError(error) && error.response?.status === 402) {
+        try {
+          await sendVerificationOtp(data.email);
+          setIsModalOpen(true);
+          toast.info("A verification code has been sent to your email");
+        } catch (otpError) {
+          toast.error(handleError(otpError));
+        }
+      } else {
+        toast.error(handleError(error));
+      }
+    } finally {
+      setLoginLoading(false);
     }
-    setLoading(false);
   };
 
   const verifyOtp = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.post("/auth/verify-email-account", {
-        token: code,
-      });
-      console.log({ res });
-      toast.success(res.data.message);
-      navigate("/login");
-    } catch (error) {
-      console.log({ error });
-      if (
-        (axios.isAxiosError(error) && error.response?.data?.message) ===
-        "Your account has not been activated, Kindly verify your mail to activate your account"
-      ) {
-        return toggleModal;
-      }
-      toast.error(handleError(error));
+    if (!otp || otp.length < 6) {
+      return toast.error("Please enter the complete 6-digit code");
     }
-    setLoading(false);
+    setVerifyLoading(true);
+    try {
+      await axios.post("/auth/verify-Email", {
+        token: otp,
+        email: getValues().email,
+      });
+      toast.success("Email verified! Logging you in…");
+      setIsModalOpen(false);
+      // Automatically log them in now that the email is verified
+      await performLogin(getValues());
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setVerifyLoading(false);
+    }
   };
 
-  const onsubmit = async (data: FormType) => {
-    console.log({ data });
-    setLoading(true);
+  const resendOtp = async () => {
+    setResendLoading(true);
     try {
-      const res = await axios.post("/auth/login", data);
-      console.log({ res });
-      const user = res.data.data.user;
-      if (!user.emailVerified) {
-        setLoading(false);
-        await requestEmailVerification();
-        toggleModal();
-        return toast.error("email not verified");
-      }
-      toast.success(res.data.message);
-      dispatch(login(res.data.data));
-
-      navigate("/");
+      await sendVerificationOtp(getValues().email);
+      toast.success("Verification code resent");
     } catch (error) {
-      console.log({ error });
       toast.error(handleError(error));
+    } finally {
+      setResendLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <UseBox img="login-bg.png">
       <Stack mt={8}>
         <Typography level="h2">Login</Typography>
-        <form className="mt-10" onSubmit={handleSubmit(onsubmit)}>
+
+        <form className="mt-10" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <Controller
@@ -137,22 +139,17 @@ const Login = () => {
                 )}
               />
               {errors.email && (
-                <p className="text-[#dc2626] text-xs">{errors.email.message}</p>
+                <p className="text-[#dc2626] text-xs mt-1">
+                  {errors.email.message}
+                </p>
               )}
             </div>
+
             <div className="col-span-2">
               <Controller
                 name="password"
                 control={control}
-                rules={{
-                  required: "This field is required",
-                  // pattern: {
-                  //   value:
-                  //     /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^\w\s]).{8,}$/g,
-                  //   message:
-                  //     "Your password must have at least one uppercase letter, one lowercase letter, one digit, one special character, and a minimum length of 8 characters.",
-                  // },
-                }}
+                rules={{ required: "This field is required" }}
                 render={({ field: { value, onChange } }) => (
                   <Input
                     label="Password"
@@ -163,71 +160,96 @@ const Login = () => {
                 )}
               />
               {errors.password && (
-                <p className="text-[#dc2626] text-xs">
+                <p className="text-[#dc2626] text-xs mt-1">
                   {errors.password.message}
                 </p>
               )}
             </div>
+
             <div className="col-span-2 px-2">
               <Box
-                color={"#000817"}
-                justifyContent={"space-between"}
-                display={"flex"}
+                color="#000817"
+                justifyContent="space-between"
+                display="flex"
+                alignItems="center"
               >
                 <Checkbox label="Remember Me" sx={{ fontSize: 14 }} />
                 <Typography
-                  onClick={() => navigate("")}
                   level="body-xs"
-                  textColor={"#404757"}
+                  textColor="#404757"
+                  sx={{ cursor: "pointer" }}
                 >
-                  Forget Password?
+                  Forgot Password?
                 </Typography>
               </Box>
             </div>
           </div>
+
           <Stack mt={6}>
-            <AppButton loading={loading} disabled={loading}>
+            <AppButton loading={loginLoading} disabled={loginLoading}>
               Log In
             </AppButton>
           </Stack>
         </form>
-        <Typography level="body-xs" textAlign={"center"} mt={2}>
-          Have an account?{" "}
-          <Link to={"/sign-up"} className="font-bold underline">
+
+        <Typography level="body-xs" textAlign="center" mt={2}>
+          Don't have an account?{" "}
+          <Link to="/register" className="font-bold underline">
             Sign Up
           </Link>
         </Typography>
       </Stack>
-      <AppModal isOpen={isOpen} close={toggleModal}>
-        <Box>
-          <Typography level="title-sm" textColor={"#000C51"}>
-            beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia
-            voluptas sit aspernatu
+
+      {/* ── Email verification modal ──────────────────────────────────────── */}
+      <AppModal
+        isOpen={isModalOpen}
+        close={() => setIsModalOpen(false)}
+        title="Verify Your Email"
+        icon
+      >
+        <div className="w-[min(360px,80vw)] mt-2 space-y-5">
+          <Typography level="body-sm" textColor="#6B7280">
+            Enter the 6-digit code sent to{" "}
+            <span className="font-semibold text-[#001F54]">
+              {getValues().email}
+            </span>
           </Typography>
-          <Box marginTop={4} className="w-fit mx-auto">
-            <OtpComponent onChange={handleOtpChange} loading={loading} />
-            <p className="text-xs text-center font-semibold mt-2">
-              Didn’t get the Code?{" "}
-              <span
-                className="font-bold hover:text-yellow-600 cursor-pointer"
-                onClick={resendOtp}
-              >
-                Resend?
-              </span>
-            </p>
-          </Box>
-          <Box marginTop={8}>
+
+          <div className="flex justify-center py-2">
+            <OtpComponent onChange={setOtp} loading={verifyLoading} />
+          </div>
+
+          <p className="text-xs text-center text-[#6B7280]">
+            Didn't get the code?{" "}
+            <button
+              type="button"
+              onClick={resendOtp}
+              disabled={resendLoading}
+              className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
+            >
+              {resendLoading ? "Sending…" : "Resend"}
+            </button>
+          </p>
+
+          <Stack direction="row" gap={2}>
             <AppButton
-              variant="primary"
-              className="w-full"
-              loading={loading}
-              disabled={loading}
+              type="button"
+              loading={verifyLoading}
+              disabled={verifyLoading}
               onClick={verifyOtp}
             >
-              Verify
+              Verify &amp; Log In
             </AppButton>
-          </Box>
-        </Box>
+            <AppButton
+              type="button"
+              variant="outlined"
+              onClick={() => setIsModalOpen(false)}
+              disabled={verifyLoading}
+            >
+              Cancel
+            </AppButton>
+          </Stack>
+        </div>
       </AppModal>
     </UseBox>
   );
