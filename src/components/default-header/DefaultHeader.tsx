@@ -139,15 +139,17 @@ const DefaultHeader = () => {
             <Brand type="img" />
           </Box>
           <List>
-            {routes.map((route) => (
-              <ListItem
-                key={route.id}
-                onClick={() => navigate(route.url)}
-                onKeyDown={toggleDrawer(false)}
-              >
-                <ListItemButton>{route.name}</ListItemButton>
-              </ListItem>
-            ))}
+            {routes
+              .filter((route) => route.role.includes(user!.type))
+              .map((route) => (
+                <ListItem
+                  key={route.id}
+                  onClick={() => navigate(route.url)}
+                  onKeyDown={toggleDrawer(false)}
+                >
+                  <ListItemButton>{route.name}</ListItemButton>
+                </ListItem>
+              ))}
           </List>
         </Box>
       </Drawer>
