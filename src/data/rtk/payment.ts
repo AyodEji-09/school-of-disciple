@@ -18,6 +18,13 @@ export const paymentApi = createApi({
                 `/payment?page=${page}&limit=${limit}${center ? `&studentId.center._id=${center}` : ""}${search
                     ? `&search=${search}&searchFields=firstName,lastName` : ''}`,
         }),
+        getUserPayments: builder.query<
+            ApiResponse<Payment>,
+            { userId: string; limit?: number; page?: number | null }
+        >({
+            query: ({ userId, limit = 20, page = 1 }) =>
+                `/payment/user/${userId}?page=${page}&limit=${limit}`,
+        }),
         getPayment: builder.query<
             { message: string; data: Payment },
             string
@@ -28,5 +35,6 @@ export const paymentApi = createApi({
 })
 
 export const {
-    useGetPaymentsQuery
+    useGetPaymentsQuery,
+    useGetUserPaymentsQuery
 } = paymentApi;

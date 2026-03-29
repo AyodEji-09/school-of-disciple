@@ -11,7 +11,7 @@ import AppButton from "../components/Button/AppButton";
 import { capitalizeWords, handleError } from "../utils";
 import { useAppSelector } from "../data/hooks";
 import { selectUser } from "../data/selectors/authSelector";
-import { useGetPaymentsQuery } from "../data/rtk/payment";
+import { useGetUserPaymentsQuery } from "../data/rtk/payment";
 import { PulseLoader } from "react-spinners";
 
 // ─── User Dashboard ───────────────────────────────────────────────────────────
@@ -214,11 +214,13 @@ const PendingPayments = () => {
 // ─── Payment History ──────────────────────────────────────────────────────────
 
 const PaymentHistory = () => {
+  const user = useAppSelector(selectUser);
   const {
     data: payments,
     isLoading,
     isFetching,
-  } = useGetPaymentsQuery({
+  } = useGetUserPaymentsQuery({
+    userId: user!._id,
     limit: 20,
     page: 1,
   });
