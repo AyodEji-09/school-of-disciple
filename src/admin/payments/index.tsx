@@ -61,11 +61,21 @@ export default Payments;
 
 const TransactionTable = () => {
   const user = useSelector(selectUser);
+  const isCoordinator = user?.type === "coordinator";
+  const coordinatorCenterId = user?.center?._id;
   const {
     data: payments,
     isLoading,
     isFetching,
-  } = useGetPaymentsQuery({ limit: 20, center: user?.center?._id ?? "" });
+  } = useGetPaymentsQuery(
+    {
+      limit: 20,
+      ...(isCoordinator && coordinatorCenterId
+        ? { center: coordinatorCenterId }
+        : {}),
+    },
+    { skip: isCoordinator && !coordinatorCenterId },
+  );
   console.log({ payments });
   return (
     <div>
@@ -102,7 +112,7 @@ const TransactionTable = () => {
               payments?.data.docs.map((payment) => (
                 <tr className="border-b last:border-none font-medium">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {moment(payment?.createdAt).format("DDD MMM YYYY")}
+                    {moment(payment?.createdAt).format("DD/MM/YYYY")}
                   </td>
                   <td className="px-6 py-4">{payment?._id}</td>
                   <td className="px-6 py-4">

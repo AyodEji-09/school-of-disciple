@@ -14,9 +14,20 @@ export const paymentApi = createApi({
             ApiResponse<Payment>,
             { limit?: number; search?: string; page?: number | null, center?: string }
         >({
-            query: ({ limit = 20, search, center, page = 1 }) =>
-                `/payment?page=${page}&limit=${limit}${center ? `&studentId.center._id=${center}` : ""}${search
-                    ? `&search=${search}&searchFields=firstName,lastName` : ''}`,
+            query: ({ limit = 20, search, center, page = 1 }) => {
+                const params = new URLSearchParams();
+
+                if (page != null) params.set("page", String(page));
+                if (limit != null) params.set("limit", String(limit));
+                if (center) params.set("studentId.center._id", center);
+
+                if (search) {
+                    params.set("search", search);
+                    params.set("searchFields", "firstName,lastName");
+                }
+
+                return `/payment?${params.toString()}`;
+            },
         }),
         getUserPayments: builder.query<
             ApiResponse<Payment>,

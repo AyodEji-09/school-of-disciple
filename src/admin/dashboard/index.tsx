@@ -14,10 +14,26 @@ import { useGetCentersQuery } from "../../data/rtk/center";
 const Dashboard = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
+  const isCoordinator = user?.type === "coordinator";
+  const coordinatorCenterId = user?.center?._id;
   console.log({ user });
-  const { data: coordinators } = useGetUsersQuery({ type: "coordinator" });
-  const { data: students } = useGetUsersQuery({ type: "user" });
-  const { data: centers } = useGetCentersQuery({});
+  const { data: coordinators } = useGetUsersQuery(
+    { type: "coordinator" },
+    { skip: isCoordinator },
+  );
+  const { data: students } = useGetUsersQuery(
+    {
+      type: "user",
+      ...(isCoordinator && coordinatorCenterId
+        ? { center: coordinatorCenterId }
+        : {}),
+    },
+    { skip: isCoordinator && !coordinatorCenterId },
+  );
+  const { data: centers } = useGetCentersQuery(
+    { page: 1, limit: 20 },
+    { skip: isCoordinator },
+  );
   console.log({ coordinators, students, centers });
 
   return (
@@ -54,7 +70,7 @@ const Dashboard = () => {
       )}
       <div className="mt-12">
         {user?.type === "coordinator" ? (
-          <StudentsTable />
+          <StudentsTable centerId={coordinatorCenterId} />
         ) : (
           <CenterCoordinatorTable />
         )}
@@ -186,12 +202,18 @@ const CenterCoordinatorTable = () => {
   );
 };
 
-const StudentsTable = () => {
+const StudentsTable = ({ centerId }: { centerId?: string }) => {
   const {
     data: students,
     isLoading,
     isFetching,
-  } = useGetUsersQuery({ type: "user" });
+  } = useGetUsersQuery(
+    {
+      type: "user",
+      ...(centerId ? { center: centerId } : {}),
+    },
+    { skip: !centerId },
+  );
   console.log({ students });
 
   return (

@@ -14,9 +14,19 @@ export const centerApi = createApi({
             ApiResponse<Center>,
             { limit?: number; search?: string; page?: number | null }
         >({
-            query: ({ limit, search, page }) =>
-                `/center?page=${page}&limit=${limit}${search
-                    ? `&search=${search}&searchFields=name,address` : ''}`,
+            query: ({ limit = 20, search, page = 1 }) => {
+                const params = new URLSearchParams();
+
+                if (page != null) params.set("page", String(page));
+                if (limit != null) params.set("limit", String(limit));
+
+                if (search) {
+                    params.set("search", search);
+                    params.set("searchFields", "name,address");
+                }
+
+                return `/center?${params.toString()}`;
+            },
         }),
         getAllCenter: builder.query<
             ApiResponse<Center>,
