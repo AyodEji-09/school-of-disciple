@@ -66,7 +66,7 @@ type Center = {
 
 type Payment = {
   _id: string;
-  studentId: string;
+  studentId: string | User;
   stripeSessionId: string;
   amount: number;
   status: string;

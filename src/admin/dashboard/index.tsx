@@ -215,6 +215,7 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
     { skip: !centerId },
   );
   console.log({ students });
+  const navigate = useNavigate();
 
   return (
     <div className="pb-16">
@@ -238,10 +239,13 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
                   Student Name
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Student Address
+                  Student Matric Number
                 </th>
                 <th scope="col" className="px-6 py-3">
                   Center
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  View
                 </th>
               </tr>
             </thead>
@@ -261,8 +265,17 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <AvatarText text={getUserFullName(student)} />
                     </td>
-                    <td className="px-6 py-4">{student?.address}</td>
+                    <td className="px-6 py-4">{student?.matricNumber}</td>
                     <td className="px-6 py-4">{student?.center?.name}</td>
+                    <td className="px-6 py-4">
+                      <AppButton
+                        onClick={() =>
+                          navigate(`/dashboard/students/${student._id}`)
+                        }
+                      >
+                        View
+                      </AppButton>
+                    </td>
                   </tr>
                 ))
               ) : (

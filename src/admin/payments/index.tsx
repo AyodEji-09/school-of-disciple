@@ -8,6 +8,8 @@ import { Empty } from "antd";
 import moment from "moment";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../data/selectors/authSelector";
+import { useNavigate } from "react-router-dom";
+import AppButton from "../../components/Button/AppButton";
 
 const Payments = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -60,6 +62,7 @@ const Payments = () => {
 export default Payments;
 
 const TransactionTable = () => {
+  const navigate = useNavigate();
   const user = useSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
   const coordinatorCenterId = user?.center?._id;
@@ -77,6 +80,14 @@ const TransactionTable = () => {
     { skip: isCoordinator && !coordinatorCenterId },
   );
   console.log({ payments });
+
+  const getPayerId = (payment: Payment) => {
+    if (typeof payment.studentId === "string") return payment.studentId;
+
+    const student = payment.studentId as User & { id?: string };
+    return student?._id || student?.id;
+  };
+
   return (
     <div>
       <Box
@@ -99,34 +110,57 @@ const TransactionTable = () => {
               <th scope="col" className="px-6 py-3">
                 Status
               </th>
+              <th scope="col" className="px-6 py-3">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
             {isLoading || isFetching ? (
-              <td colSpan={7}>
-                <div className="flex min-h-96 items-center justify-center">
-                  <PulseLoader className="mx-auto" size="large" />
-                </div>
-              </td>
+              <tr>
+                <td colSpan={5}>
+                  <div className="flex min-h-96 items-center justify-center">
+                    <PulseLoader className="mx-auto" size="large" />
+                  </div>
+                </td>
+              </tr>
             ) : payments?.data?.docs?.length ? (
-              payments?.data.docs.map((payment) => (
-                <tr className="border-b last:border-none font-medium">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {moment(payment?.createdAt).format("DD/MM/YYYY")}
-                  </td>
-                  <td className="px-6 py-4">{payment?._id}</td>
-                  <td className="px-6 py-4">
-                    ${(payment.amount / 100).toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4">{payment?.status}</td>
-                </tr>
-              ))
+              payments?.data.docs.map((payment) => {
+                const payerId = getPayerId(payment);
+
+                return (
+                  <tr
+                    className="border-b last:border-none font-medium"
+                    key={payment._id}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {moment(payment?.createdAt).format("DD/MM/YYYY")}
+                    </td>
+                    <td className="px-6 py-4">{payment?._id}</td>
+                    <td className="px-6 py-4">
+                      ${(payment.amount / 100).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4">{payment?.status}</td>
+                    <td className="px-6 py-4">
+                      <AppButton
+                        type="button"
+                        disabled={!payerId}
+                        onClick={() => navigate(`/payments/users/${payerId}`)}
+                      >
+                        View
+                      </AppButton>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
-              <td colSpan={7}>
-                <div className="flex min-h-96 items-center justify-center">
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                </div>
-              </td>
+              <tr>
+                <td colSpan={5}>
+                  <div className="flex min-h-96 items-center justify-center">
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                  </div>
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

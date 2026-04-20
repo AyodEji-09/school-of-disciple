@@ -20,6 +20,7 @@ import Centers from "./admin/manage-centers/centers";
 import AddCenter from "./admin/manage-centers/add-center";
 import AcceptInvite from "./pages/accept-invite";
 import Payments from "./admin/payments";
+import PaymentUser from "./admin/payments/[id]";
 import UserDashboard from "./pages/UserDashboard";
 import RegistrationWindow from "./admin/registration";
 
@@ -78,7 +79,10 @@ const App = () => {
               element={<AddCenterManager />}
             />
             <Route path="/dashboard/manager/:id" element={<CenterManager />} />
+            <Route path="/dashboard/students/:id" element={<PaymentUser />} />
             <Route path="/payments" element={<Payments />} />
+            <Route path="/payments/users/:id" element={<PaymentUser />} />
+            <Route path="/payments/user/:id" element={<PaymentUser />} />
             <Route path="/manage-centers" element={<Centers />} />
             <Route path="/manage-centers/add-center" element={<AddCenter />} />
             <Route path="/registration" element={<RegistrationWindow />} />
