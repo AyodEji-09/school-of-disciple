@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Frame from "../../components/frame/Frame";
-import { Box, Card, Typography } from "@mui/joy";
+import { Box, Card } from "@mui/joy";
 import AppModal from "../../components/modal/modal";
 import { useGetPaymentsQuery } from "../../data/rtk/payment";
 import { PulseLoader } from "react-spinners";
@@ -10,6 +10,66 @@ import { useSelector } from "react-redux";
 import { selectUser } from "../../data/selectors/authSelector";
 import { useNavigate } from "react-router-dom";
 import AppButton from "../../components/Button/AppButton";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { handleError } from "../../utils";
+import { openFinancialReportPrintPreview } from "./report-template";
+
+type CenterBreakdown = {
+  centerName: string;
+  transactions: number;
+  amount: number;
+};
+
+type FinancialReport = {
+  scopeLabel: string;
+  generatedAt: string;
+  totalTransactions: number;
+  successfulTransactions: number;
+  pendingTransactions: number;
+  failedTransactions: number;
+  totalAmount: number;
+  averageAmount: number;
+  dateFrom?: string;
+  dateTo?: string;
+  centerBreakdown: CenterBreakdown[];
+};
+
+const formatCurrency = (kobo: number) => {
+  return `₦${(kobo / 100).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+const isSuccessfulPayment = (status?: string) => {
+  const value = (status || "").toLowerCase();
+  return ["paid", "success", "successful", "succeeded", "completed"].includes(
+    value,
+  );
+};
+
+const isFailedPayment = (status?: string) => {
+  const value = (status || "").toLowerCase();
+  return ["failed", "cancelled", "canceled", "error"].includes(value);
+};
+
+const getStudentFromPayment = (payment: Payment) => {
+  if (typeof payment.studentId === "string") return undefined;
+  return payment.studentId as User & { id?: string };
+};
+
+const getPayerId = (payment: Payment) => {
+  if (typeof payment.studentId === "string") return payment.studentId;
+
+  const student = payment.studentId as User & { id?: string };
+  return student?._id || student?.id;
+};
+
+const getCenterNameFromPayment = (payment: Payment) => {
+  const student = getStudentFromPayment(payment);
+  return student?.center?.name || "Unknown Center";
+};
 
 const Payments = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,9 +103,6 @@ const Payments = () => {
       </Card> */}
       <div className="mt-12">
         <div className="">
-          <Typography level="title-md" mb={2}>
-            Transactions
-          </Typography>
           <Card variant="outlined">
             <TransactionTable />
           </Card>
@@ -66,6 +123,7 @@ const TransactionTable = () => {
   const user = useSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
   const coordinatorCenterId = user?.center?._id;
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const {
     data: payments,
     isLoading,
@@ -81,15 +139,162 @@ const TransactionTable = () => {
   );
   console.log({ payments });
 
-  const getPayerId = (payment: Payment) => {
-    if (typeof payment.studentId === "string") return payment.studentId;
+  const generateFinancialReport = async () => {
+    if (isCoordinator && !coordinatorCenterId) {
+      toast.error("Coordinator center not found. Please contact admin.");
+      return;
+    }
 
-    const student = payment.studentId as User & { id?: string };
-    return student?._id || student?.id;
+    setIsGeneratingReport(true);
+    try {
+      const fetchedPayments: Payment[] = [];
+      let page = 1;
+      let hasNextPage = true;
+
+      while (hasNextPage) {
+        const params = new URLSearchParams();
+        params.set("page", String(page));
+        params.set("limit", "100");
+
+        if (isCoordinator && coordinatorCenterId) {
+          params.set("studentId.center._id", coordinatorCenterId);
+        }
+
+        const res = await axios.get<ApiResponse<Payment>>(
+          `/payment?${params.toString()}`,
+        );
+
+        const docs = res?.data?.data?.docs || [];
+        fetchedPayments.push(...docs);
+
+        hasNextPage = Boolean(res?.data?.data?.hasNextPage);
+        page += 1;
+      }
+
+      const totalTransactions = fetchedPayments.length;
+      const successfulTransactions = fetchedPayments.filter((payment) =>
+        isSuccessfulPayment(payment.status),
+      ).length;
+      const failedTransactions = fetchedPayments.filter((payment) =>
+        isFailedPayment(payment.status),
+      ).length;
+      const pendingTransactions =
+        totalTransactions - successfulTransactions - failedTransactions;
+      const totalAmount = fetchedPayments.reduce(
+        (sum, payment) => sum + (payment.amount || 0),
+        0,
+      );
+      const averageAmount = totalTransactions
+        ? Math.round(totalAmount / totalTransactions)
+        : 0;
+
+      const timestamps = fetchedPayments
+        .map((payment) => new Date(payment.createdAt).getTime())
+        .filter((value) => Number.isFinite(value));
+
+      const minTime = timestamps.length ? Math.min(...timestamps) : undefined;
+      const maxTime = timestamps.length ? Math.max(...timestamps) : undefined;
+
+      const centerMap = new Map<
+        string,
+        { transactions: number; amount: number }
+      >();
+
+      fetchedPayments.forEach((payment) => {
+        const centerName = isCoordinator
+          ? user?.center?.name || "Coordinator Center"
+          : getCenterNameFromPayment(payment);
+        const prev = centerMap.get(centerName) || {
+          transactions: 0,
+          amount: 0,
+        };
+        centerMap.set(centerName, {
+          transactions: prev.transactions + 1,
+          amount: prev.amount + (payment.amount || 0),
+        });
+      });
+
+      const centerBreakdown: CenterBreakdown[] = Array.from(centerMap.entries())
+        .map(([centerName, stats]) => ({
+          centerName,
+          transactions: stats.transactions,
+          amount: stats.amount,
+        }))
+        .sort((a, b) => b.amount - a.amount);
+
+      const report: FinancialReport = {
+        scopeLabel: isCoordinator
+          ? `${user?.center?.name || "My Center"} (Coordinator)`
+          : "All Centers (Admin)",
+        generatedAt: moment().format("DD MMM YYYY, HH:mm"),
+        totalTransactions,
+        successfulTransactions,
+        pendingTransactions,
+        failedTransactions,
+        totalAmount,
+        averageAmount,
+        dateFrom: minTime ? moment(minTime).format("DD MMM YYYY") : undefined,
+        dateTo: maxTime ? moment(maxTime).format("DD MMM YYYY") : undefined,
+        centerBreakdown,
+      };
+
+      const didOpenPreview = openFinancialReportPrintPreview({
+        report: {
+          scopeLabel: report.scopeLabel,
+          generatedAt: report.generatedAt,
+          totalTransactions: report.totalTransactions,
+          successfulTransactions: report.successfulTransactions,
+          pendingTransactions: report.pendingTransactions,
+          failedTransactions: report.failedTransactions,
+          totalAmountFormatted: formatCurrency(report.totalAmount),
+          averageAmountFormatted: formatCurrency(report.averageAmount),
+          dateFrom: report.dateFrom,
+          dateTo: report.dateTo,
+          centerBreakdown: report.centerBreakdown.map((center) => ({
+            centerName: center.centerName,
+            transactions: center.transactions,
+            amountFormatted: formatCurrency(center.amount),
+          })),
+        },
+        transactions: fetchedPayments.map((payment) => ({
+          date: moment(payment.createdAt).format("DD/MM/YYYY"),
+          transactionRef: payment._id,
+          center: getCenterNameFromPayment(payment),
+          status: payment.status,
+          amountFormatted: formatCurrency(payment.amount),
+        })),
+      });
+
+      if (!didOpenPreview) {
+        toast.error("Unable to open report preview. Please allow popups.");
+        return;
+      }
+
+      toast.success(
+        "Financial report generated. Save as PDF from print dialog.",
+      );
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setIsGeneratingReport(false);
+    }
   };
 
   return (
-    <div>
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <AppButton
+          type="button"
+          loading={isGeneratingReport}
+          disabled={isGeneratingReport}
+          onClick={generateFinancialReport}
+        >
+          {isCoordinator
+            ? "Generate Center Financial Report"
+            : "Generate All Centers Financial Report"}
+        </AppButton>
+      </div>
+
       <Box
         minHeight={400}
         position={"relative"}
