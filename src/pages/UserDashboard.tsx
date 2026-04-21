@@ -262,6 +262,7 @@ const PaymentHistory = () => {
                 <tr>
                   <th className="px-6 py-4 font-semibold">Date</th>
                   <th className="px-6 py-4 font-semibold">Reference</th>
+                  <th className="px-6 py-4 font-semibold">Description</th>
                   <th className="px-6 py-4 font-semibold">Amount</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
                 </tr>
@@ -277,6 +278,9 @@ const PaymentHistory = () => {
                     </td>
                     <td className="px-6 py-4 text-[#6B7280] text-xs font-mono">
                       {payment._id}
+                    </td>
+                    <td className="px-6 py-4">
+                      {payment.description || "Registration Fee"}
                     </td>
                     <td className="px-6 py-4 font-semibold">
                       ${(payment.amount / 100).toFixed(2)}

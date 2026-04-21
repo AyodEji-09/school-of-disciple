@@ -36,7 +36,7 @@ type FinancialReport = {
 };
 
 const formatCurrency = (kobo: number) => {
-  return `₦${(kobo / 100).toLocaleString(undefined, {
+  return `$${(kobo / 100).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -95,7 +95,7 @@ const Payments = () => {
           <Box gap={2}>
             <Typography level="title-sm">Wallet Balance</Typography>
             <Typography level="h4" mt={1}>
-              ₦1000
+              $1000
             </Typography>
           </Box>
           <Box gap={2}>
