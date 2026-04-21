@@ -245,7 +245,7 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
                   Center
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  View
+                  Action
                 </th>
               </tr>
             </thead>

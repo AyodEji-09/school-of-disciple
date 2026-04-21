@@ -21,6 +21,7 @@ type FinancialReportTemplate = {
 type ReportTransaction = {
   date: string;
   transactionRef: string;
+  description: string;
   center: string;
   status: string;
   amountFormatted: string;
@@ -65,6 +66,7 @@ export const openFinancialReportPrintPreview = ({
         <tr>
           <td>${escapeHtml(payment.date)}</td>
           <td>${escapeHtml(payment.transactionRef)}</td>
+          <td>${escapeHtml(payment.description)}</td>
           <td>${escapeHtml(payment.center)}</td>
           <td>${escapeHtml(payment.status)}</td>
           <td>${escapeHtml(payment.amountFormatted)}</td>
@@ -164,13 +166,14 @@ export const openFinancialReportPrintPreview = ({
             <tr>
               <th>Date</th>
               <th>Transaction Ref</th>
+              <th>Description</th>
               <th>Center</th>
               <th>Status</th>
               <th>Amount</th>
             </tr>
           </thead>
           <tbody>
-            ${transactionRows || "<tr><td colspan='5'>No transactions found</td></tr>"}
+            ${transactionRows || "<tr><td colspan='6'>No transactions found</td></tr>"}
           </tbody>
         </table>
       </body>

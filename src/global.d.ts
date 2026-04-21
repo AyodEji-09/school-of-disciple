@@ -41,7 +41,7 @@ type User = {
   loginLast: Date;
   deactivated: boolean;
   admin: boolean;
-  center: Center;
+  center?: Center | string | null;
   createdAt: Date;
 };
 
@@ -69,9 +69,14 @@ type Payment = {
   studentId: string | User;
   stripeSessionId: string;
   amount: number;
+  currency?: string;
+  description: string;
+  paymentType: "registration" | "manuals" | "custom";
   status: string;
-  paidAt: Date;
+  paidAt?: Date;
+  receiptUrl?: string;
   createdAt: Date;
+  updatedAt?: Date;
 };
 
 type RegistrationWindow = {

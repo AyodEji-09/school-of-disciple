@@ -9,7 +9,7 @@ import MatricCard from "../components/matrics/MatricCard";
 import { SlGraduation } from "react-icons/sl";
 import { GoTrophy } from "react-icons/go";
 import { FiTarget } from "react-icons/fi";
-import CourseCard from "../components/course-card/CourseCard";
+// import CourseCard from "../components/course-card/CourseCard";
 import Itinerary from "../components/itinerary/Itinerary";
 import { IoDiamondOutline } from "react-icons/io5";
 import { IoLogoReact } from "react-icons/io5";
@@ -44,16 +44,28 @@ const Home = () => {
   return (
     <div>
       <Hero
-      tit="Welcome to "
+        tit="Welcome to "
         title="The School of Disciples"
         subtitle="Our mission is to nurture and develop future leaders who are grounded in biblical truth, filled with the Holy Spirit, and committed to serving their communities with excellence and compassion."
       />
       <section className="bg-[#121921] p-8">
         <div className="max-w-2xl mx-auto">
-        <div className="grid md:grid-cols-3 gap-8">
-          <MatricCard title="Session" text="10 years of extensive training" icon={<SlGraduation />} />
-          <MatricCard title="Modules" text="169 modules to be explored" icon={<GoTrophy />} />
-          <MatricCard title="Enrollment" text="Over 100,000 enrollments" icon={<FiTarget />} />
+          <div className="grid md:grid-cols-3 gap-8">
+            <MatricCard
+              title="Session"
+              text="10 years of extensive training"
+              icon={<SlGraduation />}
+            />
+            <MatricCard
+              title="Modules"
+              text="169 modules to be explored"
+              icon={<GoTrophy />}
+            />
+            <MatricCard
+              title="Enrollment"
+              text="Over 100,000 enrollments"
+              icon={<FiTarget />}
+            />
           </div>
         </div>
       </section>
@@ -63,7 +75,9 @@ const Home = () => {
             <img src="/images/Pastor5.jpg" alt="" className="h-auto" />
           </div>
           <div className="space-y-2 self-center">
-            <h2 className="text-2xl font-medium uppercase text-[#333]">Learn more about us</h2>
+            <h2 className="text-2xl font-medium uppercase text-[#333]">
+              Learn more about us
+            </h2>
             <p className="text-sm text-[#555] leading-6">
               The School of Disciples, founded in 1985 by Pastor E.A. Adeboye,
               is an initiative by Christ the Redeemer’s Ministries under the
@@ -83,13 +97,25 @@ const Home = () => {
       <section className="bg-[#121921] p-8">
         <div className="max-w-2xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
-          <MatricCard title="Learning" text="YOu can learn at your own pace" icon={<SlGraduation />} />
-          <MatricCard title="Registration" text="Register and pay online" icon={<GoTrophy />} />
-          <MatricCard title="Certification" text="Earn a certificate online" icon={<FiTarget />} />
+            <MatricCard
+              title="Learning"
+              text="YOu can learn at your own pace"
+              icon={<SlGraduation />}
+            />
+            <MatricCard
+              title="Registration"
+              text="Register and pay online"
+              icon={<GoTrophy />}
+            />
+            <MatricCard
+              title="Certification"
+              text="Earn a certificate online"
+              icon={<FiTarget />}
+            />
           </div>
         </div>
       </section>
-      <section className="p-8">
+      {/* <section className="p-8">
         <article className="text-center">
           <h1 className="font-medium text-[#333] text-3xl md:text-4xl">School of Disciple courses</h1>
           <p className="text-2xl font-light txt-[#555]">Achieve your goals with SOD</p>
@@ -101,7 +127,7 @@ const Home = () => {
           </div>
           </div>
         </article>
-      </section>
+      </section> 
       <section className="relative py-16">
         <div className="absolute inset-0 overflow-hidden">
           <img
@@ -126,16 +152,30 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
       <section className="p-8 bg-[#f8f8f8]">
-      <article className="text-center">
-      <h1 className="font-medium text-[#333] text-3xl md:text-4xl">School of Disciple itinerary</h1>
-      </article>
-      <div className="grid md:grid-cols-3 gap-4 mt-8">
-        <Itinerary icon={<IoDiamondOutline />} title="Our Instructors" text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way"/>
-        <Itinerary icon={<RiProfileLine />} title="Our Centers" text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way"/>
-        <Itinerary icon={<IoLogoReact />} title="Online Lectures" text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way"/>
-      </div>
+        <article className="text-center">
+          <h1 className="font-medium text-[#333] text-3xl md:text-4xl">
+            School of Disciple itinerary
+          </h1>
+        </article>
+        <div className="grid md:grid-cols-3 gap-4 mt-8">
+          <Itinerary
+            icon={<IoDiamondOutline />}
+            title="Our Instructors"
+            text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way"
+          />
+          <Itinerary
+            icon={<RiProfileLine />}
+            title="Our Centers"
+            text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way"
+          />
+          <Itinerary
+            icon={<IoLogoReact />}
+            title="Online Lectures"
+            text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way"
+          />
+        </div>
       </section>
       {/* <section className="p-8 bg-[#f8f8f8]">
         <article className="text-center">
@@ -163,17 +203,19 @@ const Home = () => {
       <ParallaxSection backgroundImage="https://images.unsplash.com/photo-1634951401794-6c84f593db82?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
         <div className="absolute md:right-32 p-12 bg-[#121921] text-white max-w-sm">
           <article className="space-y-2">
-            <h2 className="text-3xl font-semibold">School of disciples Learning Community</h2>
-            <p className="text-sm">Join this community to understand more about the School of Disciples courses, how to enroll and our centres.</p>
+            <h2 className="text-3xl font-semibold">
+              School of disciples Learning Community
+            </h2>
+            <p className="text-sm">
+              Join this community to understand more about the School of
+              Disciples courses, how to enroll and our centres.
+            </p>
           </article>
           <div className="mt-8">
-            <Button
-              sx={{ height: 40, borderRadius: 20 }}
-              variant="contained"
-            >
+            <Button sx={{ height: 40, borderRadius: 20 }} variant="contained">
               Read more
             </Button>
-            </div>
+          </div>
         </div>
       </ParallaxSection>
     </div>

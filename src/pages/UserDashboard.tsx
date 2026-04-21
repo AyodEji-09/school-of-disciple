@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { Empty } from "antd";
 import moment from "moment";
 import axios from "axios";
-import { BsReceipt, BsBook } from "react-icons/bs";
+import { BsReceipt } from "react-icons/bs";
 
 import Frame from "../components/frame/Frame";
 import AppButton from "../components/Button/AppButton";
@@ -12,6 +12,7 @@ import { capitalizeWords, handleError } from "../utils";
 import { useAppSelector } from "../data/hooks";
 import { selectUser } from "../data/selectors/authSelector";
 import { useGetUserPaymentsQuery } from "../data/rtk/payment";
+import { useGetUserQuery } from "../data/rtk/user";
 import { PulseLoader } from "react-spinners";
 
 // ─── User Dashboard ───────────────────────────────────────────────────────────
@@ -20,7 +21,7 @@ const UserDashboard = () => {
   const user = useAppSelector(selectUser);
 
   return (
-    <Frame text={`Welcome, ${user?.firstName ?? ""}`}>
+    <Frame text={`Welcome, ${capitalizeWords(user?.firstName ?? "")}`}>
       <div className="space-y-6 mt-6 pb-16">
         <ProfileCard />
         <PendingPayments />
@@ -34,6 +35,25 @@ export default UserDashboard;
 
 const ProfileCard = () => {
   const user = useAppSelector(selectUser);
+  const { data: userProfile, isFetching: isFetchingUserProfile } =
+    useGetUserQuery(user?._id || "", {
+      skip: !user?._id,
+    });
+
+  const dashboardUser = userProfile?.data || user;
+  const isCenterPending =
+    Boolean(user?._id) &&
+    Boolean(dashboardUser?.center) &&
+    typeof dashboardUser?.center === "string" &&
+    isFetchingUserProfile;
+  const centerName =
+    dashboardUser &&
+    dashboardUser.center &&
+    typeof dashboardUser.center !== "string"
+      ? dashboardUser.center.name || "—"
+      : isCenterPending
+        ? "Loading..."
+        : "—";
 
   return (
     <Card variant="outlined" sx={{ height: "fit-content" }}>
@@ -64,7 +84,7 @@ const ProfileCard = () => {
             )
           }
         />
-        <DetailRow label="Center" value={user?.center?.name ?? ""} />
+        <DetailRow label="Center" value={centerName} />
       </div>
     </Card>
   );
@@ -176,7 +196,7 @@ const PendingPayments = () => {
       </Card>
 
       {/* Manuals card — coming soon */}
-      <Card
+      {/* <Card
         variant="outlined"
         sx={{ borderColor: "#E5E7EB", bgcolor: "#FAFAFA" }}
       >
@@ -206,7 +226,7 @@ const PendingPayments = () => {
             </Chip>
           </div>
         </Stack>
-      </Card>
+      </Card> */}
     </div>
   );
 };

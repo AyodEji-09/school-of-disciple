@@ -55,7 +55,10 @@ const isFailedPayment = (status?: string) => {
 };
 
 const getStudentFromPayment = (payment: Payment) => {
-  if (typeof payment.studentId === "string") return undefined;
+  if (!payment.studentId || typeof payment.studentId === "string") {
+    return null;
+  }
+
   return payment.studentId as User & { id?: string };
 };
 
@@ -68,7 +71,11 @@ const getPayerId = (payment: Payment) => {
 
 const getCenterNameFromPayment = (payment: Payment) => {
   const student = getStudentFromPayment(payment);
-  return student?.center?.name || "Unknown Center";
+
+  if (!student || !student.center) return "-";
+  if (typeof student.center === "string") return "-";
+
+  return student.center.name || "-";
 };
 
 const Payments = () => {
@@ -122,7 +129,10 @@ const TransactionTable = () => {
   const navigate = useNavigate();
   const user = useSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
-  const coordinatorCenterId = user?.center?._id;
+  const coordinatorCenter =
+    user?.center && typeof user.center !== "string" ? user.center : null;
+  const coordinatorCenterId = coordinatorCenter?._id;
+  const coordinatorCenterName = coordinatorCenter?.name;
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const {
     data: payments,
@@ -157,7 +167,7 @@ const TransactionTable = () => {
         params.set("limit", "100");
 
         if (isCoordinator && coordinatorCenterId) {
-          params.set("studentId.center._id", coordinatorCenterId);
+          params.set("center", coordinatorCenterId);
         }
 
         const res = await axios.get<ApiResponse<Payment>>(
@@ -202,7 +212,7 @@ const TransactionTable = () => {
 
       fetchedPayments.forEach((payment) => {
         const centerName = isCoordinator
-          ? user?.center?.name || "Coordinator Center"
+          ? coordinatorCenterName || "Coordinator Center"
           : getCenterNameFromPayment(payment);
         const prev = centerMap.get(centerName) || {
           transactions: 0,
@@ -224,7 +234,7 @@ const TransactionTable = () => {
 
       const report: FinancialReport = {
         scopeLabel: isCoordinator
-          ? `${user?.center?.name || "My Center"} (Coordinator)`
+          ? `${coordinatorCenterName || "My Center"} (Coordinator)`
           : "All Centers (Admin)",
         generatedAt: moment().format("DD MMM YYYY, HH:mm"),
         totalTransactions,
@@ -259,6 +269,7 @@ const TransactionTable = () => {
         transactions: fetchedPayments.map((payment) => ({
           date: moment(payment.createdAt).format("DD/MM/YYYY"),
           transactionRef: payment._id,
+          description: payment.description || "Registration Fee",
           center: getCenterNameFromPayment(payment),
           status: payment.status,
           amountFormatted: formatCurrency(payment.amount),
@@ -270,9 +281,7 @@ const TransactionTable = () => {
         return;
       }
 
-      toast.success(
-        "Financial report generated. Save as PDF from print dialog.",
-      );
+      toast.success("Financial report generated.");
     } catch (error) {
       toast.error(handleError(error));
     } finally {
@@ -310,6 +319,14 @@ const TransactionTable = () => {
                 Transaction Ref
               </th>
               <th scope="col" className="px-6 py-3">
+                Description
+              </th>
+              {!isCoordinator && (
+                <th scope="col" className="px-6 py-3">
+                  Center
+                </th>
+              )}
+              <th scope="col" className="px-6 py-3">
                 Amount
               </th>
               <th scope="col" className="px-6 py-3">
@@ -323,7 +340,7 @@ const TransactionTable = () => {
           <tbody>
             {isLoading || isFetching ? (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={isCoordinator ? 6 : 7}>
                   <div className="flex min-h-96 items-center justify-center">
                     <PulseLoader className="mx-auto" size="large" />
                   </div>
@@ -343,6 +360,14 @@ const TransactionTable = () => {
                     </td>
                     <td className="px-6 py-4">{payment?._id}</td>
                     <td className="px-6 py-4">
+                      {payment?.description || "Registration Fee"}
+                    </td>
+                    {!isCoordinator && (
+                      <td className="px-6 py-4">
+                        {getCenterNameFromPayment(payment)}
+                      </td>
+                    )}
+                    <td className="px-6 py-4">
                       ${(payment.amount / 100).toFixed(2)}
                     </td>
                     <td className="px-6 py-4">{payment?.status}</td>
@@ -360,7 +385,7 @@ const TransactionTable = () => {
               })
             ) : (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={isCoordinator ? 6 : 7}>
                   <div className="flex min-h-96 items-center justify-center">
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                   </div>
