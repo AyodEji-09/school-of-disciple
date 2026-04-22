@@ -69,10 +69,7 @@ const PaymentUser = () => {
                     title="Address"
                     value={currentUser?.address ?? "N/A"}
                   />
-                  <Detail
-                    title="Center"
-                    value={center?.name ?? "N/A"}
-                  />
+                  <Detail title="Center" value={center?.name ?? "N/A"} />
                   <Detail
                     title="Center Address"
                     value={center?.address ?? "N/A"}
