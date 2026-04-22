@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Avatar, Card, Typography } from "@mui/joy";
+import { Avatar, Card } from "@mui/joy";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -18,13 +18,13 @@ type ProfileForm = {
   address: string;
   state: string;
   birthday: string;
-  description: string;
-  twitter: string;
-  instagram: string;
-  facebook: string;
-  linkedin: string;
-  tiktok: string;
-  website?: string;
+  // description: string;
+  // twitter: string;
+  // instagram: string;
+  // facebook: string;
+  // linkedin: string;
+  // tiktok: string;
+  // website?: string;
 };
 
 const ProfilePage = () => {
@@ -45,12 +45,12 @@ const ProfilePage = () => {
     address: "",
     state: "",
     birthday: "",
-    description: "",
-    twitter: "",
-    instagram: "",
-    facebook: "",
-    linkedin: "",
-    tiktok: "",
+    // description: "",
+    // twitter: "",
+    // instagram: "",
+    // facebook: "",
+    // linkedin: "",
+    // tiktok: "",
   });
 
   useEffect(() => {
@@ -65,12 +65,12 @@ const ProfilePage = () => {
       birthday: user.birthday
         ? new Date(user.birthday).toISOString().slice(0, 10)
         : "",
-      description: user.description || "",
-      twitter: user.socialLinks?.twitter || "",
-      instagram: user.socialLinks?.instagram || "",
-      facebook: user.socialLinks?.facebook || "",
-      linkedin: user.socialLinks?.linkedin || "",
-      tiktok: user.socialLinks?.tiktok || "",
+      // description: user.description || "",
+      // twitter: user.socialLinks?.twitter || "",
+      // instagram: user.socialLinks?.instagram || "",
+      // facebook: user.socialLinks?.facebook || "",
+      // linkedin: user.socialLinks?.linkedin || "",
+      // tiktok: user.socialLinks?.tiktok || "",
     });
   }, [user]);
 
@@ -138,15 +138,15 @@ const ProfilePage = () => {
         address: form.address,
         state: form.state,
         birthday: form.birthday || undefined,
-        description: form.description,
-        socialLinks: {
-          twitter: form.twitter,
-          instagram: form.instagram,
-          facebook: form.facebook,
-          linkedin: form.linkedin,
-          website: form.website,
-          tiktok: form.tiktok,
-        },
+        // description: form.description,
+        // socialLinks: {
+        //   twitter: form.twitter,
+        //   instagram: form.instagram,
+        //   facebook: form.facebook,
+        //   linkedin: form.linkedin,
+        //   website: form.website,
+        //   tiktok: form.tiktok,
+        // },
       });
 
       if (updateRes.data) {
@@ -164,7 +164,7 @@ const ProfilePage = () => {
     }
   };
 
-  const isStudent = user?.type === "user";
+  // const isStudent = user?.type === "user";
 
   return (
     <Frame text="Profile">
@@ -271,7 +271,8 @@ const ProfilePage = () => {
                 </div>
               </div>
 
-              {/* Bio */}
+              {/* Bio (temporarily disabled) */}
+              {/*
               <div>
                 <label className="text-sm text-[#001F54] font-medium">
                   Bio
@@ -284,8 +285,10 @@ const ProfilePage = () => {
                   placeholder="Write a short bio about yourself"
                 />
               </div>
+              */}
 
-              {/* Social Links - Only for Students */}
+              {/* Social Links - temporarily disabled */}
+              {/*
               {isStudent && (
                 <>
                   <Typography
@@ -295,7 +298,6 @@ const ProfilePage = () => {
                     Social Links
                   </Typography>
 
-                  {/* Facebook and Instagram */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       label="Facebook"
@@ -311,7 +313,6 @@ const ProfilePage = () => {
                     />
                   </div>
 
-                  {/* Twitter/X and LinkedIn */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       label="Twitter/X"
@@ -327,7 +328,6 @@ const ProfilePage = () => {
                     />
                   </div>
 
-                  {/* Website */}
                   <div>
                     <Input
                       label="Website"
@@ -338,6 +338,7 @@ const ProfilePage = () => {
                   </div>
                 </>
               )}
+              */}
 
               {/* Footer text */}
               <p className="text-sm text-gray-500 mt-4">
