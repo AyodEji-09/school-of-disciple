@@ -22,6 +22,7 @@ import AcceptInvite from "./pages/accept-invite";
 import Payments from "./admin/payments";
 import PaymentUser from "./admin/payments/[id]";
 import UserDashboard from "./pages/UserDashboard";
+import ProfilePage from "./pages/ProfilePage";
 import RegistrationWindow from "./admin/registration";
 
 import store from "./data/store";
@@ -58,6 +59,22 @@ const SmartRedirect = () => {
   return <Navigate to="/dashboard" replace />;
 };
 
+const ProfileRoute = () => {
+  const auth = useAppSelector(selectAuth);
+  const loading = useAppSelector(selectLoading);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#F5FAFF]">
+        <PulseLoader size={10} color="#001EC5" />
+      </div>
+    );
+  }
+
+  if (!auth) return <Navigate to="/" replace />;
+  return <ProfilePage />;
+};
+
 const App = () => {
   useEffect(() => {
     store.dispatch(loadUser());
@@ -69,6 +86,7 @@ const App = () => {
     <>
       <ToastContainer position="top-right" />
       <Routes>
+        <Route path="/profile" element={<ProfileRoute />} />
         <Route path="/" element={!auth && <Nav />}>
           <Route index element={<SmartRedirect />} />
 

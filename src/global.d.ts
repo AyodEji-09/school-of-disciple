@@ -33,7 +33,16 @@ type User = {
   emailVerified: boolean;
   type: string;
   address: string;
+  state?: string;
   description: string;
+  socialLinks?: {
+    twitter?: string;
+    instagram?: string;
+    facebook?: string;
+    linkedin?: string;
+    tiktok?: string;
+    website?: string;
+  };
   age: string;
   birthday: Date;
   gender: string;

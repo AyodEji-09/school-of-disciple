@@ -19,6 +19,7 @@ import { useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
+import { capitalizeWords } from "../../utils";
 
 const DefaultHeader = () => {
   const navigate = useNavigate();
@@ -117,7 +118,10 @@ const DefaultHeader = () => {
             <MenuButton
               sx={{ border: "none", ":hover": { background: "none" } }}
             >
-              <Avatar src="" size="sm" />
+              <Avatar src={user?.avatar?.url || ""} size="md">
+                {capitalizeWords(user?.firstName?.[0] ?? "")}
+                {capitalizeWords(user?.lastName?.[0] ?? "")}
+              </Avatar>
             </MenuButton>
             <Menu
               //   sx={{ minWidth: 160, '--ListItemDecorator-size': '24px' }}
