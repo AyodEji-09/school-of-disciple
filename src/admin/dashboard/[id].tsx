@@ -5,25 +5,44 @@ import AppButton from "../../components/Button/AppButton";
 import { useGetUserQuery } from "../../data/rtk/user";
 import { useParams } from "react-router-dom";
 import { getUserFullName } from "../../utils";
-import moment from 'moment';
+import moment from "moment";
 
 const CenterManager = () => {
   const { id } = useParams();
   const { data: user } = useGetUserQuery(id ?? "");
   console.log({ user });
 
+  const manager = user?.data;
+  const initials =
+    `${manager?.firstName?.[0] ?? ""}${manager?.lastName?.[0] ?? ""}`
+      .toUpperCase()
+      .slice(0, 2);
+
   return (
     <Frame text="Center Manager">
       <div className="grid md:grid-cols-3 gap-4 mt-4 pb-8">
         <div className="rounded-lg overflow-hidden bg-white">
           <div className="h-64 overflow-hidden">
-            <img className="h-full w-full object-cover" src={user?.data?.avatar?.url ?? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=464&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"} alt="" />
+            {manager?.avatar?.url ? (
+              <img
+                className="h-full w-full object-cover"
+                src={manager.avatar.url}
+                alt={getUserFullName(manager)}
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-[#E9EEF6] text-[#001F54] text-6xl font-semibold">
+                {initials || "U"}
+              </div>
+            )}
           </div>
           <div className="p-4 space-y-4">
             <Details title="Name" text={getUserFullName(user?.data)} />
             <Details title="Email address" text={user?.data?.email ?? ""} />
             <Details title="Phone number" text={user?.data?.phone ?? ""} />
-            <Details title="Date added" text={moment(user?.data?.createdAt).format("DD MMM YYYY")} />
+            <Details
+              title="Date added"
+              text={moment(user?.data?.createdAt).format("DD MMM YYYY")}
+            />
           </div>
         </div>
         <div className="md:col-span-2 bg-white p-4">
@@ -49,9 +68,19 @@ const CenterManager = () => {
               <tbody>
                 <tr className="font-medium">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <AvatarText text={user?.data?.center?.name ?? ""} />
+                    <AvatarText
+                      text={
+                        manager?.center && typeof manager.center !== "string"
+                          ? manager.center.name
+                          : ""
+                      }
+                    />
                   </td>
-                  <td className="px-6 py-4">{user?.data?.center?.address}</td>
+                  <td className="px-6 py-4">
+                    {manager?.center && typeof manager.center !== "string"
+                      ? manager.center.address
+                      : ""}
+                  </td>
                   <td className="px-6 py-4">
                     <AppButton onClick={() => {}} className="bg-red-700">
                       Unassign

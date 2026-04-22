@@ -16,6 +16,14 @@ const PaymentUser = () => {
   } = useGetUserQuery(id ?? "", { skip: !id });
 
   const currentUser = user?.data;
+  const center =
+    currentUser?.center && typeof currentUser.center !== "string"
+      ? currentUser.center
+      : null;
+  const initials =
+    `${currentUser?.firstName?.[0] ?? ""}${currentUser?.lastName?.[0] ?? ""}`
+      .toUpperCase()
+      .slice(0, 2);
 
   return (
     <Frame text="">
@@ -30,14 +38,17 @@ const PaymentUser = () => {
               <div className="md:col-span-1">
                 <div className="rounded-lg overflow-hidden bg-white border border-[#E7EAF0]">
                   <div className="h-72 overflow-hidden">
-                    <img
-                      className="h-full w-full object-cover"
-                      src={
-                        currentUser?.avatar?.url ??
-                        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=464&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                      }
-                      alt={getUserFullName(currentUser)}
-                    />
+                    {currentUser?.avatar?.url ? (
+                      <img
+                        className="h-full w-full object-cover"
+                        src={currentUser.avatar.url}
+                        alt={getUserFullName(currentUser)}
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-[#E9EEF6] text-[#001F54] text-6xl font-semibold">
+                        {initials || "U"}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -60,11 +71,11 @@ const PaymentUser = () => {
                   />
                   <Detail
                     title="Center"
-                    value={currentUser?.center?.name ?? "N/A"}
+                    value={center?.name ?? "N/A"}
                   />
                   <Detail
                     title="Center Address"
-                    value={currentUser?.center?.address ?? "N/A"}
+                    value={center?.address ?? "N/A"}
                   />
                   <Detail
                     title="Registration Payment Status"

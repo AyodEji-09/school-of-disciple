@@ -14,7 +14,7 @@ export const getUserFullName = (user?: User) => {
     const firstName = user.firstName;
     const lastName = user.lastName;
 
-    return lastName + " " + firstName;
+    return firstName + " " + lastName;
   }
   return "";
 };
