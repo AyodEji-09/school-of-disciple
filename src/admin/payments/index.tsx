@@ -131,10 +131,14 @@ const TransactionTable = () => {
   const navigate = useNavigate();
   const user = useSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
-  const coordinatorCenter =
-    user?.center && typeof user.center !== "string" ? user.center : null;
-  const coordinatorCenterId = coordinatorCenter?._id;
-  const coordinatorCenterName = coordinatorCenter?.name;
+  const coordinatorCenterId =
+    typeof user?.center === "string"
+      ? user.center
+      : user?.center?._id;
+  const coordinatorCenterName =
+    user?.center && typeof user.center !== "string"
+      ? user.center.name
+      : undefined;
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const { data: payments, isLoading } = useGetPaymentsQuery(
     {

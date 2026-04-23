@@ -21,9 +21,9 @@ const Dashboard = () => {
   const user = useAppSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
   const coordinatorCenterId =
-    user?.center && typeof user.center !== "string"
-      ? user.center._id
-      : undefined;
+    typeof user?.center === "string"
+      ? user.center
+      : user?.center?._id;
   console.log({ user });
   const { data: coordinators, isLoading: coordinatorsLoading } =
     useGetUsersQuery({ type: "coordinator" }, { skip: isCoordinator });
