@@ -44,7 +44,8 @@ const ProfileCard = () => {
     isFetching: isFetchingUserProfile,
   } = useGetCurrentUserQuery();
 
-  const dashboardUser = userProfile?.data || user;
+  const profileData = userProfile ? userProfile.data : undefined;
+  const dashboardUser = profileData || user;
   const isCenterPending =
     Boolean(user?._id) &&
     Boolean(dashboardUser?.center) &&
@@ -59,7 +60,7 @@ const ProfileCard = () => {
         ? "Loading..."
         : "—";
 
-  if (isLoadingUserProfile && !userProfile?.data) {
+  if (isLoadingUserProfile && !profileData) {
     return <SectionSkeleton titleWidth={90} lineCount={5} />;
   }
 
@@ -243,11 +244,7 @@ const PendingPayments = () => {
 
 const PaymentHistory = () => {
   const user = useAppSelector(selectUser);
-  const {
-    data: payments,
-    isLoading,
-    isFetching,
-  } = useGetUserPaymentsQuery(
+  const { data: payments, isLoading } = useGetUserPaymentsQuery(
     {
       userId: user?._id || "",
       limit: 20,
@@ -257,7 +254,8 @@ const PaymentHistory = () => {
       skip: !user?._id,
     },
   );
-  const hasPayments = Boolean(payments?.data?.docs?.length);
+  const paymentDocs = payments?.data?.docs || [];
+  const hasPayments = paymentDocs.length > 0;
 
   return (
     <div>
@@ -282,7 +280,7 @@ const PaymentHistory = () => {
                 </tr>
               </thead>
               <tbody>
-                {payments.data.docs.map((payment) => (
+                {paymentDocs.map((payment) => (
                   <tr
                     key={payment._id}
                     className="border-b border-[#F3F4F6] hover:bg-[#F8FAFC] transition"

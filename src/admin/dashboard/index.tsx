@@ -20,18 +20,14 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
-  const coordinatorCenterId = user?.center?._id;
+  const coordinatorCenterId =
+    user?.center && typeof user.center !== "string"
+      ? user.center._id
+      : undefined;
   console.log({ user });
-  const {
-    data: coordinators,
-    isLoading: coordinatorsLoading,
-    isFetching: coordinatorsFetching,
-  } = useGetUsersQuery({ type: "coordinator" }, { skip: isCoordinator });
-  const {
-    data: students,
-    isLoading: studentsLoading,
-    isFetching: studentsFetching,
-  } = useGetUsersQuery(
+  const { data: coordinators, isLoading: coordinatorsLoading } =
+    useGetUsersQuery({ type: "coordinator" }, { skip: isCoordinator });
+  const { data: students, isLoading: studentsLoading } = useGetUsersQuery(
     {
       type: "user",
       ...(isCoordinator && coordinatorCenterId
@@ -40,11 +36,10 @@ const Dashboard = () => {
     },
     { skip: isCoordinator && !coordinatorCenterId },
   );
-  const {
-    data: centers,
-    isLoading: centersLoading,
-    isFetching: centersFetching,
-  } = useGetCentersQuery({ page: 1, limit: 20 }, { skip: isCoordinator });
+  const { data: centers, isLoading: centersLoading } = useGetCentersQuery(
+    { page: 1, limit: 20 },
+    { skip: isCoordinator },
+  );
   console.log({ coordinators, students, centers });
 
   const isStatsLoading =
@@ -114,12 +109,16 @@ export default Dashboard;
 
 const CenterCoordinatorTable = () => {
   const navigate = useNavigate();
-  const {
-    data: coordinators,
-    isLoading,
-    isFetching,
-  } = useGetUsersQuery({ type: "coordinator" });
+  const { data: coordinators, isLoading } = useGetUsersQuery({
+    type: "coordinator",
+  });
   console.log({ coordinators });
+  const coordinatorDocs = coordinators?.data?.docs || [];
+
+  const getCenterName = (entry: User) => {
+    if (!entry?.center || typeof entry.center === "string") return "-";
+    return entry.center.name || "-";
+  };
 
   return (
     <div className="grid gap-4 pb-16">
@@ -157,14 +156,14 @@ const CenterCoordinatorTable = () => {
               </tr>
             </thead>
             <tbody>
-              {isLoading && !coordinators?.data?.docs?.length ? (
+              {isLoading && coordinatorDocs.length === 0 ? (
                 <tr>
                   <td colSpan={5}>
                     <TableSkeleton columns={5} rows={5} />
                   </td>
                 </tr>
-              ) : isFetching && coordinators?.data?.docs?.length ? (
-                coordinators.data.docs.map((coordinator, idx) => (
+              ) : coordinatorDocs.length ? (
+                coordinatorDocs.map((coordinator, idx) => (
                   <tr
                     className="border-b last:border-none font-medium"
                     key={idx}
@@ -173,30 +172,7 @@ const CenterCoordinatorTable = () => {
                       <AvatarText text={getUserFullName(coordinator)} />
                     </td>
                     <td className="px-6 py-4">{coordinator?.phone}</td>
-                    <td className="px-6 py-4">{coordinator?.center?.name}</td>
-                    <td className="px-6 py-4">{coordinator?.email}</td>
-                    <td className="px-6 py-4">
-                      <AppButton
-                        onClick={() =>
-                          navigate(`/dashboard/manager/${coordinator._id}`)
-                        }
-                      >
-                        View
-                      </AppButton>
-                    </td>
-                  </tr>
-                ))
-              ) : coordinators?.data?.docs?.length ? (
-                coordinators?.data?.docs?.map((coordinator, idx) => (
-                  <tr
-                    className="border-b last:border-none font-medium"
-                    key={idx}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <AvatarText text={getUserFullName(coordinator)} />
-                    </td>
-                    <td className="px-6 py-4">{coordinator?.phone}</td>
-                    <td className="px-6 py-4">{coordinator?.center?.name}</td>
+                    <td className="px-6 py-4">{getCenterName(coordinator)}</td>
                     <td className="px-6 py-4">{coordinator?.email}</td>
                     <td className="px-6 py-4">
                       <AppButton
@@ -265,11 +241,7 @@ const CenterCoordinatorTable = () => {
 };
 
 const StudentsTable = ({ centerId }: { centerId?: string }) => {
-  const {
-    data: students,
-    isLoading,
-    isFetching,
-  } = useGetUsersQuery(
+  const { data: students, isLoading } = useGetUsersQuery(
     {
       type: "user",
       ...(centerId ? { center: centerId } : {}),
@@ -278,6 +250,12 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
   );
   console.log({ students });
   const navigate = useNavigate();
+  const studentDocs = students?.data?.docs || [];
+
+  const getCenterName = (entry: User) => {
+    if (!entry?.center || typeof entry.center === "string") return "-";
+    return entry.center.name || "-";
+  };
 
   return (
     <div className="pb-16">
@@ -312,14 +290,14 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
               </tr>
             </thead>
             <tbody>
-              {isLoading && !students?.data?.docs?.length ? (
+              {isLoading && studentDocs.length === 0 ? (
                 <tr>
                   <td colSpan={4}>
                     <TableSkeleton columns={4} rows={5} />
                   </td>
                 </tr>
-              ) : isFetching && students?.data?.docs?.length ? (
-                students.data.docs.map((student, idx) => (
+              ) : studentDocs.length ? (
+                studentDocs.map((student, idx) => (
                   <tr
                     className="border-b last:border-none font-medium"
                     key={idx}
@@ -328,29 +306,7 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
                       <AvatarText text={getUserFullName(student)} />
                     </td>
                     <td className="px-6 py-4">{student?.matricNumber}</td>
-                    <td className="px-6 py-4">{student?.center?.name}</td>
-                    <td className="px-6 py-4">
-                      <AppButton
-                        onClick={() =>
-                          navigate(`/dashboard/students/${student._id}`)
-                        }
-                      >
-                        View
-                      </AppButton>
-                    </td>
-                  </tr>
-                ))
-              ) : students?.data?.docs?.length ? (
-                students?.data?.docs?.map((student, idx) => (
-                  <tr
-                    className="border-b last:border-none font-medium"
-                    key={idx}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <AvatarText text={getUserFullName(student)} />
-                    </td>
-                    <td className="px-6 py-4">{student?.matricNumber}</td>
-                    <td className="px-6 py-4">{student?.center?.name}</td>
+                    <td className="px-6 py-4">{getCenterName(student)}</td>
                     <td className="px-6 py-4">
                       <AppButton
                         onClick={() =>
