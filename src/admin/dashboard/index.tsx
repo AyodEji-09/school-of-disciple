@@ -1,4 +1,4 @@
-import { Stack, Typography } from "@mui/joy";
+import { Chip, Stack, Typography } from "@mui/joy";
 import ReportCard from "../../components/card/ReportCard";
 import AppButton from "../../components/Button/AppButton";
 import { useNavigate } from "react-router-dom";
@@ -118,6 +118,31 @@ const CenterCoordinatorTable = () => {
     return entry.center.name || "-";
   };
 
+  const getCoordinatorStatus = (entry: User) => {
+    if (entry.coordinatorStatus) return entry.coordinatorStatus;
+    if (!entry.emailVerified) return "pending";
+    if (entry.deactivated) return "deactivated";
+    if (!entry.center) return "unassigned";
+    return "assigned";
+  };
+
+  const getStatusChip = (
+    status: "assigned" | "unassigned" | "deactivated" | "pending",
+  ) => {
+    const config = {
+      assigned: { color: "success" as const, label: "Assigned" },
+      unassigned: { color: "warning" as const, label: "Unassigned" },
+      deactivated: { color: "danger" as const, label: "Deactivated" },
+      pending: { color: "neutral" as const, label: "Pending Invite" },
+    };
+
+    return (
+      <Chip color={config[status].color} variant="soft" size="sm">
+        {config[status].label}
+      </Chip>
+    );
+  };
+
   return (
     <div className="grid gap-4 pb-16">
       <div className="bg-white p-4 overflow-x-auto">
@@ -149,6 +174,9 @@ const CenterCoordinatorTable = () => {
                   Email
                 </th>
                 <th scope="col" className="px-6 py-3">
+                  Status
+                </th>
+                <th scope="col" className="px-6 py-3">
                   Action
                 </th>
               </tr>
@@ -156,8 +184,8 @@ const CenterCoordinatorTable = () => {
             <tbody>
               {isLoading && coordinatorDocs.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>
-                    <TableSkeleton columns={5} rows={5} />
+                  <td colSpan={6}>
+                    <TableSkeleton columns={6} rows={5} />
                   </td>
                 </tr>
               ) : coordinatorDocs.length ? (
@@ -173,6 +201,9 @@ const CenterCoordinatorTable = () => {
                     <td className="px-6 py-4">{getCenterName(coordinator)}</td>
                     <td className="px-6 py-4">{coordinator?.email}</td>
                     <td className="px-6 py-4">
+                      {getStatusChip(getCoordinatorStatus(coordinator))}
+                    </td>
+                    <td className="px-6 py-4">
                       <AppButton
                         onClick={() =>
                           navigate(`/dashboard/manager/${coordinator._id}`)
@@ -185,7 +216,7 @@ const CenterCoordinatorTable = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <CenteredEmptyState description="No coordinators found" />
                   </td>
                 </tr>
