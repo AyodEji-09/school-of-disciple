@@ -376,7 +376,7 @@ const TransactionTable = () => {
                         disabled={!payerId}
                         onClick={() => navigate(`/payments/users/${payerId}`)}
                       >
-                        View
+                        Payer
                       </AppButton>
                     </td>
                   </tr>

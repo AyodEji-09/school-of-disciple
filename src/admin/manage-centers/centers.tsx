@@ -41,7 +41,6 @@ interface FormType {
   state: string;
   postalCode: string;
   country: string;
-  landmark: string;
 }
 
 const Centers = () => {
@@ -113,7 +112,6 @@ const Centers = () => {
       state: selectedCenter?.state || "",
       postalCode: selectedCenter?.postalCode || "",
       country: selectedCenter?.country || "",
-      landmark: selectedCenter?.landmark || "",
     },
   });
 
@@ -165,22 +163,18 @@ const Centers = () => {
       setValue("state", selectedCenter?.state || "");
       setValue("postalCode", selectedCenter?.postalCode || "");
       setValue("country", selectedCenter?.country || "");
-      setValue("landmark", selectedCenter?.landmark || "");
     }
   }, [selectedCenter, setValue]);
 
   return (
     <Frame text="Centers">
       <div className="grid sm:grid-cols-3 gap-4 mt-8">
-        <ReportCard title="Center coordinator" number={coordinators?.data?.totalItems || "0"} />
         <ReportCard
-          title="Unassigned centers"
-          number={unassignedCenters}
+          title="Center coordinator"
+          number={coordinators?.data?.totalItems || "0"}
         />
-        <ReportCard
-          title="Centers"
-          number={totalCenters}
-        />
+        <ReportCard title="Unassigned centers" number={unassignedCenters} />
+        <ReportCard title="Centers" number={totalCenters} />
       </div>
       {user?.type === "admin" && (
         <Stack pt={4}>
@@ -240,7 +234,9 @@ const Centers = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <AvatarText text={center?.name} />
                       </td>
-                      <td className="px-6 py-4">{formatCenterAddress(center)}</td>
+                      <td className="px-6 py-4">
+                        {formatCenterAddress(center)}
+                      </td>
                       <td className="px-6 py-4">
                         <span className="text-center">
                           {center?.manager && typeof center.manager !== "string"
@@ -416,7 +412,11 @@ const Centers = () => {
                         required: true,
                       }}
                       render={({ field: { value, onChange } }) => (
-                        <Input label="State" value={value} onChange={onChange} />
+                        <Input
+                          label="State"
+                          value={value}
+                          onChange={onChange}
+                        />
                       )}
                     />
                     {errors.state && (
@@ -454,7 +454,11 @@ const Centers = () => {
                         required: true,
                       }}
                       render={({ field: { value, onChange } }) => (
-                        <Input label="Country" value={value} onChange={onChange} />
+                        <Input
+                          label="Country"
+                          value={value}
+                          onChange={onChange}
+                        />
                       )}
                     />
                     {errors.country && (
@@ -463,19 +467,6 @@ const Centers = () => {
                       </p>
                     )}
                   </div>
-                </div>
-                <div className="md:col-span-2">
-                  <Controller
-                    name="landmark"
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <Input
-                        label="Landmark (Optional)"
-                        value={value}
-                        onChange={onChange}
-                      />
-                    )}
-                  />
                 </div>
               </div>
               <Stack marginTop={8}>
