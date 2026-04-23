@@ -8,7 +8,48 @@ import { handleError } from "../utils";
 import Hero from "../components/hero/Hero";
 import { Option, Select } from "@mui/joy";
 import { useGetAllCenterQuery } from "../data/rtk/center";
+import { useGetRegistrationWindowQuery } from "../data/rtk/registration";
 import { useNavigate } from "react-router-dom";
+
+const getRegistrationWindowState = (
+  window?: RegistrationWindow | null,
+): {
+  status: "open" | "upcoming" | "closed" | "not-configured";
+  message: string;
+} => {
+  if (!window) {
+    return {
+      status: "not-configured",
+      message:
+        "Registration has not been announced yet. Please check back soon.",
+    };
+  }
+
+  const now = Date.now();
+  const start = new Date(window.startDate).getTime();
+  const end = new Date(window.endDate).getTime();
+
+  if (now < start) {
+    return {
+      status: "upcoming",
+      message:
+        "Registration has not been announced yet. Please check back soon.",
+    };
+  }
+
+  if (now > end) {
+    return {
+      status: "closed",
+      message: "Registration window is now closed.",
+    };
+  }
+
+  return {
+    status: "open",
+    message: "",
+  };
+};
+
 type Form = {
   firstName: string;
   lastName: string;
@@ -21,6 +62,12 @@ const Register = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { data: centers } = useGetAllCenterQuery();
+  const { data: registrationWindowRes, isLoading: registrationWindowLoading } =
+    useGetRegistrationWindowQuery();
+  const registrationWindow = registrationWindowRes?.data;
+  const registrationWindowState =
+    getRegistrationWindowState(registrationWindow);
+  const canRegisterNow = registrationWindowState.status === "open";
 
   const {
     control,
@@ -39,6 +86,17 @@ const Register = () => {
   });
 
   const onSubmit = async (data: Form) => {
+    if (registrationWindowLoading) {
+      toast.info("Checking registration window, please wait...");
+      return;
+    }
+
+    const currentWindowState = getRegistrationWindowState(registrationWindow);
+    if (currentWindowState.status !== "open") {
+      toast.error(currentWindowState.message);
+      return;
+    }
+
     console.log(data);
     setLoading(true);
     try {
@@ -190,12 +248,17 @@ const Register = () => {
               )}
             </div>
           </div>
+          {registrationWindowState.status !== "open" && (
+            <p className="text-xs text-[#6B7280]">
+              {registrationWindowState.message}
+            </p>
+          )}
           <div className="flex items-center mt-8">
             <Button
               variant="contained"
               type="submit"
               loading={loading}
-              disabled={loading}
+              disabled={loading || registrationWindowLoading || !canRegisterNow}
               fullWidth
             >
               Submit
