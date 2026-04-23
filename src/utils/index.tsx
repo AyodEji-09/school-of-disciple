@@ -42,3 +42,20 @@ export function capitalizeWords(str: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
+
+export const formatCenterAddress = (center?: Center | null): string => {
+  if (!center) return "N/A";
+
+  const parts = [
+    center.address,
+    center.landmark,
+    center.city,
+    center.state,
+    center.postalCode,
+    center.country,
+  ]
+    .map((part) => (part || "").trim())
+    .filter(Boolean);
+
+  return parts.length ? parts.join(", ") : "N/A";
+};

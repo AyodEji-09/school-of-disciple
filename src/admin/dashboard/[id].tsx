@@ -4,7 +4,7 @@ import AvatarText from "../../components/avatar-text/AvatarText";
 import AppButton from "../../components/Button/AppButton";
 import { useGetUserQuery } from "../../data/rtk/user";
 import { useParams } from "react-router-dom";
-import { getUserFullName } from "../../utils";
+import { formatCenterAddress, getUserFullName } from "../../utils";
 import moment from "moment";
 
 const CenterManager = () => {
@@ -78,7 +78,7 @@ const CenterManager = () => {
                   </td>
                   <td className="px-6 py-4">
                     {manager?.center && typeof manager.center !== "string"
-                      ? manager.center.address
+                      ? formatCenterAddress(manager.center)
                       : ""}
                   </td>
                   <td className="px-6 py-4">

@@ -12,6 +12,10 @@ import { useCreateCenterMutation } from "../../data/rtk/center";
 interface FormType {
   name: string;
   address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
 }
 
 const AddCenter = () => {
@@ -26,6 +30,10 @@ const AddCenter = () => {
     defaultValues: {
       name: "",
       address: "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "",
     },
   });
 
@@ -91,13 +99,85 @@ const AddCenter = () => {
                   }}
                   render={({ field: { value, onChange } }) => (
                     <Input
-                      label="Center Address"
+                      label="Street Address"
                       value={value}
                       onChange={onChange}
                     />
                   )}
                 />
                 {errors.address && (
+                  <p className="text-[#dc2626] text-xs">
+                    This field is required.
+                  </p>
+                )}
+              </div>
+              <div>
+                <Controller
+                  name="city"
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input label="City" value={value} onChange={onChange} />
+                  )}
+                />
+                {errors.city && (
+                  <p className="text-[#dc2626] text-xs">
+                    This field is required.
+                  </p>
+                )}
+              </div>
+              <div>
+                <Controller
+                  name="state"
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input label="State" value={value} onChange={onChange} />
+                  )}
+                />
+                {errors.state && (
+                  <p className="text-[#dc2626] text-xs">
+                    This field is required.
+                  </p>
+                )}
+              </div>
+              <div>
+                <Controller
+                  name="postalCode"
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input
+                      label="Postal Code"
+                      value={value}
+                      onChange={onChange}
+                    />
+                  )}
+                />
+                {errors.postalCode && (
+                  <p className="text-[#dc2626] text-xs">
+                    This field is required.
+                  </p>
+                )}
+              </div>
+              <div>
+                <Controller
+                  name="country"
+                  control={control}
+                  rules={{
+                    required: true,
+                  }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input label="Country" value={value} onChange={onChange} />
+                  )}
+                />
+                {errors.country && (
                   <p className="text-[#dc2626] text-xs">
                     This field is required.
                   </p>

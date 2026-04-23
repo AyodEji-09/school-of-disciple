@@ -18,12 +18,13 @@ import AppModal from "../../components/modal/modal";
 import { Controller, useForm } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { getUserFullName, handleError } from "../../utils";
+import { formatCenterAddress, getUserFullName, handleError } from "../../utils";
 import AppSearch from "../../components/search/AppSearch";
 import AvatarText from "../../components/avatar-text/AvatarText";
 import Input from "../../components/input/input.component";
 import {
   useDeleteCenterMutation,
+  useGetAllCenterQuery,
   useGetCentersQuery,
   useUpdateCenterMutation,
 } from "../../data/rtk/center";
@@ -36,6 +37,11 @@ import { useGetUsersQuery } from "../../data/rtk/user";
 interface FormType {
   name: string;
   address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  landmark: string;
 }
 
 const Centers = () => {
@@ -53,8 +59,13 @@ const Centers = () => {
     isLoading,
     isFetching,
   } = useGetCentersQuery({ limit: 20, page: 1 });
+  const { data: allCenters } = useGetAllCenterQuery();
   const { data: coordinators } = useGetUsersQuery({ type: "coordinator" });
   console.log({ centerData });
+
+  const totalCenters = centerData?.data?.totalItems ?? 0;
+  const unassignedCenters =
+    allCenters?.data?.docs?.filter((center) => !center.manager).length ?? 0;
 
   const toggleModal = (mode?: string) => {
     if (mode) setMode(mode);
@@ -98,6 +109,11 @@ const Centers = () => {
     defaultValues: {
       name: selectedCenter?.name || "",
       address: selectedCenter?.address || "",
+      city: selectedCenter?.city || "",
+      state: selectedCenter?.state || "",
+      postalCode: selectedCenter?.postalCode || "",
+      country: selectedCenter?.country || "",
+      landmark: selectedCenter?.landmark || "",
     },
   });
 
@@ -145,26 +161,25 @@ const Centers = () => {
     if (selectedCenter) {
       setValue("name", selectedCenter?.name);
       setValue("address", selectedCenter?.address);
+      setValue("city", selectedCenter?.city || "");
+      setValue("state", selectedCenter?.state || "");
+      setValue("postalCode", selectedCenter?.postalCode || "");
+      setValue("country", selectedCenter?.country || "");
+      setValue("landmark", selectedCenter?.landmark || "");
     }
-  }, [selectedCenter]);
+  }, [selectedCenter, setValue]);
 
   return (
     <Frame text="Centers">
       <div className="grid sm:grid-cols-3 gap-4 mt-8">
-        <ReportCard
-          title="Center coordinator"
-          number={coordinators?.data?.totalItems || "0"}
-        />
+        <ReportCard title="Center coordinator" number={coordinators?.data?.totalItems || "0"} />
         <ReportCard
           title="Unassigned centers"
-          number={
-            (centerData?.data?.totalItems || 0) -
-            (coordinators?.data?.totalItems || 0)
-          }
+          number={unassignedCenters}
         />
         <ReportCard
           title="Centers"
-          number={centerData?.data?.totalItems || "0"}
+          number={totalCenters}
         />
       </div>
       {user?.type === "admin" && (
@@ -225,11 +240,11 @@ const Centers = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <AvatarText text={center?.name} />
                       </td>
-                      <td className="px-6 py-4">{center?.address}</td>
+                      <td className="px-6 py-4">{formatCenterAddress(center)}</td>
                       <td className="px-6 py-4">
                         <span className="text-center">
-                          {center?.manager
-                            ? getUserFullName(center?.manager)
+                          {center?.manager && typeof center.manager !== "string"
+                            ? getUserFullName(center.manager)
                             : "Nil"}
                         </span>
                       </td>
@@ -326,11 +341,14 @@ const Centers = () => {
           </Box>
         )}
         {mode === "edit" && (
-          <Box>
+          <Box sx={{ width: { xs: "100%", sm: 680 }, maxWidth: "95vw" }}>
             <Typography level="h2">Edit Center</Typography>
-            <form onSubmit={handleSubmit(onSubmit)} className="mt-8">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="mt-8 max-h-[72vh] overflow-y-auto pr-1"
+            >
               <div className="space-y-4 mt-8">
-                <div>
+                <div className="md:col-span-2">
                   <Controller
                     name="name"
                     control={control}
@@ -351,7 +369,7 @@ const Centers = () => {
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="md:col-span-2">
                   <Controller
                     name="address"
                     control={control}
@@ -360,7 +378,7 @@ const Centers = () => {
                     }}
                     render={({ field: { value, onChange } }) => (
                       <Input
-                        label="Center Address"
+                        label="Street Address"
                         value={value}
                         onChange={onChange}
                       />
@@ -371,6 +389,93 @@ const Centers = () => {
                       This field is required.
                     </p>
                   )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Controller
+                      name="city"
+                      control={control}
+                      rules={{
+                        required: true,
+                      }}
+                      render={({ field: { value, onChange } }) => (
+                        <Input label="City" value={value} onChange={onChange} />
+                      )}
+                    />
+                    {errors.city && (
+                      <p className="text-[#dc2626] text-xs">
+                        This field is required.
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Controller
+                      name="state"
+                      control={control}
+                      rules={{
+                        required: true,
+                      }}
+                      render={({ field: { value, onChange } }) => (
+                        <Input label="State" value={value} onChange={onChange} />
+                      )}
+                    />
+                    {errors.state && (
+                      <p className="text-[#dc2626] text-xs">
+                        This field is required.
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Controller
+                      name="postalCode"
+                      control={control}
+                      rules={{
+                        required: true,
+                      }}
+                      render={({ field: { value, onChange } }) => (
+                        <Input
+                          label="Postal Code"
+                          value={value}
+                          onChange={onChange}
+                        />
+                      )}
+                    />
+                    {errors.postalCode && (
+                      <p className="text-[#dc2626] text-xs">
+                        This field is required.
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Controller
+                      name="country"
+                      control={control}
+                      rules={{
+                        required: true,
+                      }}
+                      render={({ field: { value, onChange } }) => (
+                        <Input label="Country" value={value} onChange={onChange} />
+                      )}
+                    />
+                    {errors.country && (
+                      <p className="text-[#dc2626] text-xs">
+                        This field is required.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <Controller
+                    name="landmark"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Input
+                        label="Landmark (Optional)"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
                 </div>
               </div>
               <Stack marginTop={8}>

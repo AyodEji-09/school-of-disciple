@@ -27,7 +27,10 @@ export const centerApi = createApi({
 
         if (search) {
           params.set("search", search);
-          params.set("searchFields", "name,address");
+          params.set(
+            "searchFields",
+            "name,address,city,state,postalCode,country,landmark",
+          );
         }
 
         return `/center?${params.toString()}`;
@@ -62,7 +65,15 @@ export const centerApi = createApi({
     }),
     createCenter: builder.mutation<
       ApiResponseN<Center>,
-      { name: string; address: string }
+      {
+        name: string;
+        address: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        country?: string;
+        landmark?: string;
+      }
     >({
       query: (body) => ({
         url: "/center",
@@ -83,7 +94,16 @@ export const centerApi = createApi({
     }),
     updateCenter: builder.mutation<
       ApiResponseN<Center>,
-      { id: string; name: string; address: string }
+      {
+        id: string;
+        name: string;
+        address: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        country?: string;
+        landmark?: string;
+      }
     >({
       query: ({ id, ...body }) => ({
         url: `/center/${id}`,

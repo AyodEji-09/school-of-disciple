@@ -70,7 +70,12 @@ type Center = {
   _id: string;
   name: string;
   address: string;
-  manager: User;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  landmark?: string;
+  manager?: User | string | null;
 };
 
 type Payment = {

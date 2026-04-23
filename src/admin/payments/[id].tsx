@@ -5,7 +5,7 @@ import moment from "moment";
 
 import Frame from "../../components/frame/Frame";
 import { useGetUserQuery } from "../../data/rtk/user";
-import { getUserFullName } from "../../utils";
+import { formatCenterAddress, getUserFullName } from "../../utils";
 
 const PaymentUser = () => {
   const { id } = useParams();
@@ -72,7 +72,7 @@ const PaymentUser = () => {
                   <Detail title="Center" value={center?.name ?? "N/A"} />
                   <Detail
                     title="Center Address"
-                    value={center?.address ?? "N/A"}
+                    value={formatCenterAddress(center)}
                   />
                   <Detail
                     title="Registration Payment Status"
