@@ -6,10 +6,14 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { handleError } from "../utils";
 import Hero from "../components/hero/Hero";
-import { Option, Select } from "@mui/joy";
+import { Option, Select, Stack, Typography } from "@mui/joy";
 import { useGetAllCenterQuery } from "../data/rtk/center";
 import { useGetRegistrationWindowQuery } from "../data/rtk/registration";
 import { useNavigate } from "react-router-dom";
+import AppModal from "../components/modal/modal";
+import OtpComponent from "../components/otp-component/OtpComponent";
+import { useAppDispatch } from "../data/hooks";
+import { login } from "../data/reducers/userSlice";
 
 const getRegistrationWindowState = (
   window?: RegistrationWindow | null,
@@ -60,7 +64,16 @@ type Form = {
 };
 const Register = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [pendingCredentials, setPendingCredentials] = useState<Pick<
+    Form,
+    "email" | "password"
+  > | null>(null);
   const { data: centers } = useGetAllCenterQuery();
   const { data: registrationWindowRes, isLoading: registrationWindowLoading } =
     useGetRegistrationWindowQuery();
@@ -72,7 +85,6 @@ const Register = () => {
   const {
     control,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -84,6 +96,24 @@ const Register = () => {
       password: "",
     },
   });
+
+  const sendVerificationOtp = async (email: string) => {
+    await axios.post("/auth/request-token", {
+      email,
+      type: "verifyEmail",
+    });
+  };
+
+  const performLogin = async (
+    credentials: Pick<Form, "email" | "password">,
+  ) => {
+    const res = await axios.post("/auth/login", credentials);
+    const userType: string = res.data.data.user?.type;
+    dispatch(login(res.data.data));
+    navigate(userType === "user" ? "/my-dashboard" : "/dashboard", {
+      replace: true,
+    });
+  };
 
   const onSubmit = async (data: Form) => {
     if (registrationWindowLoading) {
@@ -102,8 +132,20 @@ const Register = () => {
     try {
       const res = await axios.post<ApiResponseN<null>>("/auth/register", data);
       toast.success(res.data.message);
-      reset();
-      navigate("/login");
+
+      const credentials = {
+        email: data.email,
+        password: data.password,
+      };
+      setPendingCredentials(credentials);
+
+      try {
+        await sendVerificationOtp(data.email);
+        setIsModalOpen(true);
+        toast.info("A verification code has been sent to your email");
+      } catch (otpError) {
+        toast.error(handleError(otpError));
+      }
     } catch (error) {
       console.log({ error });
       toast.error(handleError(error));
@@ -111,6 +153,48 @@ const Register = () => {
       setLoading(false);
     }
   };
+
+  const verifyOtp = async () => {
+    if (!otp || otp.length < 6) {
+      return toast.error("Please enter the complete 6-digit code");
+    }
+
+    if (!pendingCredentials?.email || !pendingCredentials?.password) {
+      return toast.error("Missing signup session. Please register again.");
+    }
+
+    setVerifyLoading(true);
+    try {
+      await axios.post("/auth/verify-Email", {
+        token: otp,
+        email: pendingCredentials.email,
+      });
+      toast.success("Email verified! Logging you in...");
+      setIsModalOpen(false);
+      await performLogin(pendingCredentials);
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  const resendOtp = async () => {
+    const email = pendingCredentials?.email;
+    if (!email)
+      return toast.error("Missing signup session. Please register again.");
+
+    setResendLoading(true);
+    try {
+      await sendVerificationOtp(email);
+      toast.success("Verification code resent");
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <div>
       <Hero
@@ -266,6 +350,59 @@ const Register = () => {
           </div>
         </form>
       </div>
+
+      <AppModal
+        isOpen={isModalOpen}
+        close={() => setIsModalOpen(false)}
+        title="Verify Your Email"
+        icon
+      >
+        <div className="w-[min(360px,80vw)] mt-2 space-y-5">
+          <Typography level="body-sm" textColor="#6B7280">
+            Enter the 6-digit code sent to{" "}
+            <span className="font-semibold text-[#001F54]">
+              {pendingCredentials?.email}
+            </span>
+          </Typography>
+
+          <div className="flex justify-center py-2">
+            <OtpComponent onChange={setOtp} loading={verifyLoading} />
+          </div>
+
+          <p className="text-xs text-center text-[#6B7280]">
+            Didn't get the code?{" "}
+            <button
+              type="button"
+              onClick={resendOtp}
+              disabled={resendLoading}
+              className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
+            >
+              {resendLoading ? "Sending..." : "Resend"}
+            </button>
+          </p>
+
+          <Stack direction="row" gap={2}>
+            <Button
+              variant="contained"
+              type="button"
+              onClick={verifyOtp}
+              disabled={verifyLoading}
+              fullWidth
+            >
+              {verifyLoading ? "Verifying..." : "Verify & Log In"}
+            </Button>
+            <Button
+              variant="outlined"
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              disabled={verifyLoading}
+              fullWidth
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </div>
+      </AppModal>
     </div>
   );
 };
