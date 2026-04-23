@@ -132,9 +132,7 @@ const TransactionTable = () => {
   const user = useSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
   const coordinatorCenterId =
-    typeof user?.center === "string"
-      ? user.center
-      : user?.center?._id;
+    typeof user?.center === "string" ? user.center : user?.center?._id;
   const coordinatorCenterName =
     user?.center && typeof user.center !== "string"
       ? user.center.name
