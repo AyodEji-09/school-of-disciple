@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import Frame from "../../components/frame/Frame";
-import { Box, Chip, Option, Select, Stack, Typography } from "@mui/joy";
-import AvatarText from "../../components/avatar-text/AvatarText";
+import { Card, Chip, Option, Select, Stack, Typography } from "@mui/joy";
 import AppButton from "../../components/Button/AppButton";
 import {
   useGetUserQuery,
@@ -14,10 +13,15 @@ import { formatCenterAddress, getUserFullName } from "../../utils";
 import moment from "moment";
 import { toast } from "react-toastify";
 import { handleError } from "../../utils";
+import { PulseLoader } from "react-spinners";
 
 const CenterManager = () => {
   const { id } = useParams();
-  const { data: user } = useGetUserQuery(id ?? "");
+  const {
+    data: user,
+    isLoading,
+    isFetching,
+  } = useGetUserQuery(id ?? "", { skip: !id });
   const { data: centers } = useGetAllCenterQuery();
   const [selectedCenterId, setSelectedCenterId] = useState<string | null>(null);
   const [assignmentLoading, setAssignmentLoading] = useState(false);
@@ -43,6 +47,10 @@ const CenterManager = () => {
 
   const currentCenterId =
     typeof manager?.center === "string" ? manager.center : manager?.center?._id;
+  const currentCenter =
+    manager?.center && typeof manager.center !== "string"
+      ? manager.center
+      : null;
 
   const centerOptions = useMemo(() => centers?.data?.docs || [], [centers]);
 
@@ -96,148 +104,135 @@ const CenterManager = () => {
 
   return (
     <Frame text="Center Manager">
-      <div className="grid md:grid-cols-3 gap-4 mt-4 pb-8">
-        <div className="rounded-lg overflow-hidden bg-white">
-          <div className="h-64 overflow-hidden">
-            {manager?.avatar?.url ? (
-              <img
-                className="h-full w-full object-cover"
-                src={manager.avatar.url}
-                alt={getUserFullName(manager)}
-              />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center bg-[#E9EEF6] text-[#001F54] text-6xl font-semibold">
-                {initials || "U"}
+      <div className="mt-8 pb-8">
+        <Card variant="outlined">
+          {isLoading || isFetching ? (
+            <div className="flex min-h-72 items-center justify-center">
+              <PulseLoader className="mx-auto" size="large" />
+            </div>
+          ) : manager ? (
+            <div className="grid md:grid-cols-3 gap-6 p-2">
+              <div className="md:col-span-1">
+                <div className="rounded-lg overflow-hidden bg-white border border-[#E7EAF0]">
+                  <div className="h-72 overflow-hidden">
+                    {manager?.avatar?.url ? (
+                      <img
+                        className="h-full w-full object-cover"
+                        src={manager.avatar.url}
+                        alt={getUserFullName(manager)}
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-[#E9EEF6] text-[#001F54] text-6xl font-semibold">
+                        {initials || "U"}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-          <div className="p-4 space-y-4">
-            <Details title="Name" text={getUserFullName(user?.data)} />
-            <Details title="Email address" text={user?.data?.email ?? ""} />
-            <Details title="Phone number" text={user?.data?.phone ?? ""} />
-            <Details title="Status" text={getStatusChip()} />
-            <Details
-              title="Date added"
-              text={moment(user?.data?.createdAt).format("DD MMM YYYY")}
-            />
-          </div>
-        </div>
-        <div className="md:col-span-2 bg-white p-4">
-          <Box
-            minHeight={400}
-            position={"relative"}
-            className={"overflow-x-auto"}
-          >
-            <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-              <thead className="text-xs">
-                <tr>
-                  <th scope="col" className="px-6 py-3">
-                    Center name
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Center Address
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Assignment
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Activation
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="font-medium">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <AvatarText
-                      text={
-                        manager?.center && typeof manager.center !== "string"
-                          ? manager.center.name
-                          : ""
+
+              <div className="md:col-span-2 rounded-lg border border-[#E7EAF0] bg-white p-5">
+                <Typography level="h3" mb={3}>
+                  {getUserFullName(manager)}
+                </Typography>
+
+                <Stack spacing={2}>
+                  <DetailRow label="Email" value={manager.email || "N/A"} />
+                  <DetailRow label="Phone" value={manager.phone || "N/A"} />
+                  <DetailRow
+                    label="Status"
+                    value={getStatusChip()}
+                    valueIsNode
+                  />
+                  <DetailRow
+                    label="Center"
+                    value={currentCenter?.name || "Unassigned"}
+                  />
+                  <DetailRow
+                    label="Center Address"
+                    value={formatCenterAddress(currentCenter)}
+                  />
+                  <DetailRow
+                    label="Date Added"
+                    value={
+                      manager.createdAt
+                        ? moment(manager.createdAt).format("DD MMM YYYY")
+                        : "N/A"
+                    }
+                  />
+                </Stack>
+
+                <div className="mt-6 pt-4 border-t border-[#E7EAF0]">
+                  <Typography level="title-md" mb={2}>
+                    Center Assignment
+                  </Typography>
+                  <Stack gap={1.5}>
+                    <Select
+                      placeholder={
+                        currentCenterId ? "Select new center" : "Select center"
                       }
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    {manager?.center && typeof manager.center !== "string"
-                      ? formatCenterAddress(manager.center)
-                      : ""}
-                  </td>
-                  <td className="px-6 py-4 min-w-[240px]">
-                    <Stack gap={1.5}>
-                      <Select
-                        placeholder={
-                          currentCenterId ? "Change center" : "Select center"
-                        }
-                        value={selectedCenterId || currentCenterId || null}
-                        onChange={(_, value) => setSelectedCenterId(value)}
-                      >
-                        {centerOptions.map((center) => (
-                          <Option key={center._id} value={center._id}>
-                            {center.name}
-                          </Option>
-                        ))}
-                      </Select>
-                      <Stack direction="row" gap={1} flexWrap="wrap">
-                        <AppButton
-                          loading={assignmentLoading}
-                          disabled={assignmentLoading || !selectedCenterId}
-                          onClick={() =>
-                            handleAssignment(
-                              selectedCenterId || currentCenterId || null,
-                            )
-                          }
-                        >
-                          {currentCenterId ? "Reassign" : "Assign"}
-                        </AppButton>
-                        <AppButton
-                          variant="outlined"
-                          disabled={assignmentLoading || !currentCenterId}
-                          onClick={() => handleAssignment(null)}
-                        >
-                          Unassign
-                        </AppButton>
-                      </Stack>
-                    </Stack>
-                  </td>
-                  <td className="px-6 py-4">
-                    <Stack direction="row" gap={1} flexWrap="wrap">
-                      {manager?.deactivated ? (
-                        <AppButton
-                          loading={deactivationLoading}
-                          disabled={deactivationLoading}
-                          onClick={() => handleDeactivation(false)}
-                        >
-                          Reactivate
-                        </AppButton>
-                      ) : (
-                        <AppButton
-                          className="bg-red-700"
-                          loading={deactivationLoading}
-                          disabled={deactivationLoading}
-                          onClick={() => handleDeactivation(true)}
-                        >
-                          Deactivate
-                        </AppButton>
-                      )}
-                    </Stack>
-                  </td>
-                  <td className="px-6 py-4">
-                    <AppButton
-                      onClick={() => handleAssignment(null)}
-                      className="bg-red-700"
-                      disabled={!currentCenterId || assignmentLoading}
-                      loading={assignmentLoading}
+                      value={selectedCenterId || currentCenterId || null}
+                      onChange={(_, value) => setSelectedCenterId(value)}
                     >
-                      Remove Center
+                      {centerOptions.map((center) => (
+                        <Option key={center._id} value={center._id}>
+                          {center.name}
+                        </Option>
+                      ))}
+                    </Select>
+                    <Stack direction="row" gap={1} flexWrap="wrap">
+                      <AppButton
+                        loading={assignmentLoading}
+                        disabled={assignmentLoading || !selectedCenterId}
+                        onClick={() =>
+                          handleAssignment(
+                            selectedCenterId || currentCenterId || null,
+                          )
+                        }
+                      >
+                        {currentCenterId ? "Reassign Center" : "Assign Center"}
+                      </AppButton>
+                      <AppButton
+                        variant="outlined"
+                        disabled={assignmentLoading || !currentCenterId}
+                        onClick={() => handleAssignment(null)}
+                      >
+                        Unassign Center
+                      </AppButton>
+                    </Stack>
+                  </Stack>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-[#E7EAF0]">
+                  <Typography level="title-md" mb={2}>
+                    Account Access
+                  </Typography>
+                  {manager?.deactivated ? (
+                    <AppButton
+                      loading={deactivationLoading}
+                      disabled={deactivationLoading}
+                      onClick={() => handleDeactivation(false)}
+                    >
+                      Reactivate Coordinator
                     </AppButton>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </Box>
-        </div>
+                  ) : (
+                    <AppButton
+                      className="bg-red-700"
+                      loading={deactivationLoading}
+                      disabled={deactivationLoading}
+                      onClick={() => handleDeactivation(true)}
+                    >
+                      Deactivate Coordinator
+                    </AppButton>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex min-h-72 items-center justify-center">
+              <Typography level="body-md">Coordinator not found.</Typography>
+            </div>
+          )}
+        </Card>
       </div>
       {/* modal */}
 
@@ -296,13 +291,27 @@ const CenterManager = () => {
 
 export default CenterManager;
 
-const Details = ({ title, text }: { title: string; text: React.ReactNode }) => {
+const DetailRow = ({
+  label,
+  value,
+  valueIsNode = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  valueIsNode?: boolean;
+}) => {
   return (
-    <div className="flex justify-between gap-1 items-center flex-wrap">
-      <Typography level="body-md" textColor={"#000000"}>
-        {title}
+    <div className="flex justify-between gap-4 items-center border-b pb-2">
+      <Typography level="body-sm" textColor={"#000000"}>
+        {label}
       </Typography>
-      <Typography level="body-sm">{text}</Typography>
+      {valueIsNode ? (
+        <div>{value}</div>
+      ) : (
+        <Typography level="body-sm" textAlign={"right"}>
+          {value}
+        </Typography>
+      )}
     </div>
   );
 };
