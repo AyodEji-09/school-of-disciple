@@ -122,6 +122,17 @@ export const userApi = createApi({
         { type: "UserList", id: "LIST" },
         { type: "CurrentUser", id: "ME" },
       ],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          const { centerApi } = await import("./center");
+          dispatch(
+            centerApi.util.invalidateTags([{ type: "CenterList", id: "LIST" }]),
+          );
+        } catch {
+          // no-op
+        }
+      },
     }),
     updateCoordinatorDeactivation: builder.mutation<
       ApiResponseN<User>,
@@ -137,6 +148,17 @@ export const userApi = createApi({
         { type: "UserList", id: "LIST" },
         { type: "CurrentUser", id: "ME" },
       ],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          const { centerApi } = await import("./center");
+          dispatch(
+            centerApi.util.invalidateTags([{ type: "CenterList", id: "LIST" }]),
+          );
+        } catch {
+          // no-op
+        }
+      },
     }),
   }),
 });
