@@ -12,7 +12,7 @@ import {
 import Frame from "../../components/frame/Frame";
 import ReportCard from "../../components/card/ReportCard";
 import AppButton from "../../components/Button/AppButton";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MoreVert } from "@mui/icons-material";
 import AppModal from "../../components/modal/modal";
@@ -49,6 +49,7 @@ const Centers = () => {
   const [mode, setMode] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchVar, setSearchVar] = useState("");
   const [selectedCenter, setSelectedCenter] = useState<Center | null>();
   const [updateCenter] = useUpdateCenterMutation();
   const [deleteCenterMutation] = useDeleteCenterMutation();
@@ -58,7 +59,11 @@ const Centers = () => {
     data: centerData,
     isLoading,
     isFetching,
-  } = useGetCentersQuery({ limit: 20, page: 1 });
+  } = useGetCentersQuery({
+    limit: 20,
+    page: 1,
+    ...(searchVar ? { search: searchVar } : {}),
+  });
   const { data: allCenters } = useGetAllCenterQuery();
   const { data: coordinators } = useGetUsersQuery({ type: "coordinator" });
   console.log({ centerData });
@@ -101,6 +106,22 @@ const Centers = () => {
       </Chip>
     );
   };
+
+  const sortedCenters = useMemo(() => {
+    const docs = centerData?.data?.docs || [];
+    return [...docs].sort((a, b) => {
+      const aManager = a.manager && typeof a.manager !== "string";
+      const bManager = b.manager && typeof b.manager !== "string";
+
+      if (!aManager && bManager) return 1;
+      if (aManager && !bManager) return -1;
+      if (!aManager && !bManager) return a.name.localeCompare(b.name);
+
+      const aName = getUserFullName(a.manager as User).toLowerCase();
+      const bName = getUserFullName(b.manager as User).toLowerCase();
+      return aName.localeCompare(bName);
+    });
+  }, [centerData]);
 
   const toggleModal = (mode?: string) => {
     if (mode) setMode(mode);
@@ -233,7 +254,7 @@ const Centers = () => {
             gap={4}
           >
             <Typography level="title-lg">Centers</Typography>
-            <AppSearch />
+            <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
           </Stack>
           <Box
             minHeight={400}
@@ -267,8 +288,8 @@ const Centers = () => {
                       <PulseLoader className="mx-auto" size="large" />
                     </div>
                   </td>
-                ) : centerData?.data?.docs?.length ? (
-                  centerData?.data?.docs?.map((center) => (
+                ) : sortedCenters.length ? (
+                  sortedCenters.map((center) => (
                     <tr className="border-b last:border-none font-medium">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <AvatarText text={center?.name} />

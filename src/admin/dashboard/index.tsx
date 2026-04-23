@@ -1,4 +1,5 @@
 import { Chip, Stack, Typography } from "@mui/joy";
+import { useState } from "react";
 import ReportCard from "../../components/card/ReportCard";
 import AppButton from "../../components/Button/AppButton";
 import { useNavigate } from "react-router-dom";
@@ -128,8 +129,10 @@ const UnassignedCoordinatorNotice = () => {
 
 const CenterCoordinatorTable = () => {
   const navigate = useNavigate();
+  const [searchVar, setSearchVar] = useState("");
   const { data: coordinators, isLoading } = useGetUsersQuery({
     type: "coordinator",
+    ...(searchVar ? { search: searchVar } : {}),
   });
   console.log({ coordinators });
   const coordinatorDocs = coordinators?.data?.docs || [];
@@ -184,7 +187,7 @@ const CenterCoordinatorTable = () => {
           <Typography level="title-lg" mb={4}>
             Center Coordinators
           </Typography>
-          <AppSearch />
+          <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
         </Stack>
         <div className={"overflow-x-auto w-full"}>
           <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
@@ -299,10 +302,12 @@ const CenterCoordinatorTable = () => {
 };
 
 const StudentsTable = ({ centerId }: { centerId?: string }) => {
+  const [searchVar, setSearchVar] = useState("");
   const { data: students, isLoading } = useGetUsersQuery(
     {
       type: "user",
       ...(centerId ? { center: centerId } : {}),
+      ...(searchVar ? { search: searchVar } : {}),
     },
     { skip: !centerId },
   );
@@ -327,7 +332,7 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
           <Typography level="title-lg" mb={4}>
             Students
           </Typography>
-          <AppSearch />
+          <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
         </Stack>
         <div className={"overflow-x-auto w-full"}>
           <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">

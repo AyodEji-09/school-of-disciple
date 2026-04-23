@@ -360,7 +360,7 @@ const TransactionTable = () => {
                       {moment(payment?.createdAt).format("DD/MM/YYYY")}
                     </td>
                     <td className="px-6 py-4">{payment?._id}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       {payment?.description || "Registration Fee"}
                     </td>
                     {!isCoordinator && (

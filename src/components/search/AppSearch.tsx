@@ -38,12 +38,11 @@ const AppSearch = ({
           id="default-search"
           onChange={(e) => {
             e.preventDefault();
-            setSearchVar(e.target.value);
+            setSearchVar?.(e.target.value);
           }}
-          value={searchVar}
+          value={searchVar ?? ""}
           className="sm:block w-full px-4 h-10 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full hidden placeholder:text-[#001F54]"
           placeholder="Search"
-          required
         />
       </div>
     </div>
