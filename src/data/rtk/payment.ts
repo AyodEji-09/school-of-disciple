@@ -3,6 +3,10 @@ import { TOKEN, useURL } from "../config";
 
 export const paymentApi = createApi({
   reducerPath: "paymentApi",
+  tagTypes: ["Payment", "PaymentList", "UserPayments"],
+  keepUnusedDataFor: 90,
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
   baseQuery: fetchBaseQuery({
     baseUrl: useURL,
     prepareHeaders: (header) => {
@@ -28,6 +32,16 @@ export const paymentApi = createApi({
 
         return `/payment?${params.toString()}`;
       },
+      providesTags: (result) =>
+        result?.data?.docs?.length
+          ? [
+              { type: "PaymentList", id: "LIST" },
+              ...result.data.docs.map((payment) => ({
+                type: "Payment" as const,
+                id: payment._id,
+              })),
+            ]
+          : [{ type: "PaymentList", id: "LIST" }],
     }),
     getUserPayments: builder.query<
       ApiResponse<Payment>,
@@ -35,9 +49,20 @@ export const paymentApi = createApi({
     >({
       query: ({ userId, limit = 20, page = 1 }) =>
         `/payment/user/${userId}?page=${page}&limit=${limit}`,
+      providesTags: (result, _, arg) =>
+        result?.data?.docs?.length
+          ? [
+              { type: "UserPayments", id: arg.userId },
+              ...result.data.docs.map((payment) => ({
+                type: "Payment" as const,
+                id: payment._id,
+              })),
+            ]
+          : [{ type: "UserPayments", id: arg.userId }],
     }),
     getPayment: builder.query<{ message: string; data: Payment }, string>({
       query: (id) => `/payment/${id}`,
+      providesTags: (_, __, id) => [{ type: "Payment", id }],
     }),
   }),
 });

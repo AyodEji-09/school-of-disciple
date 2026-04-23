@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Avatar, Card } from "@mui/joy";
-import axios from "axios";
 import { toast } from "react-toastify";
 
 import Frame from "../components/frame/Frame";
@@ -10,6 +9,10 @@ import { handleError } from "../utils";
 import { useAppDispatch, useAppSelector } from "../data/hooks";
 import { login } from "../data/reducers/userSlice";
 import { selectUser } from "../data/selectors/authSelector";
+import {
+  useUpdateUserMutation,
+  useUploadProfileImageMutation,
+} from "../data/rtk/user";
 
 type ProfileForm = {
   firstName: string;
@@ -30,6 +33,8 @@ type ProfileForm = {
 const ProfilePage = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
+  const [updateUser] = useUpdateUserMutation();
+  const [uploadProfileImage] = useUploadProfileImageMutation();
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -89,9 +94,9 @@ const ProfilePage = () => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const refreshCurrentUser = async () => {
-    const res = await axios.get<{ data: User }>("/user");
-    dispatch(login({ user: res.data.data }));
+  const getMutationError = (error: unknown) => {
+    const rtkError = error as { data?: { message?: string }; message?: string };
+    return rtkError?.data?.message || rtkError?.message || "Request failed";
   };
 
   const clearSelectedAvatar = () => {
@@ -124,38 +129,39 @@ const ProfilePage = () => {
       // Upload avatar if selected (let axios auto-detect FormData and set proper boundary)
       if (selectedAvatarFile) {
         setUploading(true);
-        const body = new FormData();
-        body.append("image", selectedAvatarFile);
-        await axios.post("/user/upload", body);
+        await uploadProfileImage(selectedAvatarFile).unwrap();
         setUploading(false);
       }
 
       // Update profile fields
-      const updateRes = await axios.put(`/user/${user._id}`, {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        phone: form.phone,
-        address: form.address,
-        state: form.state,
-        birthday: form.birthday || undefined,
-        // description: form.description,
-        // socialLinks: {
-        //   twitter: form.twitter,
-        //   instagram: form.instagram,
-        //   facebook: form.facebook,
-        //   linkedin: form.linkedin,
-        //   website: form.website,
-        //   tiktok: form.tiktok,
-        // },
-      });
+      const updateRes = await updateUser({
+        id: user._id,
+        body: {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          phone: form.phone,
+          address: form.address,
+          state: form.state,
+          birthday: form.birthday || undefined,
+          // description: form.description,
+          // socialLinks: {
+          //   twitter: form.twitter,
+          //   instagram: form.instagram,
+          //   facebook: form.facebook,
+          //   linkedin: form.linkedin,
+          //   website: form.website,
+          //   tiktok: form.tiktok,
+          // },
+        },
+      }).unwrap();
 
-      if (updateRes.data) {
-        await refreshCurrentUser();
+      if (updateRes?.data) {
+        dispatch(login({ user: updateRes.data }));
         clearSelectedAvatar();
         toast.success("Profile updated successfully");
       }
     } catch (error) {
-      const errorMsg = handleError(error);
+      const errorMsg = getMutationError(error) || handleError(error);
       console.error("Profile update error:", errorMsg);
       toast.error(errorMsg || "Failed to update profile");
     } finally {

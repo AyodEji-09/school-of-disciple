@@ -4,6 +4,7 @@ import rootReducer from "./root-reducer";
 import { centerApi } from "./rtk/center";
 import { paymentApi } from "./rtk/payment";
 import { registrationApi } from "./rtk/registration";
+import { setupListeners } from "@reduxjs/toolkit/query";
 
 const store = configureStore({
   reducer: rootReducer,
@@ -14,6 +15,8 @@ const store = configureStore({
       .concat(paymentApi.middleware)
       .concat(registrationApi.middleware),
 });
+
+setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

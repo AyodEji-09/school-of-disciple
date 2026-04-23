@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, Chip, Stack, Typography } from "@mui/joy";
 import { toast } from "react-toastify";
-import { Empty } from "antd";
 import moment from "moment";
 import axios from "axios";
 import { BsReceipt } from "react-icons/bs";
@@ -12,8 +11,12 @@ import { capitalizeWords, handleError } from "../utils";
 import { useAppSelector } from "../data/hooks";
 import { selectUser } from "../data/selectors/authSelector";
 import { useGetUserPaymentsQuery } from "../data/rtk/payment";
-import { useGetUserQuery } from "../data/rtk/user";
-import { PulseLoader } from "react-spinners";
+import { useGetCurrentUserQuery } from "../data/rtk/user";
+import {
+  CenteredEmptyState,
+  SectionSkeleton,
+  TableSkeleton,
+} from "../components/query-state/QueryStates";
 
 // ─── User Dashboard ───────────────────────────────────────────────────────────
 
@@ -35,10 +38,11 @@ export default UserDashboard;
 
 const ProfileCard = () => {
   const user = useAppSelector(selectUser);
-  const { data: userProfile, isFetching: isFetchingUserProfile } =
-    useGetUserQuery(user?._id || "", {
-      skip: !user?._id,
-    });
+  const {
+    data: userProfile,
+    isLoading: isLoadingUserProfile,
+    isFetching: isFetchingUserProfile,
+  } = useGetCurrentUserQuery();
 
   const dashboardUser = userProfile?.data || user;
   const isCenterPending =
@@ -54,6 +58,10 @@ const ProfileCard = () => {
       : isCenterPending
         ? "Loading..."
         : "—";
+
+  if (isLoadingUserProfile && !userProfile?.data) {
+    return <SectionSkeleton titleWidth={90} lineCount={5} />;
+  }
 
   return (
     <Card variant="outlined" sx={{ height: "fit-content" }}>
@@ -239,11 +247,17 @@ const PaymentHistory = () => {
     data: payments,
     isLoading,
     isFetching,
-  } = useGetUserPaymentsQuery({
-    userId: user!._id,
-    limit: 20,
-    page: 1,
-  });
+  } = useGetUserPaymentsQuery(
+    {
+      userId: user?._id || "",
+      limit: 20,
+      page: 1,
+    },
+    {
+      skip: !user?._id,
+    },
+  );
+  const hasPayments = Boolean(payments?.data?.docs?.length);
 
   return (
     <div>
@@ -251,11 +265,11 @@ const PaymentHistory = () => {
         Payment History
       </Typography>
       <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
-        {isLoading || isFetching ? (
-          <div className="flex justify-center items-center py-16">
-            <PulseLoader size={8} color="#001EC5" />
+        {isLoading && !hasPayments ? (
+          <div className="px-4 py-4">
+            <TableSkeleton columns={5} rows={4} />
           </div>
-        ) : payments?.data?.docs?.length ? (
+        ) : hasPayments ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left text-[#001F54]">
               <thead className="text-xs bg-[#F8FAFC] border-b border-[#E5E7EB]">
@@ -306,12 +320,7 @@ const PaymentHistory = () => {
             </table>
           </div>
         ) : (
-          <div className="py-16">
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="No payments yet"
-            />
-          </div>
+          <CenteredEmptyState description="No payments yet" />
         )}
       </Card>
     </div>

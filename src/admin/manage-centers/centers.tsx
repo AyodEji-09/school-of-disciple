@@ -22,7 +22,11 @@ import { getUserFullName, handleError } from "../../utils";
 import AppSearch from "../../components/search/AppSearch";
 import AvatarText from "../../components/avatar-text/AvatarText";
 import Input from "../../components/input/input.component";
-import { useGetCentersQuery } from "../../data/rtk/center";
+import {
+  useDeleteCenterMutation,
+  useGetCentersQuery,
+  useUpdateCenterMutation,
+} from "../../data/rtk/center";
 import { Empty } from "antd";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
@@ -40,13 +44,14 @@ const Centers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedCenter, setSelectedCenter] = useState<Center | null>();
+  const [updateCenter] = useUpdateCenterMutation();
+  const [deleteCenterMutation] = useDeleteCenterMutation();
 
   const user = useAppSelector(selectUser);
   const {
     data: centerData,
     isLoading,
     isFetching,
-    refetch: refetchCenters,
   } = useGetCentersQuery({ limit: 20, page: 1 });
   const { data: coordinators } = useGetUsersQuery({ type: "coordinator" });
   console.log({ centerData });
@@ -59,17 +64,26 @@ const Centers = () => {
     setIsOpen(!isOpen);
   };
 
+  const getMutationError = (error: unknown) => {
+    const rtkError = error as { data?: { message?: string }; message?: string };
+    return rtkError?.data?.message || rtkError?.message || "Request failed";
+  };
+
   const deleteCenter = async () => {
     setLoading(true);
     try {
-      const res = await axios.delete(`/center/${selectedCenter?._id}`);
+      if (!selectedCenter?._id) {
+        toast.error("Center not selected");
+        return;
+      }
+
+      const res = await deleteCenterMutation(selectedCenter._id).unwrap();
       console.log({ res });
-      refetchCenters();
       setMode("deleted");
-      toast.success(res.data.message);
+      toast.success(res.message || "Center deleted successfully");
     } catch (error) {
       console.log({ error });
-      toast.error(handleError(error));
+      toast.error(getMutationError(error));
     } finally {
       setLoading(false);
     }
@@ -93,16 +107,21 @@ const Centers = () => {
     });
     setLoading(true);
     try {
-      const res = await axios.patch(`/center/${selectedCenter?._id}`, {
+      if (!selectedCenter?._id) {
+        toast.error("Center not selected");
+        return;
+      }
+
+      const res = await updateCenter({
+        id: selectedCenter._id,
         ...data,
-      });
+      }).unwrap();
       console.log({ res });
-      refetchCenters();
-      toast.success(res.data.message);
+      toast.success(res.message || "Center updated successfully");
       toggleModal();
     } catch (error) {
       console.log({ error });
-      toast.error(handleError(error));
+      toast.error(getMutationError(error) || handleError(error));
     } finally {
       setLoading(false);
     }

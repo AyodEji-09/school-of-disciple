@@ -3,8 +3,6 @@ import Frame from "../../components/frame/Frame";
 import { Box, Card } from "@mui/joy";
 import AppModal from "../../components/modal/modal";
 import { useGetPaymentsQuery } from "../../data/rtk/payment";
-import { PulseLoader } from "react-spinners";
-import { Empty } from "antd";
 import moment from "moment";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../data/selectors/authSelector";
@@ -14,6 +12,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { handleError } from "../../utils";
 import { openFinancialReportPrintPreview } from "./report-template";
+import {
+  CenteredEmptyState,
+  TableSkeleton,
+} from "../../components/query-state/QueryStates";
 
 type CenterBreakdown = {
   centerName: string;
@@ -134,11 +136,7 @@ const TransactionTable = () => {
   const coordinatorCenterId = coordinatorCenter?._id;
   const coordinatorCenterName = coordinatorCenter?.name;
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  const {
-    data: payments,
-    isLoading,
-    isFetching,
-  } = useGetPaymentsQuery(
+  const { data: payments, isLoading } = useGetPaymentsQuery(
     {
       limit: 20,
       ...(isCoordinator && coordinatorCenterId
@@ -148,6 +146,7 @@ const TransactionTable = () => {
     { skip: isCoordinator && !coordinatorCenterId },
   );
   console.log({ payments });
+  const hasPayments = Boolean(payments?.data?.docs?.length);
 
   const generateFinancialReport = async () => {
     if (isCoordinator && !coordinatorCenterId) {
@@ -338,15 +337,15 @@ const TransactionTable = () => {
             </tr>
           </thead>
           <tbody>
-            {isLoading || isFetching ? (
+            {isLoading && !hasPayments ? (
               <tr>
                 <td colSpan={isCoordinator ? 6 : 7}>
-                  <div className="flex min-h-96 items-center justify-center">
-                    <PulseLoader className="mx-auto" size="large" />
+                  <div className="px-4 py-4">
+                    <TableSkeleton columns={isCoordinator ? 6 : 7} rows={6} />
                   </div>
                 </td>
               </tr>
-            ) : payments?.data?.docs?.length ? (
+            ) : hasPayments ? (
               payments?.data.docs.map((payment) => {
                 const payerId = getPayerId(payment);
 
@@ -386,9 +385,7 @@ const TransactionTable = () => {
             ) : (
               <tr>
                 <td colSpan={isCoordinator ? 6 : 7}>
-                  <div className="flex min-h-96 items-center justify-center">
-                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                  </div>
+                  <CenteredEmptyState description="No payments yet" />
                 </td>
               </tr>
             )}

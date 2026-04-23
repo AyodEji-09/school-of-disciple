@@ -3,11 +3,11 @@ import { Stack, Typography } from "@mui/joy";
 import AppButton from "../../components/Button/AppButton";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "axios";
 import { handleError } from "../../utils";
 import Input from "../../components/input/input.component";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useCreateCenterMutation } from "../../data/rtk/center";
 
 interface FormType {
   name: string;
@@ -17,6 +17,7 @@ interface FormType {
 const AddCenter = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [createCenter] = useCreateCenterMutation();
   const {
     control,
     handleSubmit,
@@ -33,12 +34,19 @@ const AddCenter = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post("/center", data);
+      const res = await createCenter(data).unwrap();
       console.log({ res });
+      toast.success(res.message || "Center created successfully");
       navigate("/manage-centers");
     } catch (error) {
       console.log({ error });
-      toast.error(handleError(error));
+      const rtkError = error as {
+        data?: { message?: string };
+        message?: string;
+      };
+      toast.error(
+        rtkError?.data?.message || rtkError?.message || handleError(error),
+      );
     } finally {
       setLoading(false);
     }
