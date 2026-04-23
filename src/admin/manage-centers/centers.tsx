@@ -67,6 +67,12 @@ const Centers = () => {
   const unassignedCenters =
     allCenters?.data?.docs?.filter((center) => !center.manager).length ?? 0;
 
+  const getManagerId = (manager?: User | string | null) => {
+    if (!manager) return null;
+    if (typeof manager === "string") return manager;
+    return manager._id;
+  };
+
   const getCoordinatorStatus = (manager?: User | string | null) => {
     if (!manager || typeof manager === "string") return "unassigned";
     return (
@@ -291,6 +297,27 @@ const Centers = () => {
                             <MoreVert />
                           </MenuButton>
                           <Menu>
+                            {getManagerId(center.manager) ? (
+                              <MenuItem
+                                onClick={() =>
+                                  navigate(
+                                    `/dashboard/manager/${getManagerId(center.manager)}`,
+                                  )
+                                }
+                              >
+                                View Manager
+                              </MenuItem>
+                            ) : (
+                              <MenuItem
+                                onClick={() =>
+                                  navigate(
+                                    `/dashboard/add-manager?centerId=${center._id}`,
+                                  )
+                                }
+                              >
+                                Add Manager
+                              </MenuItem>
+                            )}
                             <MenuItem
                               onClick={() => {
                                 setSelectedCenter(center);
