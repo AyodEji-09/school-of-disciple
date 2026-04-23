@@ -20,6 +20,7 @@ export const AdminRoute = () => {
 
   if (loading) return <LoadingScreen />;
   if (!auth) return <Navigate to="/" replace />;
+  if (user?.deactivated) return <Navigate to="/" replace />;
   if (user?.type === "user") return <Navigate to="/my-dashboard" replace />;
   return <Outlet />;
 };
@@ -31,6 +32,7 @@ export const UserRoute = () => {
 
   if (loading) return <LoadingScreen />;
   if (!auth) return <Navigate to="/" replace />;
+  if (user?.deactivated) return <Navigate to="/" replace />;
   if (user?.type !== "user") return <Navigate to="/dashboard" replace />;
   return <Outlet />;
 };

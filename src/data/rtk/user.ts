@@ -108,6 +108,36 @@ export const userApi = createApi({
         { type: "UserList", id: "LIST" },
       ],
     }),
+    updateCoordinatorAssignment: builder.mutation<
+      ApiResponseN<User>,
+      { id: string; centerId: string | null; reason?: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/admin/coordinators/${id}/assignment`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "User", id: arg.id },
+        { type: "UserList", id: "LIST" },
+        { type: "CurrentUser", id: "ME" },
+      ],
+    }),
+    updateCoordinatorDeactivation: builder.mutation<
+      ApiResponseN<User>,
+      { id: string; deactivated: boolean }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/admin/coordinators/${id}/deactivation`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "User", id: arg.id },
+        { type: "UserList", id: "LIST" },
+        { type: "CurrentUser", id: "ME" },
+      ],
+    }),
   }),
 });
 
@@ -118,4 +148,6 @@ export const {
   useLazyGetCurrentUserQuery,
   useUpdateUserMutation,
   useUploadProfileImageMutation,
+  useUpdateCoordinatorAssignmentMutation,
+  useUpdateCoordinatorDeactivationMutation,
 } = userApi;

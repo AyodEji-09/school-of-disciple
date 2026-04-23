@@ -22,6 +22,7 @@ const Dashboard = () => {
   const isCoordinator = user?.type === "coordinator";
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : user?.center?._id;
+  const isUnassignedCoordinator = isCoordinator && !coordinatorCenterId;
   console.log({ user });
   const { data: coordinators, isLoading: coordinatorsLoading } =
     useGetUsersQuery({ type: "coordinator" }, { skip: isCoordinator });
@@ -69,7 +70,9 @@ const Dashboard = () => {
             )}
             <ReportCard
               title="Students"
-              number={students?.data?.totalItems || 0}
+              number={
+                isUnassignedCoordinator ? 0 : students?.data?.totalItems || 0
+              }
             />
           </>
         )}
@@ -94,7 +97,11 @@ const Dashboard = () => {
       )}
       <div className="mt-12">
         {user?.type === "coordinator" ? (
-          <StudentsTable centerId={coordinatorCenterId} />
+          isUnassignedCoordinator ? (
+            <UnassignedCoordinatorNotice />
+          ) : (
+            <StudentsTable centerId={coordinatorCenterId} />
+          )
         ) : (
           <CenterCoordinatorTable />
         )}
@@ -104,6 +111,20 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+const UnassignedCoordinatorNotice = () => {
+  return (
+    <div className="bg-white border border-[#E6ECFF] rounded-lg p-8 text-center max-w-2xl mx-auto">
+      <Typography level="h3" textColor="#001F54" mb={1}>
+        You are not assigned to any center yet
+      </Typography>
+      <Typography level="body-md" textColor="#475569">
+        Your coordinator account is active, but no center has been assigned.
+        Please contact an admin to complete your center assignment.
+      </Typography>
+    </div>
+  );
+};
 
 const CenterCoordinatorTable = () => {
   const navigate = useNavigate();
@@ -141,6 +162,14 @@ const CenterCoordinatorTable = () => {
         {config[status].label}
       </Chip>
     );
+  };
+
+  const getActionLabel = (entry: User) => {
+    const status = getCoordinatorStatus(entry);
+    if (status === "pending") return "Pending";
+    if (status === "deactivated") return "Deactivated";
+    if (status === "unassigned") return "Assign";
+    return "View";
   };
 
   return (
@@ -209,7 +238,7 @@ const CenterCoordinatorTable = () => {
                           navigate(`/dashboard/manager/${coordinator._id}`)
                         }
                       >
-                        View
+                        {getActionLabel(coordinator)}
                       </AppButton>
                     </td>
                   </tr>

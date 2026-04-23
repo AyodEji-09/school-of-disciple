@@ -55,6 +55,8 @@ const UserSlice = createSlice({
     builder.addCase(loadUser.rejected, (state) => {
       state.loading = false;
       state.isAuth = false;
+      state.user = null;
+      localStorage.removeItem(TOKEN);
     });
   },
 });

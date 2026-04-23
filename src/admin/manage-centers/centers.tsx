@@ -1,5 +1,6 @@
 import {
   Box,
+  Chip,
   Dropdown,
   IconButton,
   Menu,
@@ -65,6 +66,35 @@ const Centers = () => {
   const totalCenters = centerData?.data?.totalItems ?? 0;
   const unassignedCenters =
     allCenters?.data?.docs?.filter((center) => !center.manager).length ?? 0;
+
+  const getCoordinatorStatus = (manager?: User | string | null) => {
+    if (!manager || typeof manager === "string") return "unassigned";
+    return (
+      manager.coordinatorStatus ||
+      (!manager.emailVerified
+        ? "pending"
+        : manager.deactivated
+          ? "deactivated"
+          : !manager.center
+            ? "unassigned"
+            : "assigned")
+    );
+  };
+
+  const getStatusChip = (status: string) => {
+    const config = {
+      assigned: { color: "success" as const, label: "Assigned" },
+      unassigned: { color: "warning" as const, label: "Unassigned" },
+      deactivated: { color: "danger" as const, label: "Deactivated" },
+      pending: { color: "neutral" as const, label: "Pending" },
+    };
+    const current = config[status as keyof typeof config] || config.unassigned;
+    return (
+      <Chip color={current.color} variant="soft" size="sm">
+        {current.label}
+      </Chip>
+    );
+  };
 
   const toggleModal = (mode?: string) => {
     if (mode) setMode(mode);
@@ -217,13 +247,16 @@ const Centers = () => {
                     Center manager
                   </th>
                   <th scope="col" className="px-6 py-3">
+                    Status
+                  </th>
+                  <th scope="col" className="px-6 py-3">
                     Action
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading || isFetching ? (
-                  <td colSpan={7}>
+                  <td colSpan={5}>
                     <div className="flex min-h-96 items-center justify-center">
                       <PulseLoader className="mx-auto" size="large" />
                     </div>
@@ -241,8 +274,11 @@ const Centers = () => {
                         <span className="text-center">
                           {center?.manager && typeof center.manager !== "string"
                             ? getUserFullName(center.manager)
-                            : "Nil"}
+                            : "Unassigned"}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {getStatusChip(getCoordinatorStatus(center?.manager))}
                       </td>
                       <td className="px-6 py-4">
                         <Dropdown>
@@ -277,7 +313,7 @@ const Centers = () => {
                     </tr>
                   ))
                 ) : (
-                  <td colSpan={7}>
+                  <td colSpan={5}>
                     <div className="flex min-h-96 items-center justify-center">
                       <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                     </div>

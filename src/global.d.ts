@@ -50,6 +50,9 @@ type User = {
   loginLast: Date;
   deactivated: boolean;
   coordinatorStatus?: "assigned" | "unassigned" | "deactivated" | "pending";
+  coordinatorAssignedAt?: Date | null;
+  coordinatorUnassignedAt?: Date | null;
+  coordinatorUnassignedReason?: string | null;
   unassignedAt?: Date | null;
   admin: boolean;
   center?: Center | string | null;
