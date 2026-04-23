@@ -13,6 +13,7 @@ import Team from "./pages/Team";
 import Course from "./pages/Course";
 import About from "./pages/About";
 import Login from "./pages/login";
+import ForgotPassword from "./pages/forgot-password";
 import Dashboard from "./admin/dashboard";
 import AddCenterManager from "./admin/dashboard/invite-cordinator";
 import CenterManager from "./admin/dashboard/[id]";
@@ -116,6 +117,7 @@ const App = () => {
             <Route path="/about-us" element={<About />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
           </Route>
 
           <Route path="/accept-invite" element={<AcceptInvite />} />

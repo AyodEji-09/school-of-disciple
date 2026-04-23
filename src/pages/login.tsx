@@ -175,9 +175,11 @@ const Login = () => {
               >
                 <Checkbox label="Remember Me" sx={{ fontSize: 14 }} />
                 <Typography
+                  component={Link}
+                  to="/forgot-password"
                   level="body-xs"
                   textColor="#404757"
-                  sx={{ cursor: "pointer" }}
+                  sx={{ cursor: "pointer", textDecoration: "underline" }}
                 >
                   Forgot Password?
                 </Typography>
