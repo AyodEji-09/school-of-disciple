@@ -165,13 +165,19 @@ const CenterManager = () => {
                   <Typography level="title-md" mb={2}>
                     Center Assignment
                   </Typography>
-                  <Stack gap={1.5}>
+                  <Stack
+                    direction="row"
+                    gap={1.5}
+                    flexWrap="wrap"
+                    alignItems="center"
+                  >
                     <Select
                       placeholder={
                         currentCenterId ? "Select new center" : "Select center"
                       }
                       value={selectedCenterId || currentCenterId || null}
                       onChange={(_, value) => setSelectedCenterId(value)}
+                      className="max-w-max"
                     >
                       {centerOptions.map((center) => (
                         <Option key={center._id} value={center._id}>
@@ -202,29 +208,31 @@ const CenterManager = () => {
                   </Stack>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-[#E7EAF0]">
-                  <Typography level="title-md" mb={2}>
-                    Account Access
-                  </Typography>
-                  {manager?.deactivated ? (
-                    <AppButton
-                      loading={deactivationLoading}
-                      disabled={deactivationLoading}
-                      onClick={() => handleDeactivation(false)}
-                    >
-                      Reactivate Coordinator
-                    </AppButton>
-                  ) : (
-                    <AppButton
-                      className="bg-red-700"
-                      loading={deactivationLoading}
-                      disabled={deactivationLoading}
-                      onClick={() => handleDeactivation(true)}
-                    >
-                      Deactivate Coordinator
-                    </AppButton>
-                  )}
-                </div>
+                {coordinatorStatus !== "pending" && (
+                  <div className="mt-6 pt-4 border-t border-[#E7EAF0]">
+                    <Typography level="title-md" mb={2}>
+                      Account Access
+                    </Typography>
+                    {manager?.deactivated ? (
+                      <AppButton
+                        loading={deactivationLoading}
+                        disabled={deactivationLoading}
+                        onClick={() => handleDeactivation(false)}
+                      >
+                        Reactivate Coordinator
+                      </AppButton>
+                    ) : (
+                      <AppButton
+                        className="bg-red-700"
+                        loading={deactivationLoading}
+                        disabled={deactivationLoading}
+                        onClick={() => handleDeactivation(true)}
+                      >
+                        Deactivate Coordinator
+                      </AppButton>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ) : (

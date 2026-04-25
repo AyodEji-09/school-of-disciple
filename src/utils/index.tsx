@@ -11,10 +11,12 @@ export const handleError = (error: unknown): string => {
 
 export const getUserFullName = (user?: User) => {
   if (user) {
-    const firstName = user.firstName;
-    const lastName = user.lastName;
+    const firstName = (user.firstName || "").trim();
+    const lastName = (user.lastName || "").trim();
+    const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
-    return firstName + " " + lastName;
+    if (fullName) return fullName;
+    return "";
   }
   return "";
 };

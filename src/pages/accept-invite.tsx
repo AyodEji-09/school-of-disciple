@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
 import { Box, Button, Container, Stack, Typography } from "@mui/joy";
 import Input from "../components/input/input.component";
@@ -20,10 +20,12 @@ const AcceptInvite = () => {
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const invitedEmail = searchParams.get("email") || "";
 
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -34,13 +36,19 @@ const AcceptInvite = () => {
       email: "",
     },
   });
+
+  useEffect(() => {
+    if (invitedEmail) {
+      setValue("email", invitedEmail);
+    }
+  }, [invitedEmail, setValue]);
   const onSubmit = async (data: FormType) => {
     console.log({ data });
     setLoading(true);
     try {
       const res = await axios.post<ApiResponseN<null>>(
         `/auth/accept-invite/${token}`,
-        data
+        data,
       );
       toast.success(res.data.message);
       navigate("/login");
@@ -126,6 +134,7 @@ const AcceptInvite = () => {
                         label="Email Address"
                         value={value}
                         onChange={onChange}
+                        disabled={Boolean(invitedEmail)}
                       />
                     )}
                   />
@@ -164,12 +173,12 @@ const AcceptInvite = () => {
                 </Button>
               </Stack>
             </form>
-            <Typography level="body-xs" textAlign={"center"} mt={2}>
+            {/* <Typography level="body-xs" textAlign={"center"} mt={2}>
               Have an account?{" "}
               <Link to={"/login"} className="font-bold underline">
                 Log In
               </Link>
-            </Typography>
+            </Typography> */}
           </Box>
         </div>
       </Container>

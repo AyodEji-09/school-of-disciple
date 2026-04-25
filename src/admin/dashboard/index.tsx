@@ -1,9 +1,11 @@
 import { Chip, Stack, Typography } from "@mui/joy";
 import { useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 import ReportCard from "../../components/card/ReportCard";
 import AppButton from "../../components/Button/AppButton";
 import { useNavigate } from "react-router-dom";
-import { getUserFullName } from "../../utils";
+import { getUserFullName, handleError } from "../../utils";
 import AppSearch from "../../components/search/AppSearch";
 import Frame from "../../components/frame/Frame";
 import AvatarText from "../../components/avatar-text/AvatarText";
@@ -130,6 +132,7 @@ const UnassignedCoordinatorNotice = () => {
 const CenterCoordinatorTable = () => {
   const navigate = useNavigate();
   const [searchVar, setSearchVar] = useState("");
+  const [resendInviteId, setResendInviteId] = useState<string | null>(null);
   const { data: coordinators, isLoading } = useGetUsersQuery({
     type: "coordinator",
     ...(searchVar ? { search: searchVar } : {}),
@@ -148,6 +151,36 @@ const CenterCoordinatorTable = () => {
     if (entry.deactivated) return "deactivated";
     if (!entry.center) return "unassigned";
     return "assigned";
+  };
+
+  const getCenterId = (entry: User) => {
+    if (!entry?.center) return null;
+    if (typeof entry.center === "string") return entry.center;
+    return entry.center._id;
+  };
+
+  const resendInvite = async (entry: User) => {
+    const centerId = getCenterId(entry);
+    if (!entry?.email || !centerId) {
+      toast.error("Coordinator email or center is missing");
+      return;
+    }
+
+    setResendInviteId(entry._id);
+    try {
+      const res = await axios.post<ApiResponseN<null>>(
+        "/admin/invite-coordinator",
+        {
+          email: entry.email,
+          centerId,
+        },
+      );
+      toast.success(res.data.message || "Invite resent successfully");
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setResendInviteId(null);
+    }
   };
 
   const getStatusChip = (
@@ -236,13 +269,25 @@ const CenterCoordinatorTable = () => {
                       {getStatusChip(getCoordinatorStatus(coordinator))}
                     </td>
                     <td className="px-6 py-4">
-                      <AppButton
-                        onClick={() =>
-                          navigate(`/dashboard/manager/${coordinator._id}`)
-                        }
-                      >
-                        {getActionLabel(coordinator)}
-                      </AppButton>
+                      <Stack direction="row" gap={1} flexWrap="wrap">
+                        <AppButton
+                          onClick={() =>
+                            navigate(`/dashboard/manager/${coordinator._id}`)
+                          }
+                        >
+                          {getActionLabel(coordinator)}
+                        </AppButton>
+                        {getCoordinatorStatus(coordinator) === "pending" && (
+                          <AppButton
+                            variant="outlined"
+                            loading={resendInviteId === coordinator._id}
+                            disabled={resendInviteId === coordinator._id}
+                            onClick={() => resendInvite(coordinator)}
+                          >
+                            Resend Invite
+                          </AppButton>
+                        )}
+                      </Stack>
                     </td>
                   </tr>
                 ))
