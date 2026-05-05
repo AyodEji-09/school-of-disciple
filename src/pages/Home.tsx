@@ -70,7 +70,7 @@ const Home = () => {
         </div>
       </section>
       <section className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
           <div className="h-80 overflow-hidden">
             <img src="/images/Pastor5.jpg" alt="" className="h-auto" />
           </div>
@@ -96,22 +96,22 @@ const Home = () => {
       </section>
       <section className="bg-[#121921] p-8">
         <div className="max-w-2xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
-            <MatricCard
-              title="Learning"
-              text="YOu can learn at your own pace"
-              icon={<SlGraduation />}
-            />
+          <div className="grid grid-cols-1 gap-8 ">
+            {/* <MatricCard */}
+            {/*   title="Learning" */}
+            {/*   text="YOu can learn at your own pace" */}
+            {/*   icon={<SlGraduation />} */}
+            {/* /> */}
             <MatricCard
               title="Registration"
               text="Register and pay online"
               icon={<GoTrophy />}
             />
-            <MatricCard
-              title="Certification"
-              text="Earn a certificate online"
-              icon={<FiTarget />}
-            />
+            {/* <MatricCard */}
+            {/*   title="Certification" */}
+            {/*   text="Earn a certificate online" */}
+            {/*   icon={<FiTarget />} */}
+            {/* /> */}
           </div>
         </div>
       </section>
@@ -159,7 +159,7 @@ const Home = () => {
             School of Disciple itinerary
           </h1>
         </article>
-        <div className="grid md:grid-cols-3 gap-4 mt-8">
+        <div className="grid md:grid-cols-2 max-w-5xl mx-auto place-items-center gap-4 mt-8">
           <Itinerary
             icon={<IoDiamondOutline />}
             title="Our Instructors"
@@ -168,13 +168,13 @@ const Home = () => {
           <Itinerary
             icon={<RiProfileLine />}
             title="Our Centers"
-            text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way"
+            text="We offer multiple accessible centers, each providing a welcoming environment and resources to support your spiritual growth."
           />
-          <Itinerary
-            icon={<IoLogoReact />}
-            title="Online Lectures"
-            text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way"
-          />
+          {/* <Itinerary */}
+          {/*   icon={<IoLogoReact />} */}
+          {/*   title="Online Lectures" */}
+          {/*   text="We boast of trained, qualified and spirit filled trainers with experience who can hold your hand along the way" */}
+          {/* /> */}
         </div>
       </section>
       {/* <section className="p-8 bg-[#f8f8f8]">

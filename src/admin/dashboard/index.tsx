@@ -269,7 +269,11 @@ const CenterCoordinatorTable = () => {
                       {getStatusChip(getCoordinatorStatus(coordinator))}
                     </td>
                     <td className="px-6 py-4">
-                      <Stack direction="row" gap={1} flexWrap="wrap">
+                      <Stack
+                        direction="row"
+                        gap={1}
+                        // flexWrap="wrap"
+                      >
                         <AppButton
                           onClick={() =>
                             navigate(`/dashboard/manager/${coordinator._id}`)

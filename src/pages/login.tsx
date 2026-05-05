@@ -197,7 +197,7 @@ const Login = () => {
         <Typography level="body-xs" textAlign="center" mt={2}>
           Don't have an account?{" "}
           <Link to="/register" className="font-bold underline">
-            Sign Up
+            Register
           </Link>
         </Typography>
       </Stack>
