@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { handleError } from "../utils";
 import axios from "axios";
 import { SetAuthToken } from "../data/config";
+import { hasCompletedIntake } from "../utils/intake";
 
 const Payment = () => {
   const { token } = useParams();
@@ -18,6 +19,18 @@ const Payment = () => {
 
     const makePayment = async () => {
       try {
+        // Ensure user has completed the intake form before allowing payment
+        const me = await axios.get<ApiResponseN<User>>("/user");
+        const currentUser = me.data.data;
+        const completed = hasCompletedIntake(currentUser);
+        if (!completed) {
+          toast.info("Please complete the registration form before making payment.");
+          setTimeout(() => {
+            navigate("/onboarding/1");
+          }, 800);
+          return;
+        }
+
         const res = await axios.get<ApiResponseN<{ url: string }>>(
           "/payment/registration-fee",
         );

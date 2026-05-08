@@ -24,6 +24,7 @@ import Payments from "./admin/payments";
 import PaymentUser from "./admin/payments/[id]";
 import UserDashboard from "./pages/UserDashboard";
 import ProfilePage from "./pages/ProfilePage";
+import OnboardingPage from "./pages/Onboarding";
 import RegistrationWindow from "./admin/registration";
 
 import store from "./data/store";
@@ -38,7 +39,9 @@ import {
   AdminRoute,
   UserRoute,
   PublicRoute,
+  OnboardingRoute,
 } from "./utils/private-route.component";
+import { hasCompletedIntake } from "./utils/intake";
 
 SetDefaultHeaders();
 
@@ -56,12 +59,18 @@ const SmartRedirect = () => {
   }
 
   if (!auth) return <Home />;
-  if (user?.type === "user") return <Navigate to="/my-dashboard" replace />;
+  if (user?.type === "user") {
+    const completed = hasCompletedIntake(user);
+    return (
+      <Navigate to={completed ? "/my-dashboard" : "/onboarding/1"} replace />
+    );
+  }
   return <Navigate to="/dashboard" replace />;
 };
 
 const ProfileRoute = () => {
   const auth = useAppSelector(selectAuth);
+  const user = useAppSelector(selectUser);
   const loading = useAppSelector(selectLoading);
 
   if (loading) {
@@ -73,6 +82,9 @@ const ProfileRoute = () => {
   }
 
   if (!auth) return <Navigate to="/" replace />;
+  if (user?.type === "user" && !hasCompletedIntake(user)) {
+    return <Navigate to="/onboarding/1" replace />;
+  }
   return <ProfilePage />;
 };
 
@@ -88,6 +100,18 @@ const App = () => {
       <ToastContainer position="top-right" />
       <Routes>
         <Route path="/profile" element={<ProfileRoute />} />
+        <Route
+          path="/onboarding/:step"
+          element={
+            <OnboardingRoute>
+              <OnboardingPage />
+            </OnboardingRoute>
+          }
+        />
+        <Route
+          path="/onboarding"
+          element={<Navigate to="/onboarding/1" replace />}
+        />
         <Route path="/" element={!auth && <Nav />}>
           <Route index element={<SmartRedirect />} />
 

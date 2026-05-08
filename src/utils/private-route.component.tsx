@@ -1,11 +1,13 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { PulseLoader } from "react-spinners";
+import type { PropsWithChildren } from "react";
 import { useAppSelector } from "../data/hooks";
 import {
   selectAuth,
   selectLoading,
   selectUser,
 } from "../data/selectors/authSelector";
+import { hasCompletedIntake } from "./intake";
 
 const LoadingScreen = () => (
   <div className="flex items-center justify-center min-h-screen bg-[#F5FAFF]">
@@ -33,8 +35,24 @@ export const UserRoute = () => {
   if (loading) return <LoadingScreen />;
   if (!auth) return <Navigate to="/" replace />;
   if (user?.deactivated) return <Navigate to="/" replace />;
+  if (user?.type === "user" && !hasCompletedIntake(user)) {
+    return <Navigate to="/onboarding/1" replace />;
+  }
   if (user?.type !== "user") return <Navigate to="/dashboard" replace />;
   return <Outlet />;
+};
+
+export const OnboardingRoute = ({ children }: PropsWithChildren) => {
+  const auth = useAppSelector(selectAuth);
+  const user = useAppSelector(selectUser);
+  const loading = useAppSelector(selectLoading);
+
+  if (loading) return <LoadingScreen />;
+  if (!auth) return <Navigate to="/" replace />;
+  if (user?.deactivated) return <Navigate to="/" replace />;
+  if (user?.type !== "user") return <Navigate to="/dashboard" replace />;
+  if (hasCompletedIntake(user)) return <Navigate to="/my-dashboard" replace />;
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export const PublicRoute = () => {
@@ -45,7 +63,12 @@ export const PublicRoute = () => {
 
   if (loading) return <LoadingScreen />;
   if (auth) {
-    const destination = user?.type === "user" ? "/my-dashboard" : "/dashboard";
+    const destination =
+      user?.type === "user"
+        ? hasCompletedIntake(user)
+          ? "/my-dashboard"
+          : "/onboarding/1"
+        : "/dashboard";
     return <Navigate to={destination} state={{ from: location }} replace />;
   }
   return <Outlet />;

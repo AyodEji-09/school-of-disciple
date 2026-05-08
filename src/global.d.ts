@@ -54,6 +54,55 @@ type User = {
   coordinatorUnassignedAt?: Date | null;
   coordinatorUnassignedReason?: string | null;
   unassignedAt?: Date | null;
+  intakeFormStatus?: "draft" | "in_progress" | "completed" | "submitted";
+  intakeFormProgress?: number;
+  intakeCompletedAt?: Date | null;
+  intakeFormData?: {
+    personalInfo?: {
+      mailingCity?: string;
+      mailingState?: string;
+      mailingZipCode?: string;
+      residentialAddress?: string;
+      dateOfBirth?: string;
+      gender?: string;
+      maritalStatus?: string;
+      nationality?: string;
+      ethnicOrigin?: string;
+      homePhone?: string;
+      officePhone?: string;
+      email?: string;
+      height?: string;
+    };
+    spiritualExperience?: {
+      bornAgain?: "yes" | "no";
+      bornAgainWhen?: string;
+      bornAgainWhere?: string;
+      holyGhostBaptized?: "yes" | "no";
+      holyGhostWhen?: string;
+      holyGhostWhere?: string;
+      waterImmersionBaptized?: "yes" | "no";
+      waterImmersionWhen?: string;
+      waterImmersionWhere?: string;
+      churchName?: string;
+      churchLocation?: string;
+      pastorName?: string;
+    };
+    educationalExperience?: {
+      schoolsAttended?: string;
+      dates?: string;
+      qualificationsObtained?: string;
+    };
+    employmentStatus?: {
+      status?: "Employed" | "Unemployed" | "Retired";
+      familyAnnualIncome?: string;
+    };
+    declaration?: {
+      agreed?: boolean;
+      name?: string;
+      address?: string;
+      signatureDate?: string;
+    };
+  };
   admin: boolean;
   center?: Center | string | null;
   createdAt: Date;

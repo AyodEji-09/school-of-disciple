@@ -12,11 +12,18 @@ import { useAppDispatch } from "../data/hooks";
 import { login } from "../data/reducers/userSlice";
 import Input from "../components/input/input.component";
 import OtpComponent from "../components/otp-component/OtpComponent";
+import { hasCompletedIntake } from "../utils/intake";
 
 interface FormType {
   email: string;
   password: string;
 }
+
+const getUserDestination = (user?: User | null) => {
+  if (!user || user.type !== "user") return "/dashboard";
+  const completed = hasCompletedIntake(user);
+  return completed ? "/my-dashboard" : "/onboarding/1";
+};
 
 const Login = () => {
   const navigate = useNavigate();
@@ -49,12 +56,9 @@ const Login = () => {
 
   const performLogin = async (data: FormType) => {
     const res = await axios.post("/auth/login", data);
-    const userType: string = res.data.data.user?.type;
     toast.success(res.data.message);
     dispatch(login(res.data.data));
-    navigate(userType === "user" ? "/my-dashboard" : "/dashboard", {
-      replace: true,
-    });
+    navigate(getUserDestination(res.data.data.user), { replace: true });
   };
 
   const onSubmit = async (data: FormType) => {

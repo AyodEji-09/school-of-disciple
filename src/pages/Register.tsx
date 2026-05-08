@@ -14,6 +14,8 @@ import AppModal from "../components/modal/modal";
 import OtpComponent from "../components/otp-component/OtpComponent";
 import { useAppDispatch } from "../data/hooks";
 import { login } from "../data/reducers/userSlice";
+import Onboarding from "./Onboarding";
+import { hasCompletedIntake } from "../utils/intake";
 
 const getRegistrationWindowState = (
   window?: RegistrationWindow | null,
@@ -62,6 +64,12 @@ type Form = {
   centerId: string;
   password: string;
 };
+
+const getUserDestination = (user?: User | null) => {
+  if (!user || user.type !== "user") return "/dashboard";
+  const completed = hasCompletedIntake(user);
+  return completed ? "/my-dashboard" : "/onboarding/1";
+};
 const Register = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -74,6 +82,7 @@ const Register = () => {
     Form,
     "email" | "password"
   > | null>(null);
+  const [showStepper, setShowStepper] = useState(false);
   const { data: centers } = useGetAllCenterQuery();
   const { data: registrationWindowRes, isLoading: registrationWindowLoading } =
     useGetRegistrationWindowQuery();
@@ -106,13 +115,13 @@ const Register = () => {
 
   const performLogin = async (
     credentials: Pick<Form, "email" | "password">,
+    skipRedirect?: boolean,
   ) => {
     const res = await axios.post("/auth/login", credentials);
-    const userType: string = res.data.data.user?.type;
     dispatch(login(res.data.data));
-    navigate(userType === "user" ? "/my-dashboard" : "/dashboard", {
-      replace: true,
-    });
+    if (!skipRedirect) {
+      navigate(getUserDestination(res.data.data.user), { replace: true });
+    }
   };
 
   const onSubmit = async (data: Form) => {
@@ -169,9 +178,11 @@ const Register = () => {
         token: otp,
         email: pendingCredentials.email,
       });
-      toast.success("Email verified! Logging you in...");
+      toast.success("Email verified! Continue to complete registration form.");
       setIsModalOpen(false);
-      await performLogin(pendingCredentials);
+      // login but don't redirect — show the stepper so user completes registration
+      await performLogin(pendingCredentials, true);
+      setShowStepper(true);
     } catch (error) {
       toast.error(handleError(error));
     } finally {
@@ -202,7 +213,8 @@ const Register = () => {
         subtitle="Kindly complete your registration and make payment for SOD"
       />
       <div className="container mx-auto py-16">
-        <form onSubmit={handleSubmit(onSubmit)} className="max-w-lg mx-auto">
+        {!showStepper ? (
+          <form onSubmit={handleSubmit(onSubmit)} className="max-w-lg mx-auto">
           <div className="grid gap-4">
             <div>
               <Controller
@@ -348,7 +360,12 @@ const Register = () => {
               Submit
             </Button>
           </div>
-        </form>
+          </form>
+        ) : (
+          <div className="max-w-4xl mx-auto">
+            <Onboarding embedded />
+          </div>
+        )}
       </div>
 
       <AppModal

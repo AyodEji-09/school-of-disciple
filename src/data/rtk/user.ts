@@ -75,6 +75,13 @@ export const userApi = createApi({
           address?: string;
           state?: string;
           birthday?: string;
+          intakeFormStatus?:
+            | "draft"
+            | "in_progress"
+            | "completed"
+            | "submitted";
+          intakeFormProgress?: number;
+          intakeFormData?: User["intakeFormData"];
         };
       }
     >({
