@@ -19,11 +19,9 @@ const routes = [
   { id: 4, name: "Login", url: "/login" },
 ];
 const Nav = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  console.log(location.pathname);
-  
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
@@ -34,28 +32,42 @@ const Nav = () => {
       <List>
         {routes.map((route) => (
           <ListItem key={route.id} disablePadding>
-            <ListItemButton>
-              <Link to={route.url}>
-                <ListItemText primary={route.name} />
-              </Link>
+            <ListItemButton onClick={() => navigate(route.url)}>
+              <ListItemText primary={route.name} />
             </ListItemButton>
           </ListItem>
         ))}
+        <ListItem className="pl-0">
+          <ListItemButton
+            className="pl-0!"
+            onClick={() => navigate("/register")}
+          >
+            <ListItemText primary={"Register"} />
+          </ListItemButton>
+        </ListItem>
       </List>
     </Box>
   );
 
   return (
     <div className="">
-      <div className="absolute inset-x-0 top-0 z-10 bg-linear-to-r from-cyan-500 to-blue-500">
+      <div className="fixed inset-x-0 top-0 z-50 bg-linear-to-r from-cyan-500 to-blue-500">
         {location.pathname !== "/dashboard" && (
           <nav className="container mx-auto py-2 text-white px-4">
             <div className="flex justify-between gap-4 items-center">
               <div className="logo">
                 <Link to={"/"}>
                   <div className="flex items-center">
-                    <img src="/images/logo.png" alt="" className="h-16" />
-                    <img src="/images/rcg.png" alt="" className="h-16" />
+                    <img
+                      src="/images/logo.png"
+                      alt="School of Disciples Logo"
+                      className="h-16"
+                    />
+                    <img
+                      src="/images/rcg.png"
+                      alt="RCCG Logo"
+                      className="h-16"
+                    />
                   </div>
                 </Link>
               </div>
@@ -93,8 +105,16 @@ const Nav = () => {
                 <div className="logo">
                   <Link to={"/"}>
                     <div className="flex items-center">
-                      <img src="/images/logo.png" alt="" className="h-16" />
-                      <img src="/images/rcg.png" alt="" className="h-16" />
+                      <img
+                        src="/images/logo.png"
+                        alt="School of Disciples Logo"
+                        className="h-16"
+                      />
+                      <img
+                        src="/images/rcg.png"
+                        alt="RCCG Logo"
+                        className="h-16"
+                      />
                     </div>
                   </Link>
                 </div>

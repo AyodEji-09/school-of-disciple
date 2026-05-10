@@ -23,17 +23,14 @@ const Footer = () => {
             <div className="flex gap-8">
               <ul className="text-white space-y-4">
                 <li>
-                  <Link to="">Register</Link>
+                  <Link to="/register">Register</Link>
                 </li>
                 <li>
-                  <Link to="">Terms and conditions</Link>
+                  <Link to="#">Terms and conditions</Link>
                 </li>
                 <li>
-                  <Link to="">Privacy Policy</Link>
+                  <Link to="#">Privacy Policy</Link>
                 </li>
-                {/* <li>
-                  <Link to="">Claudantium</Link>
-                </li> */}
               </ul>
             </div>
           </div>
@@ -42,18 +39,18 @@ const Footer = () => {
               Follow us on socials
             </h1>
             <div className="flex items-center gap-4 text-white">
-              <Link to="">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <FaFacebookF />
-              </Link>
-              <Link to="">
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                 <FaInstagram />
-              </Link>
-              <Link to="">
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                 <GrLinkedinOption />
-              </Link>
-              <Link to="">
+              </a>
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
                 <FaYoutube />
-              </Link>
+              </a>
             </div>
           </div>
         </div>

@@ -29,7 +29,7 @@ import {
   useGetCentersQuery,
   useUpdateCenterMutation,
 } from "../../data/rtk/center";
-import { Empty } from "antd";
+import { CenteredEmptyState } from "../../components/query-state/QueryStates";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import { PulseLoader } from "react-spinners";
@@ -363,7 +363,7 @@ const Centers = () => {
                 ) : (
                   <td colSpan={5}>
                     <div className="flex min-h-96 items-center justify-center">
-                      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                      <CenteredEmptyState />
                     </div>
                   </td>
                 )}

@@ -10,8 +10,8 @@ import Nav from "./components/nav/Nav";
 import { SetDefaultHeaders } from "./data/config";
 import Payment from "./pages/Payment";
 import Team from "./pages/Team";
-import Course from "./pages/Course";
 import About from "./pages/About";
+import NotFound from "./pages/NotFound";
 import Login from "./pages/login";
 import ForgotPassword from "./pages/forgot-password";
 import Dashboard from "./admin/dashboard";
@@ -93,8 +93,6 @@ const App = () => {
     store.dispatch(loadUser());
   }, []);
 
-  const auth = useAppSelector(selectAuth);
-
   return (
     <>
       <ToastContainer position="top-right" />
@@ -112,32 +110,11 @@ const App = () => {
           path="/onboarding"
           element={<Navigate to="/onboarding/1" replace />}
         />
-        <Route path="/" element={!auth && <Nav />}>
+        <Route element={<Nav />}>
           <Route index element={<SmartRedirect />} />
-
-          <Route element={<AdminRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route
-              path="/dashboard/add-manager"
-              element={<AddCenterManager />}
-            />
-            <Route path="/dashboard/manager/:id" element={<CenterManager />} />
-            <Route path="/dashboard/students/:id" element={<PaymentUser />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/payments/users/:id" element={<PaymentUser />} />
-            <Route path="/payments/user/:id" element={<PaymentUser />} />
-            <Route path="/manage-centers" element={<Centers />} />
-            <Route path="/manage-centers/add-center" element={<AddCenter />} />
-            <Route path="/registration" element={<RegistrationWindow />} />
-          </Route>
-
-          <Route element={<UserRoute />}>
-            <Route path="/my-dashboard" element={<UserDashboard />} />
-          </Route>
 
           <Route element={<PublicRoute />}>
             <Route path="/team" element={<Team />} />
-            <Route path="/courses" element={<Course />} />
             <Route path="/about-us" element={<About />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
@@ -146,9 +123,26 @@ const App = () => {
 
           <Route path="/accept-invite" element={<AcceptInvite />} />
           <Route path="/payment/:token" element={<Payment />} />
-
-          <Route path="*" element={<Navigate to="/" />} />
         </Route>
+
+        <Route element={<AdminRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/add-manager" element={<AddCenterManager />} />
+          <Route path="/dashboard/manager/:id" element={<CenterManager />} />
+          <Route path="/dashboard/students/:id" element={<PaymentUser />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/payments/users/:id" element={<PaymentUser />} />
+          <Route path="/payments/user/:id" element={<PaymentUser />} />
+          <Route path="/manage-centers" element={<Centers />} />
+          <Route path="/manage-centers/add-center" element={<AddCenter />} />
+          <Route path="/registration" element={<RegistrationWindow />} />
+        </Route>
+
+        <Route element={<UserRoute />}>
+          <Route path="/my-dashboard" element={<UserDashboard />} />
+        </Route>
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

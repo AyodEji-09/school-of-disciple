@@ -3,7 +3,7 @@ import { Card, Chip, Stack, Typography } from "@mui/joy";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { PulseLoader } from "react-spinners";
-import { Empty } from "antd";
+import { CenteredEmptyState } from "../../components/query-state/QueryStates";
 import moment from "moment";
 
 import Frame from "../../components/frame/Frame";
@@ -252,10 +252,7 @@ const RegistrationWindowPage = () => {
                 </div>
               ) : (
                 <div className="py-16">
-                  <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="No registration windows yet"
-                  />
+                  <CenteredEmptyState description="No registration windows yet" />
                 </div>
               )}
             </Card>

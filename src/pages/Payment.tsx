@@ -5,6 +5,7 @@ import { handleError } from "../utils";
 import axios from "axios";
 import { SetAuthToken } from "../data/config";
 import { hasCompletedIntake } from "../utils/intake";
+import { PulseLoader } from "react-spinners";
 
 const Payment = () => {
   const { token } = useParams();
@@ -24,7 +25,9 @@ const Payment = () => {
         const currentUser = me.data.data;
         const completed = hasCompletedIntake(currentUser);
         if (!completed) {
-          toast.info("Please complete the registration form before making payment.");
+          toast.info(
+            "Please complete the registration form before making payment.",
+          );
           setTimeout(() => {
             navigate("/onboarding/1");
           }, 800);
@@ -39,7 +42,6 @@ const Payment = () => {
           window.open(url, "_blank");
         }
       } catch (error: any) {
-        console.log({ error });
         const status = error?.response?.status;
 
         // If user already paid (400 error), redirect to dashboard
@@ -61,7 +63,14 @@ const Payment = () => {
     makePayment();
   }, [token, navigate]);
 
-  return <div className="min-h-screen"></div>;
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5FAFF]">
+      <PulseLoader size={12} color="#001EC5" />
+      <p className="mt-4 text-[#001F54] text-sm font-medium">
+        Redirecting to payment...
+      </p>
+    </div>
+  );
 };
 
 export default Payment;

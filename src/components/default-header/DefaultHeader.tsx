@@ -13,7 +13,7 @@ import {
   Stack,
 } from "@mui/joy";
 import Profile from "../profile/Profile";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Brand from "../brand/brand";
 import { useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -84,7 +84,14 @@ const DefaultHeader = () => {
           gap={2}
           py={2}
         >
-          <div className="hidden md:block"></div>
+          <div className="hidden md:block">
+            <Link to="/">
+              <div className="flex items-center">
+                <img src="/images/logo.png" alt="School of Disciples Logo" className="h-10" />
+                <img src="/images/rcg.png" alt="RCCG Logo" className="h-10" />
+              </div>
+            </Link>
+          </div>
           <div className="md:hidden">
             <IconButton
               sx={{
@@ -100,7 +107,7 @@ const DefaultHeader = () => {
           </div>
           <div className="hidden md:flex gap-4">
             {routes
-              .filter((route) => route.role.includes(user!.type))
+              .filter((route) => user?.type ? route.role.includes(user.type) : false)
               .map((route) => (
                 <button
                   key={route.id}
@@ -144,11 +151,14 @@ const DefaultHeader = () => {
           </Box>
           <List>
             {routes
-              .filter((route) => route.role.includes(user!.type))
+              .filter((route) => user?.type ? route.role.includes(user.type) : false)
               .map((route) => (
                 <ListItem
                   key={route.id}
-                  onClick={() => navigate(route.url)}
+                  onClick={() => {
+                    navigate(route.url);
+                    setOpen(false);
+                  }}
                   onKeyDown={toggleDrawer(false)}
                 >
                   <ListItemButton>{route.name}</ListItemButton>

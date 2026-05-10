@@ -70,19 +70,15 @@ export const loadUser = createAsyncThunk(
   async (_, thunkApi) => {
     const token = localStorage.getItem(TOKEN);
     if (token) {
-      console.log({ token });
       SetDefaultHeaders();
       SetAuthToken(token);
     }
     try {
       const res = await axios.get("/user");
-      console.log({ loadUserRes: res });
-
       const userData = (res.data as { data: User }).data;
       // thunkApi.dispatch(login(userData));
       return userData;
     } catch (error) {
-      console.log({ loadUserError: error });
       const err = error as ApiError;
       return thunkApi.rejectWithValue(err);
     }

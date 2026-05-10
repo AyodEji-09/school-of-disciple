@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UseBox from "../components/usebox/UseBox";
 import { Box, Checkbox, Stack, Typography } from "@mui/joy";
 import { Controller, useForm } from "react-hook-form";
@@ -34,6 +34,14 @@ const Login = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [otp, setOtp] = useState("");
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   const {
     control,
@@ -109,6 +117,7 @@ const Login = () => {
     try {
       await sendVerificationOtp(getValues().email);
       toast.success("Verification code resent");
+      setCountdown(60);
     } catch (error) {
       toast.error(handleError(error));
     } finally {
@@ -230,10 +239,10 @@ const Login = () => {
             <button
               type="button"
               onClick={resendOtp}
-              disabled={resendLoading}
+              disabled={resendLoading || countdown > 0}
               className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
             >
-              {resendLoading ? "Sending…" : "Resend"}
+              {resendLoading ? "Sending…" : countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
             </button>
           </p>
 

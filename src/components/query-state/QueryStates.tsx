@@ -1,5 +1,4 @@
-import { Card, Skeleton } from "@mui/joy";
-import { Empty } from "antd";
+import { Card, Skeleton, Typography } from "@mui/joy";
 
 export const MetricCardSkeleton = () => {
   return (
@@ -45,8 +44,10 @@ export const CenteredEmptyState = ({
   description?: string;
 }) => {
   return (
-    <div className="py-16">
-      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={description} />
+    <div className="py-16 text-center flex flex-col items-center justify-center text-[#6B7280]">
+      <Typography textColor="neutral.500" level="body-md">
+        {description}
+      </Typography>
     </div>
   );
 };

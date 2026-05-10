@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { Stack, Typography } from "@mui/joy";
@@ -32,6 +32,14 @@ const ForgotPassword = () => {
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [resendingToken, setResendingToken] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   const {
     control: emailControl,
@@ -72,6 +80,7 @@ const ForgotPassword = () => {
       setOtp("");
       setIsOtpModalOpen(true);
       toast.success("A reset code has been sent to your email");
+      setCountdown(60);
     } catch (error) {
       toast.error(handleError(error));
     } finally {
@@ -91,6 +100,7 @@ const ForgotPassword = () => {
       await requestResetToken(formEmail);
       setIsOtpModalOpen(true);
       toast.success("Reset code resent");
+      setCountdown(60);
     } catch (error) {
       toast.error(handleError(error));
     } finally {
@@ -212,9 +222,9 @@ const ForgotPassword = () => {
                 type="button"
                 variant="outlined"
                 onClick={onResendToken}
-                disabled={resendingToken}
+                disabled={resendingToken || countdown > 0}
               >
-                {resendingToken ? "Sending..." : "Resend Code"}
+                {resendingToken ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend Code"}
               </AppButton>
             </Stack>
           </div>
@@ -306,10 +316,10 @@ const ForgotPassword = () => {
             <button
               type="button"
               onClick={onResendToken}
-              disabled={resendingToken || verifyingOtp || resettingPassword}
+              disabled={resendingToken || verifyingOtp || resettingPassword || countdown > 0}
               className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
             >
-              {resendingToken ? "Sending..." : "Resend"}
+              {resendingToken ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
             </button>
           </p>
 

@@ -43,7 +43,6 @@ const AcceptInvite = () => {
     }
   }, [invitedEmail, setValue]);
   const onSubmit = async (data: FormType) => {
-    console.log({ data });
     setLoading(true);
     try {
       const res = await axios.post<ApiResponseN<null>>(
@@ -53,8 +52,6 @@ const AcceptInvite = () => {
       toast.success(res.data.message);
       navigate("/login");
     } catch (error) {
-      console.log({ error });
-
       toast.error(handleError(error));
     } finally {
       setLoading(false);

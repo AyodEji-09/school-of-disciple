@@ -8,7 +8,7 @@ type Props = {
   search?: boolean;
 };
 const Frame = ({
-  text = "Welcome Vici Enterprises",
+  text = "School of Disciples",
   children,
   search = false,
 }: PropsWithChildren<Props>) => {

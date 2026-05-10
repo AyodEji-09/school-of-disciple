@@ -26,7 +26,6 @@ const Dashboard = () => {
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : user?.center?._id;
   const isUnassignedCoordinator = isCoordinator && !coordinatorCenterId;
-  console.log({ user });
   const { data: coordinators, isLoading: coordinatorsLoading } =
     useGetUsersQuery({ type: "coordinator" }, { skip: isCoordinator });
   const { data: students, isLoading: studentsLoading } = useGetUsersQuery(
@@ -42,7 +41,6 @@ const Dashboard = () => {
     { page: 1, limit: 20 },
     { skip: isCoordinator },
   );
-  console.log({ coordinators, students, centers });
 
   const isStatsLoading =
     user?.type === "admin"
@@ -137,7 +135,6 @@ const CenterCoordinatorTable = () => {
     type: "coordinator",
     ...(searchVar ? { search: searchVar } : {}),
   });
-  console.log({ coordinators });
   const coordinatorDocs = coordinators?.data?.docs || [];
 
   const getCenterName = (entry: User) => {
@@ -360,7 +357,6 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
     },
     { skip: !centerId },
   );
-  console.log({ students });
   const navigate = useNavigate();
   const studentDocs = students?.data?.docs || [];
 
