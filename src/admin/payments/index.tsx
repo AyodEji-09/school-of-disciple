@@ -237,15 +237,15 @@ const TransactionTable = () => {
         scopeLabel: isCoordinator
           ? `${coordinatorCenterName || "My Center"} (Coordinator)`
           : "All Centers (Admin)",
-        generatedAt: moment().format("DD MMM YYYY, HH:mm"),
+        generatedAt: moment().format("MM/DD/YYYY, HH:mm"),
         totalTransactions,
         successfulTransactions,
         pendingTransactions,
         failedTransactions,
         totalAmount,
         averageAmount,
-        dateFrom: minTime ? moment(minTime).format("DD MMM YYYY") : undefined,
-        dateTo: maxTime ? moment(maxTime).format("DD MMM YYYY") : undefined,
+        dateFrom: minTime ? moment(minTime).format("MM/DD/YYYY") : undefined,
+        dateTo: maxTime ? moment(maxTime).format("MM/DD/YYYY") : undefined,
         centerBreakdown,
       };
 
@@ -268,7 +268,7 @@ const TransactionTable = () => {
           })),
         },
         transactions: fetchedPayments.map((payment) => ({
-          date: moment(payment.createdAt).format("DD/MM/YYYY"),
+          date: moment(payment.createdAt).format("MM/DD/YYYY"),
           transactionRef: payment._id,
           description: payment.description || "Registration Fee",
           center: getCenterNameFromPayment(payment),
@@ -357,7 +357,7 @@ const TransactionTable = () => {
                     key={payment._id}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {moment(payment?.createdAt).format("DD/MM/YYYY")}
+                      {moment(payment?.createdAt).format("MM/DD/YYYY")}
                     </td>
                     <td className="px-6 py-4">{payment?._id}</td>
                     <td className="px-6 py-4 whitespace-nowrap">

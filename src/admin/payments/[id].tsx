@@ -82,7 +82,7 @@ const PaymentUser = () => {
                     title="Date Added"
                     value={
                       currentUser?.createdAt
-                        ? moment(currentUser.createdAt).format("DD MMM YYYY")
+                        ? moment(currentUser.createdAt).format("MM/DD/YYYY")
                         : "N/A"
                     }
                   />

@@ -286,7 +286,7 @@ const PaymentHistory = () => {
                     className="border-b border-[#F3F4F6] hover:bg-[#F8FAFC] transition"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {moment(payment.createdAt).format("DD/MM/YYYY, HH:mm")}
+                      {moment(payment.createdAt).format("MM/DD/YYYY, HH:mm")}
                     </td>
                     <td className="px-6 py-4 text-[#6B7280] text-xs font-mono">
                       {payment._id}

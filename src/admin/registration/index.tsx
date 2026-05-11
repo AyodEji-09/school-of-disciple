@@ -148,11 +148,11 @@ const RegistrationWindowPage = () => {
                   <>
                     <Typography level="body-sm" textColor="#6B7280">
                       {moment(currentWindow.startDate).format(
-                        "DD/MM/YYYY, HH:mm",
+                        "MM/DD/YYYY, HH:mm",
                       )}{" "}
                       &mdash;{" "}
                       {moment(currentWindow.endDate).format(
-                        "DD/MM/YYYY, HH:mm",
+                        "MM/DD/YYYY, HH:mm",
                       )}
                     </Typography>
                   </>
@@ -233,11 +233,11 @@ const RegistrationWindowPage = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               {moment(win.startDate).format(
-                                "DD/MM/YYYY, HH:mm",
+                                "MM/DD/YYYY, HH:mm",
                               )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              {moment(win.endDate).format("DD/MM/YYYY, HH:mm")}
+                              {moment(win.endDate).format("MM/DD/YYYY, HH:mm")}
                             </td>
                             <td className="px-6 py-4">
                               <Chip color={s.color} variant="soft" size="sm">

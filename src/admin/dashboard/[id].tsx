@@ -155,7 +155,7 @@ const CenterManager = () => {
                     label="Date Added"
                     value={
                       manager.createdAt
-                        ? moment(manager.createdAt).format("DD MMM YYYY")
+                        ? moment(manager.createdAt).format("MM/DD/YYYY")
                         : "N/A"
                     }
                   />
