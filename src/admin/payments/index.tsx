@@ -308,7 +308,7 @@ const TransactionTable = () => {
       <Box
         minHeight={400}
         position={"relative"}
-        className={"overflow-x-auto scrollbar-hide"}
+        className={"overflow-x-auto scrollbar-hide w-full"}
       >
         <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
           <thead className="text-xs whitespace-nowrap">
@@ -338,7 +338,7 @@ const TransactionTable = () => {
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="whitespace-nowrap">
             {isLoading && !hasPayments ? (
               <tr>
                 <td colSpan={isCoordinator ? 6 : 7}>

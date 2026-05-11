@@ -243,7 +243,7 @@ const CenterCoordinatorTable = () => {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="whitespace-nowrap">
               {isLoading && coordinatorDocs.length === 0 ? (
                 <tr>
                   <td colSpan={6}>
@@ -397,7 +397,7 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="whitespace-nowrap">
               {isLoading && studentDocs.length === 0 ? (
                 <tr>
                   <td colSpan={4}>

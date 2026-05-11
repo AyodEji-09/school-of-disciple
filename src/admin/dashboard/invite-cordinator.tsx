@@ -18,8 +18,8 @@ const AddCenterManager = () => {
   const navigate = useNavigate();
 
   const { data: centers } = useGetAllCenterQuery();
-  console.log({centers});
-  
+  console.log({ centers });
+
   const [loading, setLoading] = useState(false);
 
   const {
@@ -88,8 +88,10 @@ const AddCenterManager = () => {
               }}
               render={({ field: { onChange } }) => (
                 <Select onChange={(e, value) => onChange(value)}>
-                  {centers?.data?.docs?.map((item) => (
-                    <Option value={item?._id}>{item?.name}</Option>
+                  {centers?.data?.docs?.map((item, idx) => (
+                    <Option key={idx} value={item?._id}>
+                      {item?.name}
+                    </Option>
                   ))}
                 </Select>
               )}

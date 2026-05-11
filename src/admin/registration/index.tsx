@@ -192,7 +192,7 @@ const RegistrationWindowPage = () => {
                   <PulseLoader size={8} color="#001EC5" />
                 </div>
               ) : allWindowsRes?.data?.docs?.length ? (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto w-full">
                   <table className="w-full text-sm text-left text-[#001F54]">
                     <thead className="text-xs bg-[#F8FAFC] border-b border-[#E5E7EB]">
                       <tr>
@@ -206,7 +206,7 @@ const RegistrationWindowPage = () => {
                         <th className="px-6 py-4 font-semibold">Status</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="whitespace-nowrap">
                       {allWindowsRes.data.docs.map((win) => {
                         const s = getWindowStatus(win);
                         const isCurrent = win._id === currentWindow?._id;

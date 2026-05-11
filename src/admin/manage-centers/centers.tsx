@@ -245,7 +245,7 @@ const Centers = () => {
           </div>
         </Stack>
       )}
-      <div className="grid gap-4 mt-8">
+      <div className="mt-8">
         <div className="bg-white p-4">
           <Stack
             direction={"row"}
@@ -259,7 +259,7 @@ const Centers = () => {
           <Box
             minHeight={400}
             position={"relative"}
-            className={"overflow-x-auto"}
+            className={"overflow-x-auto w-full"}
           >
             <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
               <thead className="text-xs">
@@ -281,7 +281,7 @@ const Centers = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="whitespace-nowrap">
                 {isLoading || isFetching ? (
                   <td colSpan={5}>
                     <div className="flex min-h-96 items-center justify-center">
@@ -289,8 +289,11 @@ const Centers = () => {
                     </div>
                   </td>
                 ) : sortedCenters.length ? (
-                  sortedCenters.map((center) => (
-                    <tr className="border-b last:border-none font-medium">
+                  sortedCenters.map((center, idx) => (
+                    <tr
+                      key={idx}
+                      className="border-b last:border-none font-medium"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <AvatarText text={center?.name} />
                       </td>
