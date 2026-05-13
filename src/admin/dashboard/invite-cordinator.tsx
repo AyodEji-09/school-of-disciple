@@ -11,6 +11,8 @@ import Input from "../../components/input/input.component";
 import { useGetAllCenterQuery } from "../../data/rtk/center";
 
 interface FormType {
+  firstName: string;
+  lastName: string;
   email: string;
   centerId: string;
 }
@@ -28,6 +30,8 @@ const AddCenterManager = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
+      firstName: "",
+      lastName: "",
       email: "",
       centerId: "",
     },
@@ -54,7 +58,39 @@ const AddCenterManager = () => {
         <Typography level="h3">Invite Center Manager</Typography>
       </Stack>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-8">
-        <div className="space-y-4 mt-8">
+        <div className="grid md:grid-cols-2 gap-4 mt-8">
+          <div>
+            <Controller
+              name="firstName"
+              control={control}
+              rules={{ required: "This field is required" }}
+              render={({ field: { value, onChange } }) => (
+                <Input label="First Name" value={value} onChange={onChange} />
+              )}
+            />
+            {errors.firstName && (
+              <p className="text-[#dc2626] text-xs">
+                {errors?.firstName?.message as string}
+              </p>
+            )}
+          </div>
+          <div>
+            <Controller
+              name="lastName"
+              control={control}
+              rules={{ required: "This field is required" }}
+              render={({ field: { value, onChange } }) => (
+                <Input label="Last Name" value={value} onChange={onChange} />
+              )}
+            />
+            {errors.lastName && (
+              <p className="text-[#dc2626] text-xs">
+                {errors?.lastName?.message as string}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="space-y-4 mt-4">
           <div>
             <Controller
               name="email"

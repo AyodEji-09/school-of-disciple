@@ -21,6 +21,8 @@ const AcceptInvite = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const invitedEmail = searchParams.get("email") || "";
+  const invitedFirstName = searchParams.get("firstName") || "";
+  const invitedLastName = searchParams.get("lastName") || "";
 
   const {
     control,
@@ -38,10 +40,10 @@ const AcceptInvite = () => {
   });
 
   useEffect(() => {
-    if (invitedEmail) {
-      setValue("email", invitedEmail);
-    }
-  }, [invitedEmail, setValue]);
+    if (invitedEmail) setValue("email", invitedEmail);
+    if (invitedFirstName) setValue("firstName", invitedFirstName);
+    if (invitedLastName) setValue("lastName", invitedLastName);
+  }, [invitedEmail, invitedFirstName, invitedLastName, setValue]);
   const onSubmit = async (data: FormType) => {
     setLoading(true);
     try {

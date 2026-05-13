@@ -1,4 +1,13 @@
-import { Chip, Stack, Typography } from "@mui/joy";
+import {
+  Chip,
+  Dropdown,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  Stack,
+  Typography,
+} from "@mui/joy";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -9,6 +18,7 @@ import { getUserFullName, handleError } from "../../utils";
 import AppSearch from "../../components/search/AppSearch";
 import Frame from "../../components/frame/Frame";
 import AvatarText from "../../components/avatar-text/AvatarText";
+import { MoreVert } from "@mui/icons-material";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import { useGetUsersQuery } from "../../data/rtk/user";
@@ -131,7 +141,12 @@ const CenterCoordinatorTable = () => {
   const navigate = useNavigate();
   const [searchVar, setSearchVar] = useState("");
   const [resendInviteId, setResendInviteId] = useState<string | null>(null);
-  const { data: coordinators, isLoading } = useGetUsersQuery({
+  const [deleteInviteId, setDeleteInviteId] = useState<string | null>(null);
+  const {
+    data: coordinators,
+    isLoading,
+    refetch,
+  } = useGetUsersQuery({
     type: "coordinator",
     ...(searchVar ? { search: searchVar } : {}),
   });
@@ -170,6 +185,8 @@ const CenterCoordinatorTable = () => {
         {
           email: entry.email,
           centerId,
+          firstName: entry.firstName,
+          lastName: entry.lastName,
         },
       );
       toast.success(res.data.message || "Invite resent successfully");
@@ -177,6 +194,22 @@ const CenterCoordinatorTable = () => {
       toast.error(handleError(error));
     } finally {
       setResendInviteId(null);
+    }
+  };
+
+  const handleDeleteInvite = async (entry: User) => {
+    if (!entry?._id) return;
+    if (!window.confirm("Are you sure you want to delete this invite?")) return;
+
+    setDeleteInviteId(entry._id);
+    try {
+      await axios.delete(`/admin/invite-coordinator/${entry._id}`);
+      toast.success("Invite deleted successfully");
+      refetch();
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setDeleteInviteId(null);
     }
   };
 
@@ -265,31 +298,53 @@ const CenterCoordinatorTable = () => {
                     <td className="px-6 py-4">
                       {getStatusChip(getCoordinatorStatus(coordinator))}
                     </td>
-                    <td className="px-6 py-4">
-                      <Stack
-                        direction="row"
-                        gap={1}
-                        // flexWrap="wrap"
-                      >
-                        <AppButton
-                          onClick={() =>
-                            navigate(`/dashboard/manager/${coordinator._id}`)
-                          }
-                        >
-                          {getActionLabel(coordinator)}
-                        </AppButton>
-                        {getCoordinatorStatus(coordinator) === "pending" && (
-                          <AppButton
-                            variant="outlined"
-                            loading={resendInviteId === coordinator._id}
-                            disabled={resendInviteId === coordinator._id}
-                            onClick={() => resendInvite(coordinator)}
+                      <td className="px-6 py-4">
+                        <Dropdown>
+                          <MenuButton
+                            slots={{ root: IconButton }}
+                            slotProps={{
+                              root: { variant: "outlined", color: "neutral" },
+                            }}
                           >
-                            Resend Invite
-                          </AppButton>
-                        )}
-                      </Stack>
-                    </td>
+                            <MoreVert />
+                          </MenuButton>
+                          <Menu>
+                            <MenuItem
+                              onClick={() =>
+                                navigate(
+                                  `/dashboard/manager/${coordinator._id}`,
+                                )
+                              }
+                            >
+                              {getActionLabel(coordinator)}
+                            </MenuItem>
+                            {getCoordinatorStatus(coordinator) === "pending" && (
+                              <>
+                                <MenuItem
+                                  onClick={() => resendInvite(coordinator)}
+                                  disabled={resendInviteId === coordinator._id}
+                                >
+                                  {resendInviteId === coordinator._id
+                                    ? "Resending..."
+                                    : "Resend Invite"}
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={() =>
+                                    handleDeleteInvite(coordinator)
+                                  }
+                                  disabled={deleteInviteId === coordinator._id}
+                                  variant="soft"
+                                  color="danger"
+                                >
+                                  {deleteInviteId === coordinator._id
+                                    ? "Deleting..."
+                                    : "Delete Invite"}
+                                </MenuItem>
+                              </>
+                            )}
+                          </Menu>
+                        </Dropdown>
+                      </td>
                   </tr>
                 ))
               ) : (
