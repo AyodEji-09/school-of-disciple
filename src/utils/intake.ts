@@ -13,6 +13,7 @@ export type IntakeFormData = {
     officePhone?: string;
     email?: string;
     height?: string;
+    heightUnit?: "ft" | "cm";
   };
   spiritualExperience?: {
     bornAgain?: "yes" | "no";
@@ -153,6 +154,7 @@ export const calculateProgress = (data: IntakeFormData) => {
     data.personalInfo?.officePhone,
     data.personalInfo?.email,
     data.personalInfo?.height,
+    data.personalInfo?.heightUnit,
   );
 
   push(

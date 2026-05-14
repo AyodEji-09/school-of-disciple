@@ -59,6 +59,7 @@ export const validateStep = (
     if (!isFilled(intakeForm.personalInfo?.officePhone)) missing.push("Office Phone");
     if (!isFilled(intakeForm.personalInfo?.email)) missing.push("Email Address");
     if (!isFilled(intakeForm.personalInfo?.height)) missing.push("Height");
+    if (!isFilled(intakeForm.personalInfo?.heightUnit)) missing.push("Height Unit");
   }
 
   if (key === "spiritual") {

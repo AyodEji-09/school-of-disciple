@@ -99,11 +99,25 @@ export const PersonalSectionView = ({
       value={intakeForm.personalInfo?.email || userEmail || ""}
       onChange={(e) => updateNested("personalInfo", "email", e.target.value)}
     />
-    <Input
-      label="Height"
-      value={intakeForm.personalInfo?.height || ""}
-      onChange={(e) => updateNested("personalInfo", "height", e.target.value)}
-    />
+    <div className="flex gap-2">
+      <Input
+        label="Height"
+        className="flex-1"
+        value={intakeForm.personalInfo?.height || ""}
+        onChange={(e) => updateNested("personalInfo", "height", e.target.value)}
+        placeholder={intakeForm.personalInfo?.heightUnit === "ft" ? "e.g. 5'11\"" : "e.g. 180"}
+      />
+      <SelectField
+        label="Unit"
+        sx={{ minWidth: 100 }}
+        value={intakeForm.personalInfo?.heightUnit || ""}
+        onChange={(value) => updateNested("personalInfo", "heightUnit", value as "ft" | "cm")}
+        options={[
+          { value: "ft", label: "ft/in" },
+          { value: "cm", label: "cm" },
+        ]}
+      />
+    </div>
   </div>
 );
 

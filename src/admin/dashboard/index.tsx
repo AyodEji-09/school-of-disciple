@@ -1,13 +1,4 @@
-import {
-  Chip,
-  Dropdown,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  Stack,
-  Typography,
-} from "@mui/joy";
+import { Chip, Dropdown, IconButton, Menu, MenuButton, MenuItem, Stack, Typography } from "@mui/joy";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -404,14 +395,11 @@ const CenterCoordinatorTable = () => {
 
 const StudentsTable = ({ centerId }: { centerId?: string }) => {
   const [searchVar, setSearchVar] = useState("");
-  const { data: students, isLoading } = useGetUsersQuery(
-    {
-      type: "user",
-      ...(centerId ? { center: centerId } : {}),
-      ...(searchVar ? { search: searchVar } : {}),
-    },
-    { skip: !centerId },
-  );
+  const { data: students, isLoading } = useGetUsersQuery({
+    type: "user",
+    ...(centerId ? { center: centerId } : {}),
+    ...(searchVar ? { search: searchVar } : {}),
+  });
   const navigate = useNavigate();
   const studentDocs = students?.data?.docs || [];
 

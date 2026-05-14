@@ -26,6 +26,7 @@ import UserDashboard from "./pages/UserDashboard";
 import ProfilePage from "./pages/ProfilePage";
 import OnboardingPage from "./pages/Onboarding";
 import RegistrationWindow from "./admin/registration";
+import StudentsPage from "./admin/students";
 
 import store from "./data/store";
 import { loadUser } from "./data/reducers/userSlice";
@@ -129,6 +130,7 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/add-manager" element={<AddCenterManager />} />
           <Route path="/dashboard/manager/:id" element={<CenterManager />} />
+          <Route path="/dashboard/students" element={<StudentsPage />} />
           <Route path="/dashboard/students/:id" element={<PaymentUser />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/payments/users/:id" element={<PaymentUser />} />
