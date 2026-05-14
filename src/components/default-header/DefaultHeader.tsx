@@ -56,13 +56,19 @@ const DefaultHeader = () => {
       role: ["admin", "coordinator"],
     },
     {
-      id: 4,
+      id: 5,
       name: "Registration",
       url: "/registration",
       role: ["admin"],
     },
     {
-      id: 5,
+      id: 6,
+      name: "Settings",
+      url: "/dashboard/settings",
+      role: ["admin"],
+    },
+    {
+      id: 7,
       name: "Dashboard",
       url: "/my-dashboard",
       role: ["user"],

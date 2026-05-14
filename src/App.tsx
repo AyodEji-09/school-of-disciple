@@ -41,8 +41,10 @@ import {
   UserRoute,
   PublicRoute,
   OnboardingRoute,
+  SuperAdminRoute,
 } from "./utils/private-route.component";
 import { hasCompletedIntake } from "./utils/intake";
+import SettingsPage from "./admin/settings";
 
 SetDefaultHeaders();
 
@@ -138,6 +140,9 @@ const App = () => {
           <Route path="/manage-centers" element={<Centers />} />
           <Route path="/manage-centers/add-center" element={<AddCenter />} />
           <Route path="/registration" element={<RegistrationWindow />} />
+          <Route element={<SuperAdminRoute />}>
+            <Route path="/dashboard/settings" element={<SettingsPage />} />
+          </Route>
         </Route>
 
         <Route element={<UserRoute />}>

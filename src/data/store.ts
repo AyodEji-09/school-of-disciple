@@ -4,6 +4,7 @@ import rootReducer from "./root-reducer";
 import { centerApi } from "./rtk/center";
 import { paymentApi } from "./rtk/payment";
 import { registrationApi } from "./rtk/registration";
+import { settingsApi } from "./rtk/settings";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 const store = configureStore({
@@ -13,7 +14,8 @@ const store = configureStore({
       .concat(userApi.middleware)
       .concat(centerApi.middleware)
       .concat(paymentApi.middleware)
-      .concat(registrationApi.middleware),
+      .concat(registrationApi.middleware)
+      .concat(settingsApi.middleware),
 });
 
 setupListeners(store.dispatch);

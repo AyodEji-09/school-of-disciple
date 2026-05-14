@@ -27,6 +27,18 @@ export const AdminRoute = () => {
   return <Outlet />;
 };
 
+export const SuperAdminRoute = () => {
+  const auth = useAppSelector(selectAuth);
+  const user = useAppSelector(selectUser);
+  const loading = useAppSelector(selectLoading);
+
+  if (loading) return <LoadingScreen />;
+  if (!auth) return <Navigate to="/" replace />;
+  if (user?.deactivated) return <Navigate to="/" replace />;
+  if (user?.type === "admin" || user?.type === "super") return <Outlet />;
+  return <Navigate to="/dashboard" replace />;
+};
+
 export const UserRoute = () => {
   const auth = useAppSelector(selectAuth);
   const user = useAppSelector(selectUser);

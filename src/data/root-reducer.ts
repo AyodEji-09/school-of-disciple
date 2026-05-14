@@ -4,6 +4,7 @@ import UserSlice from "./reducers/userSlice";
 import { centerApi } from "./rtk/center";
 import { paymentApi } from "./rtk/payment";
 import { registrationApi } from "./rtk/registration";
+import { settingsApi } from "./rtk/settings";
 
 const rootReducer = combineReducers({
   user: UserSlice,
@@ -11,6 +12,7 @@ const rootReducer = combineReducers({
   [centerApi.reducerPath]: centerApi.reducer,
   [paymentApi.reducerPath]: paymentApi.reducer,
   [registrationApi.reducerPath]: registrationApi.reducer,
+  [settingsApi.reducerPath]: settingsApi.reducer,
 });
 
 export default rootReducer;

@@ -242,7 +242,11 @@ const Login = () => {
               disabled={resendLoading || countdown > 0}
               className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
             >
-              {resendLoading ? "Sending…" : countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
+              {resendLoading
+                ? "Sending…"
+                : countdown > 0
+                  ? `Resend in ${countdown}s`
+                  : "Resend"}
             </button>
           </p>
 
@@ -253,7 +257,7 @@ const Login = () => {
               disabled={verifyLoading}
               onClick={verifyOtp}
             >
-              Verify &amp; Log In
+              Verify
             </AppButton>
             <AppButton
               type="button"
