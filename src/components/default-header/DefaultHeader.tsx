@@ -47,22 +47,16 @@ const DefaultHeader = () => {
       url: "/dashboard",
       role: ["admin", "coordinator"],
     },
-    { id: 2, name: "centers", url: "/manage-centers", role: ["admin"] },
+    { id: 2, name: "Manage Centers", url: "/dashboard/manage-centers", role: ["admin"] },
     { id: 3, name: "Students", url: "/dashboard/students", role: ["admin"] },
     {
       id: 4,
       name: "Payments",
-      url: "/payments",
+      url: "/dashboard/payments",
       role: ["admin", "coordinator"],
     },
     {
       id: 5,
-      name: "Registration",
-      url: "/registration",
-      role: ["admin"],
-    },
-    {
-      id: 6,
       name: "Settings",
       url: "/dashboard/settings",
       role: ["admin"],
@@ -94,7 +88,11 @@ const DefaultHeader = () => {
           <div className="hidden md:block">
             <Link to="/">
               <div className="flex items-center">
-                <img src="/images/logo.png" alt="School of Disciples Logo" className="h-10" />
+                <img
+                  src="/images/logo.png"
+                  alt="School of Disciples Logo"
+                  className="h-10"
+                />
                 <img src="/images/rcg.png" alt="RCCG Logo" className="h-10" />
               </div>
             </Link>
@@ -114,7 +112,9 @@ const DefaultHeader = () => {
           </div>
           <div className="hidden md:flex gap-4">
             {routes
-              .filter((route) => user?.type ? route.role.includes(user.type) : false)
+              .filter((route) =>
+                user?.type ? route.role.includes(user.type) : false,
+              )
               .map((route) => (
                 <button
                   key={route.id}
@@ -158,7 +158,9 @@ const DefaultHeader = () => {
           </Box>
           <List>
             {routes
-              .filter((route) => user?.type ? route.role.includes(user.type) : false)
+              .filter((route) =>
+                user?.type ? route.role.includes(user.type) : false,
+              )
               .map((route) => (
                 <ListItem
                   key={route.id}

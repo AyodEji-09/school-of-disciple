@@ -132,14 +132,26 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/add-manager" element={<AddCenterManager />} />
           <Route path="/dashboard/manager/:id" element={<CenterManager />} />
+          <Route path="/dashboard/manage-centers" element={<Centers />} />
+          <Route
+            path="/dashboard/manage-centers/add-center"
+            element={<AddCenter />}
+          />
           <Route path="/dashboard/students" element={<StudentsPage />} />
           <Route path="/dashboard/students/:id" element={<PaymentUser />} />
-          <Route path="/payments" element={<Payments />} />
-          <Route path="/payments/users/:id" element={<PaymentUser />} />
-          <Route path="/payments/user/:id" element={<PaymentUser />} />
-          <Route path="/manage-centers" element={<Centers />} />
-          <Route path="/manage-centers/add-center" element={<AddCenter />} />
-          <Route path="/registration" element={<RegistrationWindow />} />
+          <Route path="/dashboard/payments" element={<Payments />} />
+          <Route
+            path="/dashboard/payments/users/:id"
+            element={<PaymentUser />}
+          />
+          <Route
+            path="/dashboard/payments/user/:id"
+            element={<PaymentUser />}
+          />
+          <Route
+            path="/dashboard/settings/registation"
+            element={<RegistrationWindow />}
+          />
           <Route element={<SuperAdminRoute />}>
             <Route path="/dashboard/settings" element={<SettingsPage />} />
           </Route>
