@@ -1,4 +1,13 @@
-import { Chip, Dropdown, IconButton, Menu, MenuButton, MenuItem, Stack, Typography } from "@mui/joy";
+import {
+  Chip,
+  Dropdown,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  Stack,
+  Typography,
+} from "@mui/joy";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -84,7 +93,7 @@ const Dashboard = () => {
           <div className="w-fit ml-auto flex gap-4 flex-wrap">
             <AppButton
               variant="outlined"
-              onClick={() => navigate("/manage-centers")}
+              onClick={() => navigate("/dashboard/manage-centers")}
             >
               Add Center
             </AppButton>
@@ -289,53 +298,49 @@ const CenterCoordinatorTable = () => {
                     <td className="px-6 py-4">
                       {getStatusChip(getCoordinatorStatus(coordinator))}
                     </td>
-                      <td className="px-6 py-4">
-                        <Dropdown>
-                          <MenuButton
-                            slots={{ root: IconButton }}
-                            slotProps={{
-                              root: { variant: "outlined", color: "neutral" },
-                            }}
+                    <td className="px-6 py-4">
+                      <Dropdown>
+                        <MenuButton
+                          slots={{ root: IconButton }}
+                          slotProps={{
+                            root: { variant: "outlined", color: "neutral" },
+                          }}
+                        >
+                          <MoreVert />
+                        </MenuButton>
+                        <Menu>
+                          <MenuItem
+                            onClick={() =>
+                              navigate(`/dashboard/manager/${coordinator._id}`)
+                            }
                           >
-                            <MoreVert />
-                          </MenuButton>
-                          <Menu>
-                            <MenuItem
-                              onClick={() =>
-                                navigate(
-                                  `/dashboard/manager/${coordinator._id}`,
-                                )
-                              }
-                            >
-                              {getActionLabel(coordinator)}
-                            </MenuItem>
-                            {getCoordinatorStatus(coordinator) === "pending" && (
-                              <>
-                                <MenuItem
-                                  onClick={() => resendInvite(coordinator)}
-                                  disabled={resendInviteId === coordinator._id}
-                                >
-                                  {resendInviteId === coordinator._id
-                                    ? "Resending..."
-                                    : "Resend Invite"}
-                                </MenuItem>
-                                <MenuItem
-                                  onClick={() =>
-                                    handleDeleteInvite(coordinator)
-                                  }
-                                  disabled={deleteInviteId === coordinator._id}
-                                  variant="soft"
-                                  color="danger"
-                                >
-                                  {deleteInviteId === coordinator._id
-                                    ? "Deleting..."
-                                    : "Delete Invite"}
-                                </MenuItem>
-                              </>
-                            )}
-                          </Menu>
-                        </Dropdown>
-                      </td>
+                            {getActionLabel(coordinator)}
+                          </MenuItem>
+                          {getCoordinatorStatus(coordinator) === "pending" && (
+                            <>
+                              <MenuItem
+                                onClick={() => resendInvite(coordinator)}
+                                disabled={resendInviteId === coordinator._id}
+                              >
+                                {resendInviteId === coordinator._id
+                                  ? "Resending..."
+                                  : "Resend Invite"}
+                              </MenuItem>
+                              <MenuItem
+                                onClick={() => handleDeleteInvite(coordinator)}
+                                disabled={deleteInviteId === coordinator._id}
+                                variant="soft"
+                                color="danger"
+                              >
+                                {deleteInviteId === coordinator._id
+                                  ? "Deleting..."
+                                  : "Delete Invite"}
+                              </MenuItem>
+                            </>
+                          )}
+                        </Menu>
+                      </Dropdown>
+                    </td>
                   </tr>
                 ))
               ) : (
