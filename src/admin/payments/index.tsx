@@ -1,6 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Frame from "../../components/frame/Frame";
-import { Box, Button, Card, Chip, Divider, Stack, Typography } from "@mui/joy";
+import {
+  Box,
+  Button,
+  Card,
+  Chip,
+  Divider,
+  FormControl,
+  FormLabel,
+  Option,
+  Select,
+  Stack,
+  Typography,
+} from "@mui/joy";
 import AppModal from "../../components/modal/modal";
 import { useGetPaymentsQuery } from "../../data/rtk/payment";
 import moment from "moment";
@@ -11,7 +23,10 @@ import AppButton from "../../components/Button/AppButton";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { handleError } from "../../utils";
-import { openFinancialReportPrintPreview } from "./report-template";
+import {
+  openFinancialReportPrintPreview,
+  openRemittanceReportPrintPreview,
+} from "./report-template";
 import AppPagination from "../../components/pagination/Pagination";
 import {
   CenteredEmptyState,
@@ -23,6 +38,11 @@ import {
   useRejectRemittanceMutation,
 } from "../../data/rtk/remittance";
 import { getUserFullName } from "../../utils";
+import {
+  useGetAllRegistrationWindowsQuery,
+  useGetRegistrationWindowQuery,
+} from "../../data/rtk/registration";
+import { useGetCentersQuery } from "../../data/rtk/center";
 
 type CenterBreakdown = {
   centerName: string;
@@ -67,52 +87,49 @@ const getStudentFromPayment = (payment: Payment) => {
   if (!payment.studentId || typeof payment.studentId === "string") {
     return null;
   }
-
   return payment.studentId as User & { id?: string };
 };
 
 const getPayerId = (payment: Payment) => {
   if (typeof payment.studentId === "string") return payment.studentId;
-
   const student = payment.studentId as User & { id?: string };
   return student?._id || student?.id;
 };
 
 const getCenterNameFromPayment = (payment: Payment) => {
   const student = getStudentFromPayment(payment);
-
   if (!student || !student.center) return "-";
   if (typeof student.center === "string") return "-";
-
   return student.center.name || "-";
 };
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Payments (parent / page shell)                                            */
+/* ────────────────────────────────────────────────────────────────────────── */
 
 const Payments = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "student_payments" | "pending_remittances" | "remittance_history"
   >("student_payments");
+
   const user = useSelector(selectUser);
   const isAdmin = user?.type === "admin" || user?.type === "super";
   const isCoordinator = user?.type === "coordinator";
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : user?.center?._id;
 
-  const toggleModal = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleModal = () => setIsOpen(!isOpen);
 
-  // Queries for KPI summary cards & badges
+  // KPI queries – unfiltered (all-time totals)
   const { data: pendingRemittances } = useGetRemittancesQuery(
     { limit: 50, status: "pending_confirmation" },
     { skip: !isAdmin },
   );
-
   const { data: historicalRemittances } = useGetRemittancesQuery(
     { page: 1, limit: 10 },
     { skip: !isAdmin },
   );
-
   const { data: payments } = useGetPaymentsQuery(
     {
       page: 1,
@@ -125,11 +142,6 @@ const Payments = () => {
   );
 
   const pendingCount = pendingRemittances?.data?.docs?.length || 0;
-  const pendingSum =
-    pendingRemittances?.data?.docs?.reduce(
-      (sum, r) => sum + (r.amount || 0),
-      0,
-    ) || 0;
 
   return (
     <Frame text="Payments">
@@ -137,7 +149,6 @@ const Payments = () => {
         {/* KPI Stats Cards (Admin Only) */}
         {isAdmin && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 mb-10">
-            {/* Card 1: Student Payments */}
             <div className="bg-white p-4 rounded-md space-y-2">
               <Typography level="h3">
                 {payments?.data?.totalItems ?? 0}
@@ -146,16 +157,12 @@ const Payments = () => {
                 Total Student Payments
               </Typography>
             </div>
-
-            {/* Card 2: Pending Coordinator Remittances */}
             <div className="bg-white p-4 rounded-md space-y-2">
               <Typography level="h3">{pendingCount}</Typography>
               <Typography level="body-md" textColor="#000000">
                 Pending Remittances
               </Typography>
             </div>
-
-            {/* Card 3: Settled Remittances */}
             <div className="bg-white p-4 rounded-md space-y-2">
               <Typography level="h3">
                 {historicalRemittances?.data?.totalItems ?? 0}
@@ -208,17 +215,14 @@ const Payments = () => {
               </button>
             </div>
 
-            {/* Tab Contents */}
             <div className="transition-all duration-300">
               {activeTab === "student_payments" && <TransactionTable />}
-
               {activeTab === "pending_remittances" && <PendingRemittances />}
-
               {activeTab === "remittance_history" && <AdminRemittanceHistory />}
             </div>
           </div>
         ) : (
-          /* Coordinator View (Single table, no tabs) */
+          /* Coordinator View */
           <div className="mt-4 flex flex-col gap-6">
             <TransactionTable />
           </div>
@@ -234,9 +238,14 @@ const Payments = () => {
 
 export default Payments;
 
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  TransactionTable                                                           */
+/* ────────────────────────────────────────────────────────────────────────── */
+
 const TransactionTable = () => {
   const navigate = useNavigate();
   const user = useSelector(selectUser);
+  const isAdmin = user?.type === "admin" || user?.type === "super";
   const isCoordinator = user?.type === "coordinator";
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : user?.center?._id;
@@ -244,21 +253,65 @@ const TransactionTable = () => {
     user?.center && typeof user.center !== "string"
       ? user.center.name
       : undefined;
+
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [page, setPage] = useState(1);
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedCenter, setSelectedCenter] = useState<string>("");
+  const [initialized, setInitialized] = useState(false);
+
+  // All registration windows for year dropdown (admin-only route)
+  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery(
+    { page: 1, limit: 100 },
+    { skip: !isAdmin },
+  );
+
+  // Current/latest window – used to set the default year
+  const { data: currentWindowRes } = useGetRegistrationWindowQuery(undefined, {
+    skip: isCoordinator,
+  });
+
+  // Centers for center dropdown (admin only)
+  const { data: centersRes } = useGetCentersQuery(
+    { limit: 100 },
+    { skip: !isAdmin },
+  );
+
+  // Set the default year to the current registration window once
+  useEffect(() => {
+    if (!initialized && currentWindowRes?.data?.label) {
+      setSelectedYear(currentWindowRes.data.label);
+      setInitialized(true);
+    }
+  }, [currentWindowRes, initialized]);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedYear, selectedCenter]);
+
+  const academicYears = allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+  const centers = centersRes?.data?.docs ?? [];
+
   const { data: payments, isLoading } = useGetPaymentsQuery(
     {
       page,
       limit: 10,
+      // coordinators are always scoped to their own center
       ...(isCoordinator && coordinatorCenterId
         ? { center: coordinatorCenterId }
-        : {}),
+        : isAdmin && selectedCenter
+          ? { center: selectedCenter }
+          : {}),
+      ...(selectedYear ? { academicYear: selectedYear } : {}),
     },
     { skip: isCoordinator && !coordinatorCenterId },
   );
 
   const hasPayments = Boolean(payments?.data?.docs?.length);
   const totalPages = payments?.data?.totalPages || 1;
+
+  /* ── Report generation ─────────────────────────────────────────────────── */
 
   const generateFinancialReport = async () => {
     if (isCoordinator && !coordinatorCenterId) {
@@ -269,40 +322,45 @@ const TransactionTable = () => {
     setIsGeneratingReport(true);
     try {
       const fetchedPayments: Payment[] = [];
-      let page = 1;
+      let pg = 1;
       let hasNextPage = true;
 
       while (hasNextPage) {
         const params = new URLSearchParams();
-        params.set("page", String(page));
+        params.set("page", String(pg));
         params.set("limit", "100");
 
         if (isCoordinator && coordinatorCenterId) {
           params.set("center", coordinatorCenterId);
+        } else if (isAdmin && selectedCenter) {
+          params.set("center", selectedCenter);
         }
+        if (selectedYear) params.set("academicYear", selectedYear);
 
         const res = await axios.get<ApiResponse<Payment>>(
           `/payment?${params.toString()}`,
         );
 
-        const docs = res?.data?.data?.docs || [];
+        const docs = res?.data?.data?.docs ?? [];
         fetchedPayments.push(...docs);
 
-        hasNextPage = Boolean(res?.data?.data?.hasNextPage);
-        page += 1;
+        // Fix: the server returns `totalPages`, not `hasNextPage`
+        const totalPagesCount = (res?.data?.data as any)?.totalPages ?? 1;
+        hasNextPage = pg < totalPagesCount;
+        pg += 1;
       }
 
       const totalTransactions = fetchedPayments.length;
-      const successfulTransactions = fetchedPayments.filter((payment) =>
-        isSuccessfulPayment(payment.status),
+      const successfulTransactions = fetchedPayments.filter((p) =>
+        isSuccessfulPayment(p.status),
       ).length;
-      const failedTransactions = fetchedPayments.filter((payment) =>
-        isFailedPayment(payment.status),
+      const failedTransactions = fetchedPayments.filter((p) =>
+        isFailedPayment(p.status),
       ).length;
       const pendingTransactions =
         totalTransactions - successfulTransactions - failedTransactions;
       const totalAmount = fetchedPayments.reduce(
-        (sum, payment) => sum + (payment.amount || 0),
+        (sum, p) => sum + (p.amount || 0),
         0,
       );
       const averageAmount = totalTransactions
@@ -310,9 +368,8 @@ const TransactionTable = () => {
         : 0;
 
       const timestamps = fetchedPayments
-        .map((payment) => new Date(payment.createdAt).getTime())
-        .filter((value) => Number.isFinite(value));
-
+        .map((p) => new Date(p.createdAt).getTime())
+        .filter((v) => Number.isFinite(v));
       const minTime = timestamps.length ? Math.min(...timestamps) : undefined;
       const maxTime = timestamps.length ? Math.max(...timestamps) : undefined;
 
@@ -320,12 +377,11 @@ const TransactionTable = () => {
         string,
         { transactions: number; amount: number }
       >();
-
       fetchedPayments.forEach((payment) => {
         const centerName = isCoordinator
           ? coordinatorCenterName || "Coordinator Center"
           : getCenterNameFromPayment(payment);
-        const prev = centerMap.get(centerName) || {
+        const prev = centerMap.get(centerName) ?? {
           transactions: 0,
           amount: 0,
         };
@@ -343,10 +399,16 @@ const TransactionTable = () => {
         }))
         .sort((a, b) => b.amount - a.amount);
 
+      const yearLabel = selectedYear || "All Years";
+      const centerLabel = isCoordinator
+        ? coordinatorCenterName || "My Center"
+        : selectedCenter
+          ? (centers.find((c) => c._id === selectedCenter)?.name ??
+            "Selected Center")
+          : "All Centers";
+
       const report: FinancialReport = {
-        scopeLabel: isCoordinator
-          ? `${coordinatorCenterName || "My Center"} (Coordinator)`
-          : "All Centers (Admin)",
+        scopeLabel: `${yearLabel} — ${centerLabel}`,
         generatedAt: moment().format("MM/DD/YYYY, HH:mm"),
         totalTransactions,
         successfulTransactions,
@@ -381,7 +443,9 @@ const TransactionTable = () => {
           date: moment(payment.createdAt).format("MM/DD/YYYY"),
           transactionRef: payment._id,
           description: payment.description || "Registration Fee",
-          center: getCenterNameFromPayment(payment),
+          center: isCoordinator
+            ? coordinatorCenterName || "-"
+            : getCenterNameFromPayment(payment),
           status: payment.status,
           amountFormatted: formatCurrency(payment.amount),
         })),
@@ -391,7 +455,6 @@ const TransactionTable = () => {
         toast.error("Unable to open report preview. Please allow popups.");
         return;
       }
-
       toast.success("Financial report generated.");
     } catch (error) {
       toast.error(handleError(error));
@@ -400,8 +463,11 @@ const TransactionTable = () => {
     }
   };
 
+  /* ── Render ────────────────────────────────────────────────────────────── */
+
   return (
     <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
+      {/* Header */}
       <Box
         sx={{
           p: 3,
@@ -430,12 +496,56 @@ const TransactionTable = () => {
           Generate Report
         </AppButton>
       </Box>
+
       <Divider />
+
       <Box sx={{ p: 3 }}>
+        {/* Filter Bar – admin only (coordinators are always scoped to their center) */}
+        {isAdmin && (
+          <Stack direction="row" gap={2} flexWrap="wrap" mb={3}>
+            <FormControl size="sm">
+              <FormLabel>Academic Year</FormLabel>
+              <Select
+                size="sm"
+                value={selectedYear}
+                onChange={(_, val) => setSelectedYear((val as string) ?? "")}
+                placeholder="All Years"
+                sx={{ minWidth: 220 }}
+              >
+                <Option value="">All Years</Option>
+                {academicYears.map((year) => (
+                  <Option key={year} value={year}>
+                    {year}
+                  </Option>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="sm">
+              <FormLabel>Center</FormLabel>
+              <Select
+                size="sm"
+                value={selectedCenter}
+                onChange={(_, val) => setSelectedCenter((val as string) ?? "")}
+                placeholder="All Centers"
+                sx={{ minWidth: 200 }}
+              >
+                <Option value="">All Centers</Option>
+                {centers.map((c) => (
+                  <Option key={c._id} value={c._id}>
+                    {c.name}
+                  </Option>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        )}
+
+        {/* Table */}
         <Box
           minHeight={400}
-          position={"relative"}
-          className={"overflow-x-auto scrollbar-hide w-full"}
+          position="relative"
+          className="overflow-x-auto scrollbar-hide w-full"
         >
           <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
             <thead className="text-xs whitespace-nowrap">
@@ -477,7 +587,6 @@ const TransactionTable = () => {
               ) : hasPayments ? (
                 payments?.data.docs.map((payment) => {
                   const payerId = getPayerId(payment);
-
                   return (
                     <tr
                       className="border-b last:border-none font-medium"
@@ -503,7 +612,9 @@ const TransactionTable = () => {
                         <AppButton
                           type="button"
                           disabled={!payerId}
-                          onClick={() => navigate(`/payments/users/${payerId}`)}
+                          onClick={() =>
+                            navigate(`/dashboard/payments/users/${payerId}`)
+                          }
                         >
                           Payer
                         </AppButton>
@@ -514,7 +625,7 @@ const TransactionTable = () => {
               ) : (
                 <tr>
                   <td colSpan={isCoordinator ? 6 : 7}>
-                    <CenteredEmptyState description="No payments yet" />
+                    <CenteredEmptyState description="No payments found for the selected filters" />
                   </td>
                 </tr>
               )}
@@ -536,7 +647,9 @@ const TransactionTable = () => {
   );
 };
 
-/* ────── Pending Remittances (Admin Only) ────── */
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  PendingRemittances  (unchanged — show ALL pending regardless of year)      */
+/* ────────────────────────────────────────────────────────────────────────── */
 
 const PendingRemittances = () => {
   const { data: remittances, isLoading } = useGetRemittancesQuery({
@@ -575,7 +688,7 @@ const PendingRemittances = () => {
 
   const handleReject = async (id: string) => {
     const reason = window.prompt("Reason for rejection (optional):");
-    if (reason === null) return; // user cancelled
+    if (reason === null) return;
     setActionId(id);
     try {
       await rejectRemittance({ id, reason: reason || undefined }).unwrap();
@@ -738,16 +851,53 @@ const PendingRemittances = () => {
   );
 };
 
-/* ────── Admin Remittance History ────── */
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  AdminRemittanceHistory                                                     */
+/* ────────────────────────────────────────────────────────────────────────── */
 
 const AdminRemittanceHistory = () => {
   const [page, setPage] = useState(1);
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedCenter, setSelectedCenter] = useState<string>("");
+  const [initialized, setInitialized] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  // All registration windows for year dropdown
+  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
+    page: 1,
+    limit: 100,
+  });
+
+  // Current/latest window – used to set the default year
+  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
+
+  // Centers for center dropdown
+  const { data: centersRes } = useGetCentersQuery({ limit: 100 });
+
+  // Set the default year to the current registration window once
+  useEffect(() => {
+    if (!initialized && currentWindowRes?.data?.label) {
+      setSelectedYear(currentWindowRes.data.label);
+      setInitialized(true);
+    }
+  }, [currentWindowRes, initialized]);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedYear, selectedCenter]);
+
+  const academicYears = allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+  const centers = centersRes?.data?.docs ?? [];
+
   const { data: remittances, isLoading } = useGetRemittancesQuery({
     page,
     limit: 10,
+    ...(selectedYear ? { academicYear: selectedYear } : {}),
+    ...(selectedCenter ? { center: selectedCenter } : {}),
   });
 
-  const docs = remittances?.data?.docs || [];
+  const docs = remittances?.data?.docs ?? [];
   const hasDocs = docs.length > 0;
   const totalPages = remittances?.data?.totalPages || 1;
 
@@ -770,7 +920,7 @@ const AdminRemittanceHistory = () => {
       pending_confirmation: { color: "warning", label: "Pending" },
       rejected: { color: "danger", label: "Rejected" },
     };
-    const c = config[status] || { color: "warning" as const, label: status };
+    const c = config[status] ?? { color: "warning" as const, label: status };
     return (
       <Chip color={c.color} variant="soft" size="sm">
         {c.label}
@@ -778,15 +928,211 @@ const AdminRemittanceHistory = () => {
     );
   };
 
+  /* ── Report generation ─────────────────────────────────────────────────── */
+
+  const generateRemittanceReport = async () => {
+    setIsGeneratingReport(true);
+    try {
+      const fetchedRemittances: Remittance[] = [];
+      let pg = 1;
+      let hasNextPage = true;
+
+      while (hasNextPage) {
+        const params = new URLSearchParams();
+        params.set("page", String(pg));
+        params.set("limit", "100");
+        if (selectedYear) params.set("academicYear", selectedYear);
+        if (selectedCenter) params.set("center", selectedCenter);
+
+        const res = await axios.get<ApiResponse<Remittance>>(
+          `/remittance?${params.toString()}`,
+        );
+
+        const resDocs = res?.data?.data?.docs ?? [];
+        fetchedRemittances.push(...resDocs);
+
+        const totalPagesCount = (res?.data?.data as any)?.totalPages ?? 1;
+        hasNextPage = pg < totalPagesCount;
+        pg += 1;
+      }
+
+      const totalRemittances = fetchedRemittances.length;
+      const confirmedList = fetchedRemittances.filter(
+        (r) => r.status === "paid",
+      );
+      const pendingList = fetchedRemittances.filter(
+        (r) => r.status === "pending_confirmation",
+      );
+      const rejectedList = fetchedRemittances.filter(
+        (r) => r.status === "rejected",
+      );
+
+      const totalConfirmedAmount = confirmedList.reduce(
+        (sum, r) => sum + (r.amount || 0),
+        0,
+      );
+      const totalAmount = fetchedRemittances.reduce(
+        (sum, r) => sum + (r.amount || 0),
+        0,
+      );
+
+      const timestamps = fetchedRemittances
+        .map((r) => new Date(r.createdAt).getTime())
+        .filter((t) => Number.isFinite(t));
+      const minTime = timestamps.length ? Math.min(...timestamps) : undefined;
+      const maxTime = timestamps.length ? Math.max(...timestamps) : undefined;
+
+      // Build center breakdown
+      const centerMap = new Map<
+        string,
+        { remittances: number; confirmedAmount: number }
+      >();
+      fetchedRemittances.forEach((r) => {
+        const centerName = getCenterName(r);
+        const prev = centerMap.get(centerName) ?? {
+          remittances: 0,
+          confirmedAmount: 0,
+        };
+        centerMap.set(centerName, {
+          remittances: prev.remittances + 1,
+          confirmedAmount:
+            prev.confirmedAmount + (r.status === "paid" ? r.amount || 0 : 0),
+        });
+      });
+
+      const centerBreakdown = Array.from(centerMap.entries())
+        .map(([centerName, stats]) => ({
+          centerName,
+          remittances: stats.remittances,
+          confirmedAmountFormatted: formatCurrency(stats.confirmedAmount),
+        }))
+        .sort((a, b) => b.remittances - a.remittances);
+
+      const yearLabel = selectedYear || "All Years";
+      const centerLabel = selectedCenter
+        ? (centers.find((c) => c._id === selectedCenter)?.name ??
+          "Selected Center")
+        : "All Centers";
+
+      const didOpenPreview = openRemittanceReportPrintPreview({
+        report: {
+          scopeLabel: `${yearLabel} — ${centerLabel}`,
+          generatedAt: moment().format("MM/DD/YYYY, HH:mm"),
+          totalRemittances,
+          confirmedRemittances: confirmedList.length,
+          pendingRemittances: pendingList.length,
+          rejectedRemittances: rejectedList.length,
+          totalConfirmedAmountFormatted: formatCurrency(totalConfirmedAmount),
+          totalAmountFormatted: formatCurrency(totalAmount),
+          dateFrom: minTime ? moment(minTime).format("MM/DD/YYYY") : undefined,
+          dateTo: maxTime ? moment(maxTime).format("MM/DD/YYYY") : undefined,
+          centerBreakdown,
+        },
+        remittances: fetchedRemittances.map((r) => ({
+          date: moment(r.createdAt).format("MM/DD/YYYY"),
+          coordinator: getCoordinatorName(r),
+          center: getCenterName(r),
+          method: r.method === "stripe" ? "Stripe" : "Zelle",
+          amountFormatted: formatCurrency(r.amount),
+          status:
+            r.status === "paid"
+              ? "Confirmed"
+              : r.status === "pending_confirmation"
+                ? "Pending"
+                : "Rejected",
+          description: r.description || "-",
+        })),
+      });
+
+      if (!didOpenPreview) {
+        toast.error("Unable to open report preview. Please allow popups.");
+        return;
+      }
+      toast.success("Remittance report generated.");
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
+  /* ── Render ────────────────────────────────────────────────────────────── */
+
   return (
     <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
+      {/* Header + filter bar */}
       <Box sx={{ p: 3, pb: 2 }}>
-        <Typography level="title-lg">Coordinator Remittance History</Typography>
-        <Typography level="body-sm" sx={{ mt: 0.5, color: "text.tertiary" }}>
-          All historical remittances from center coordinators.
-        </Typography>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="flex-start"
+          flexWrap="wrap"
+          gap={2}
+          mb={3}
+        >
+          <div>
+            <Typography level="title-lg">
+              Coordinator Remittance History
+            </Typography>
+            <Typography
+              level="body-sm"
+              sx={{ mt: 0.5, color: "text.tertiary" }}
+            >
+              All historical remittances from center coordinators.
+            </Typography>
+          </div>
+          <AppButton
+            type="button"
+            loading={isGeneratingReport}
+            disabled={isGeneratingReport}
+            onClick={generateRemittanceReport}
+          >
+            Generate Report
+          </AppButton>
+        </Stack>
+
+        {/* Filter Bar */}
+        <Stack direction="row" gap={2} flexWrap="wrap">
+          <FormControl size="sm">
+            <FormLabel>Academic Year</FormLabel>
+            <Select
+              size="sm"
+              value={selectedYear}
+              onChange={(_, val) => setSelectedYear((val as string) ?? "")}
+              placeholder="All Years"
+              sx={{ minWidth: 220 }}
+            >
+              <Option value="">All Years</Option>
+              {academicYears.map((year) => (
+                <Option key={year} value={year}>
+                  {year}
+                </Option>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl size="sm">
+            <FormLabel>Center</FormLabel>
+            <Select
+              size="sm"
+              value={selectedCenter}
+              onChange={(_, val) => setSelectedCenter((val as string) ?? "")}
+              placeholder="All Centers"
+              sx={{ minWidth: 200 }}
+            >
+              <Option value="">All Centers</Option>
+              {centers.map((c) => (
+                <Option key={c._id} value={c._id}>
+                  {c.name}
+                </Option>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
       </Box>
+
       <Divider />
+
       <Box sx={{ p: 3 }}>
         <Box className="overflow-x-auto w-full">
           <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
@@ -850,13 +1196,14 @@ const AdminRemittanceHistory = () => {
               ) : (
                 <tr>
                   <td colSpan={6}>
-                    <CenteredEmptyState description="No remittance history found." />
+                    <CenteredEmptyState description="No remittances found for the selected filters." />
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Box>
+
         {totalPages > 1 && (
           <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
             <AppPagination

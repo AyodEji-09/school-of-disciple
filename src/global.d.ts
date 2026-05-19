@@ -143,6 +143,7 @@ type Payment = {
   status: string;
   paidAt?: Date;
   receiptUrl?: string;
+  academicYear?: string;
   createdAt: Date;
   updatedAt?: Date;
 };
@@ -170,7 +171,7 @@ type Remittance = {
   confirmedAt?: string;
   rejectedReason?: string;
   receiptUrl?: string;
+  academicYear?: string;
   createdAt: string;
   updatedAt?: string;
 };
-

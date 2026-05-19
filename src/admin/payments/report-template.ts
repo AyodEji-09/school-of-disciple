@@ -189,3 +189,187 @@ export const openFinancialReportPrintPreview = ({
 
   return true;
 };
+
+// ─── Remittance Report ───────────────────────────────────────────────────────
+
+type RemittanceCenterBreakdown = {
+  centerName: string;
+  remittances: number;
+  confirmedAmountFormatted: string;
+};
+
+type RemittanceReportSummary = {
+  scopeLabel: string;
+  generatedAt: string;
+  totalRemittances: number;
+  confirmedRemittances: number;
+  pendingRemittances: number;
+  rejectedRemittances: number;
+  totalConfirmedAmountFormatted: string;
+  totalAmountFormatted: string;
+  dateFrom?: string;
+  dateTo?: string;
+  centerBreakdown: RemittanceCenterBreakdown[];
+};
+
+type ReportRemittanceRow = {
+  date: string;
+  coordinator: string;
+  center: string;
+  method: string;
+  amountFormatted: string;
+  status: string;
+  description: string;
+};
+
+export const openRemittanceReportPrintPreview = ({
+  report,
+  remittances,
+}: {
+  report: RemittanceReportSummary;
+  remittances: ReportRemittanceRow[];
+}): boolean => {
+  const reportWindow = window.open("", "_blank", "width=1200,height=800");
+  if (!reportWindow) return false;
+
+  const centerRows = report.centerBreakdown
+    .map(
+      (c) => `
+        <tr>
+          <td>${escapeHtml(c.centerName)}</td>
+          <td>${c.remittances}</td>
+          <td>${escapeHtml(c.confirmedAmountFormatted)}</td>
+        </tr>
+      `,
+    )
+    .join("");
+
+  const remittanceRows = remittances
+    .map(
+      (r) => `
+        <tr>
+          <td>${escapeHtml(r.date)}</td>
+          <td>${escapeHtml(r.coordinator)}</td>
+          <td>${escapeHtml(r.center)}</td>
+          <td>${escapeHtml(r.method)}</td>
+          <td>${escapeHtml(r.amountFormatted)}</td>
+          <td>${escapeHtml(r.status)}</td>
+          <td>${escapeHtml(r.description)}</td>
+        </tr>
+      `,
+    )
+    .join("");
+
+  const html = `
+    <html>
+      <head>
+        <title>Remittance Report</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 24px;
+            color: #001f54;
+          }
+          h1, h2 {
+            margin: 0 0 12px;
+          }
+          .meta {
+            margin-bottom: 18px;
+          }
+          .meta p {
+            margin: 4px 0;
+          }
+          .stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 18px;
+          }
+          .stat {
+            border: 1px solid #d9e2f1;
+            border-radius: 6px;
+            padding: 10px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            margin-bottom: 20px;
+            font-size: 12px;
+          }
+          th, td {
+            border: 1px solid #d9e2f1;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            word-break: break-word;
+          }
+          th {
+            background: #f5faff;
+          }
+          @media print {
+            body {
+              margin: 12mm;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Coordinator Remittance Report</h1>
+        <div class="meta">
+          <p><strong>Scope:</strong> ${escapeHtml(report.scopeLabel)}</p>
+          <p><strong>Generated At:</strong> ${escapeHtml(report.generatedAt)}</p>
+          <p><strong>Date Range:</strong> ${escapeHtml(report.dateFrom || "N/A")} - ${escapeHtml(report.dateTo || "N/A")}</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><strong>Total Remittances:</strong> ${report.totalRemittances}</div>
+          <div class="stat"><strong>Total Amount Submitted:</strong> ${escapeHtml(report.totalAmountFormatted)}</div>
+          <div class="stat"><strong>Confirmed:</strong> ${report.confirmedRemittances}</div>
+          <div class="stat"><strong>Total Confirmed Amount:</strong> ${escapeHtml(report.totalConfirmedAmountFormatted)}</div>
+          <div class="stat"><strong>Pending Confirmation:</strong> ${report.pendingRemittances}</div>
+          <div class="stat"><strong>Rejected:</strong> ${report.rejectedRemittances}</div>
+        </div>
+
+        <h2>Center Breakdown</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Center</th>
+              <th>Remittances</th>
+              <th>Confirmed Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${centerRows || "<tr><td colspan='3'>No records found</td></tr>"}
+          </tbody>
+        </table>
+
+        <h2>Remittance Details</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Coordinator</th>
+              <th>Center</th>
+              <th>Method</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${remittanceRows || "<tr><td colspan='7'>No remittances found</td></tr>"}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `;
+
+  reportWindow.document.open();
+  reportWindow.document.write(html);
+  reportWindow.document.close();
+  reportWindow.focus();
+  reportWindow.print();
+  return true;
+};

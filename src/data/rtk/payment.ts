@@ -16,14 +16,21 @@ export const paymentApi = createApi({
   endpoints: (builder) => ({
     getPayments: builder.query<
       ApiResponse<Payment>,
-      { limit?: number; search?: string; page?: number | null; center?: string }
+      {
+        limit?: number;
+        search?: string;
+        page?: number | null;
+        center?: string;
+        academicYear?: string;
+      }
     >({
-      query: ({ limit = 20, search, center, page = 1 }) => {
+      query: ({ limit = 20, search, center, academicYear, page = 1 }) => {
         const params = new URLSearchParams();
 
         if (page != null) params.set("page", String(page));
         if (limit != null) params.set("limit", String(limit));
         if (center) params.set("center", center);
+        if (academicYear) params.set("academicYear", academicYear);
 
         if (search) {
           params.set("search", search);

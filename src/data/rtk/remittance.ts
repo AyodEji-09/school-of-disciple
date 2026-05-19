@@ -16,13 +16,21 @@ export const remittanceApi = createApi({
   endpoints: (builder) => ({
     getRemittances: builder.query<
       ApiResponse<Remittance>,
-      { limit?: number; page?: number; status?: string }
+      {
+        limit?: number;
+        page?: number;
+        status?: string;
+        academicYear?: string;
+        center?: string;
+      }
     >({
-      query: ({ limit = 20, page = 1, status }) => {
+      query: ({ limit = 20, page = 1, status, academicYear, center }) => {
         const params = new URLSearchParams();
         params.set("page", String(page));
         params.set("limit", String(limit));
         if (status) params.set("status", status);
+        if (academicYear) params.set("academicYear", academicYear);
+        if (center) params.set("center", center);
         return `/remittance?${params.toString()}`;
       },
       providesTags: (result) =>
@@ -67,10 +75,7 @@ export const remittanceApi = createApi({
     >({
       query: () => "/remittance/zelle-details",
     }),
-    confirmRemittance: builder.mutation<
-      ApiResponseN<Remittance>,
-      string
-    >({
+    confirmRemittance: builder.mutation<ApiResponseN<Remittance>, string>({
       query: (id) => ({
         url: `/remittance/${id}/confirm`,
         method: "PATCH",
