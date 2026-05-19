@@ -25,7 +25,7 @@ import PaymentUser from "./admin/payments/[id]";
 import UserDashboard from "./pages/UserDashboard";
 import ProfilePage from "./pages/ProfilePage";
 import OnboardingPage from "./pages/Onboarding";
-import RegistrationWindow from "./admin/registration";
+
 import StudentsPage from "./admin/students";
 import CreditAdminPage from "./admin/credit-admin";
 
@@ -149,14 +149,8 @@ const App = () => {
             path="/dashboard/payments/user/:id"
             element={<PaymentUser />}
           />
-          <Route
-            path="/dashboard/settings/registation"
-            element={<RegistrationWindow />}
-          />
-          <Route
-            path="/dashboard/credit-admin"
-            element={<CreditAdminPage />}
-          />
+
+          <Route path="/dashboard/credit-admin" element={<CreditAdminPage />} />
           <Route element={<SuperAdminRoute />}>
             <Route path="/dashboard/settings" element={<SettingsPage />} />
           </Route>

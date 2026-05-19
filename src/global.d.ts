@@ -171,6 +171,7 @@ type Remittance = {
   confirmedAt?: string;
   rejectedReason?: string;
   receiptUrl?: string;
+  receiptImageUrl?: string;
   academicYear?: string;
   createdAt: string;
   updatedAt?: string;

@@ -345,7 +345,7 @@ const TransactionTable = () => {
         fetchedPayments.push(...docs);
 
         // Fix: the server returns `totalPages`, not `hasNextPage`
-        const totalPagesCount = (res?.data?.data as any)?.totalPages ?? 1;
+        const totalPagesCount = res?.data?.data?.totalPages ?? 1;
         hasNextPage = pg < totalPagesCount;
         pg += 1;
       }
@@ -780,6 +780,9 @@ const PendingRemittances = () => {
                 Description
               </th>
               <th scope="col" className="px-6 py-3">
+                Receipt
+              </th>
+              <th scope="col" className="px-6 py-3">
                 Actions
               </th>
             </tr>
@@ -787,8 +790,8 @@ const PendingRemittances = () => {
           <tbody className="whitespace-nowrap">
             {isLoading && !hasDocs ? (
               <tr>
-                <td colSpan={7}>
-                  <TableSkeleton columns={7} rows={3} />
+                <td colSpan={8}>
+                  <TableSkeleton columns={8} rows={3} />
                 </td>
               </tr>
             ) : (
@@ -817,6 +820,29 @@ const PendingRemittances = () => {
                   </td>
                   <td className="px-6 py-4">{formatCurrency(r.amount)}</td>
                   <td className="px-6 py-4">{r.description || "-"}</td>
+                  <td className="px-6 py-4">
+                    {r.receiptImageUrl ? (
+                      <a
+                        href={r.receiptImageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#001EC5] underline text-xs font-medium"
+                      >
+                        View Receipt
+                      </a>
+                    ) : r.receiptUrl ? (
+                      <a
+                        href={r.receiptUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#001EC5] underline text-xs font-medium"
+                      >
+                        Stripe Receipt
+                      </a>
+                    ) : (
+                      <span className="text-[#9CA3AF] text-xs">—</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <Stack direction="row" gap={1}>
                       <Button
@@ -951,7 +977,7 @@ const AdminRemittanceHistory = () => {
         const resDocs = res?.data?.data?.docs ?? [];
         fetchedRemittances.push(...resDocs);
 
-        const totalPagesCount = (res?.data?.data as any)?.totalPages ?? 1;
+        const totalPagesCount = res?.data?.data?.totalPages ?? 1;
         hasNextPage = pg < totalPagesCount;
         pg += 1;
       }
@@ -1156,13 +1182,16 @@ const AdminRemittanceHistory = () => {
                 <th scope="col" className="px-6 py-3">
                   Status
                 </th>
+                <th scope="col" className="px-6 py-3">
+                  Receipt
+                </th>
               </tr>
             </thead>
             <tbody className="whitespace-nowrap">
               {isLoading && !hasDocs ? (
                 <tr>
-                  <td colSpan={6}>
-                    <TableSkeleton columns={6} rows={5} />
+                  <td colSpan={7}>
+                    <TableSkeleton columns={7} rows={5} />
                   </td>
                 </tr>
               ) : hasDocs ? (
@@ -1191,11 +1220,34 @@ const AdminRemittanceHistory = () => {
                     </td>
                     <td className="px-6 py-4">{formatCurrency(r.amount)}</td>
                     <td className="px-6 py-4">{getStatusChip(r.status)}</td>
+                    <td className="px-6 py-4">
+                      {r.receiptImageUrl ? (
+                        <a
+                          href={r.receiptImageUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#001EC5] underline text-xs font-medium"
+                        >
+                          View Receipt
+                        </a>
+                      ) : r.receiptUrl ? (
+                        <a
+                          href={r.receiptUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#001EC5] underline text-xs font-medium"
+                        >
+                          Stripe Receipt
+                        </a>
+                      ) : (
+                        <span className="text-[#9CA3AF] text-xs">—</span>
+                      )}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <CenteredEmptyState description="No remittances found for the selected filters." />
                   </td>
                 </tr>

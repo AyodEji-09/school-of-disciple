@@ -7,12 +7,12 @@ type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
 
 const Input = ({ label, type, ...otherProps }: InputFieldProps) => {
   return (
-    <label className="text-header flex flex-col gap-1">
+    <label className="flex flex-col gap-1 text-sm font-medium text-[#001F54]">
       {label}
       <input
         type={type}
         {...otherProps}
-        className="rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none placeholder:text-sm placeholder:text-[#C9C9C9]"
+        className="normal-case rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none placeholder:text-sm placeholder:text-[#C9C9C9]"
       />
     </label>
   );

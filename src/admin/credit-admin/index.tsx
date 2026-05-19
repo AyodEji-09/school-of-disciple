@@ -23,6 +23,7 @@ import {
   useCreateStripeRemittanceMutation,
   useCreateZelleRemittanceMutation,
   useGetZelleDetailsQuery,
+  useUploadRemittanceReceiptMutation,
 } from "../../data/rtk/remittance";
 import {
   CenteredEmptyState,
@@ -56,6 +57,10 @@ const CreditAdminPage = () => {
     useCreateStripeRemittanceMutation();
   const [createZelleRemittance, { isLoading: zelleLoading }] =
     useCreateZelleRemittanceMutation();
+
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [uploadReceipt, { isLoading: uploadingReceipt }] =
+    useUploadRemittanceReceiptMutation();
 
   const [zelleDetails, setZelleDetails] = useState<{
     email: string;
@@ -113,7 +118,7 @@ const CreditAdminPage = () => {
       toast.error("Please enter a valid amount");
       return;
     }
-    
+
     // Check if details are fetched
     if (!zelleDetailsRes?.data?.email || !zelleDetailsRes?.data?.name) {
       toast.error("Admin has not configured Zelle payment details yet.");
@@ -126,10 +131,23 @@ const CreditAdminPage = () => {
 
   const submitZellePayment = async () => {
     try {
-      await createZelleRemittance({
+      const result = await createZelleRemittance({
         amount: amountCents,
         description: description || undefined,
       }).unwrap();
+
+      // Upload receipt if coordinator attached one
+      const remittanceId = (result as any)?.data?.remittance?._id;
+      if (receiptFile && remittanceId) {
+        try {
+          await uploadReceipt({ id: remittanceId, file: receiptFile }).unwrap();
+        } catch (uploadErr) {
+          // Non-fatal — remittance was created; just warn
+          toast.warn(
+            "Remittance submitted but receipt upload failed. You can upload it from your history.",
+          );
+        }
+      }
 
       toast.success("Zelle remittance submitted. Awaiting admin confirmation.");
       closeZelleModal();
@@ -143,6 +161,7 @@ const CreditAdminPage = () => {
     setIsPayModalOpen(false);
     setAmount("");
     setDescription("");
+    setReceiptFile(null);
   };
 
   const closeZelleModal = () => {
@@ -150,6 +169,7 @@ const CreditAdminPage = () => {
     setZelleDetails(null);
     setAmount("");
     setDescription("");
+    setReceiptFile(null);
   };
 
   return (
@@ -220,10 +240,7 @@ const CreditAdminPage = () => {
 
           {/* Action Button */}
           <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <AppButton
-              type="button"
-              onClick={() => setIsPayModalOpen(true)}
-            >
+            <AppButton type="button" onClick={() => setIsPayModalOpen(true)}>
               Credit Admin
             </AppButton>
           </Box>
@@ -269,7 +286,10 @@ const CreditAdminPage = () => {
                   sx={{ fontSize: "lg" }}
                 />
                 {amount && Number(amount) > 0 && (
-                  <Typography level="body-xs" sx={{ mt: 0.5, color: "text.secondary" }}>
+                  <Typography
+                    level="body-xs"
+                    sx={{ mt: 0.5, color: "text.secondary" }}
+                  >
                     You are remitting{" "}
                     <strong>{formatCurrency(amountCents)}</strong>
                   </Typography>
@@ -349,15 +369,23 @@ const CreditAdminPage = () => {
                 border: "1px solid #D4CAFE",
               }}
             >
-              <Typography level="body-sm" sx={{ color: "text.tertiary", mb: 2 }}>
-                Send the payment to the admin using Zelle with the details below:
+              <Typography
+                level="body-sm"
+                sx={{ color: "text.tertiary", mb: 2 }}
+              >
+                Send the payment to the admin using Zelle with the details
+                below:
               </Typography>
 
               <Stack spacing={2}>
                 <Box>
                   <Typography
                     level="body-xs"
-                    sx={{ color: "text.tertiary", textTransform: "uppercase", letterSpacing: 1 }}
+                    sx={{
+                      color: "text.tertiary",
+                      textTransform: "uppercase",
+                      letterSpacing: 1,
+                    }}
                   >
                     Recipient Name
                   </Typography>
@@ -369,7 +397,11 @@ const CreditAdminPage = () => {
                 <Box>
                   <Typography
                     level="body-xs"
-                    sx={{ color: "text.tertiary", textTransform: "uppercase", letterSpacing: 1 }}
+                    sx={{
+                      color: "text.tertiary",
+                      textTransform: "uppercase",
+                      letterSpacing: 1,
+                    }}
                   >
                     Zelle Email
                   </Typography>
@@ -383,7 +415,11 @@ const CreditAdminPage = () => {
                 <Box>
                   <Typography
                     level="body-xs"
-                    sx={{ color: "text.tertiary", textTransform: "uppercase", letterSpacing: 1 }}
+                    sx={{
+                      color: "text.tertiary",
+                      textTransform: "uppercase",
+                      letterSpacing: 1,
+                    }}
                   >
                     Amount to Send
                   </Typography>
@@ -413,16 +449,84 @@ const CreditAdminPage = () => {
               </Typography>
             </Box>
 
+            {/* Optional proof of payment */}
+            <Box sx={{ mt: 2 }}>
+              <Typography
+                level="body-sm"
+                sx={{ fontWeight: 600, mb: 1, color: "#001F54" }}
+              >
+                Proof of Payment (optional)
+              </Typography>
+              <Typography
+                level="body-xs"
+                sx={{ color: "text.tertiary", mb: 1.5 }}
+              >
+                Attach a screenshot or PDF of your Zelle payment confirmation.
+              </Typography>
+              <Box
+                sx={{
+                  border: "2px dashed",
+                  borderColor: receiptFile ? "#001EC5" : "#D1D5DB",
+                  borderRadius: "md",
+                  p: 2,
+                  textAlign: "center",
+                  background: receiptFile ? "#F0F4FF" : "#FAFAFA",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+                component="label"
+              >
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                  style={{ display: "none" }}
+                  onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+                />
+                {receiptFile ? (
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="center"
+                    gap={1}
+                  >
+                    <Typography
+                      level="body-sm"
+                      sx={{ color: "#001EC5", fontWeight: 600 }}
+                    >
+                      ✓ {receiptFile.name}
+                    </Typography>
+                    <Button
+                      size="sm"
+                      variant="plain"
+                      color="neutral"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setReceiptFile(null);
+                      }}
+                      sx={{ minHeight: 0, p: 0.5 }}
+                    >
+                      Remove
+                    </Button>
+                  </Stack>
+                ) : (
+                  <Typography level="body-sm" sx={{ color: "#6B7280" }}>
+                    Click to attach receipt
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+
             <Stack direction="row" gap={2} mt={3} justifyContent="flex-end">
               <Button variant="outlined" onClick={closeZelleModal}>
                 Cancel
               </Button>
-              <Button 
-                onClick={submitZellePayment} 
-                loading={zelleLoading}
+              <Button
+                onClick={submitZellePayment}
+                loading={zelleLoading || uploadingReceipt}
+                disabled={zelleLoading || uploadingReceipt}
                 sx={{
                   background: "#6D28D9",
-                  "&:hover": { background: "#5B21B6" }
+                  "&:hover": { background: "#5B21B6" },
                 }}
               >
                 I have sent the payment
@@ -498,21 +602,21 @@ const RemittanceTable = ({
             <th scope="col" className="px-6 py-3">
               Status
             </th>
+            <th scope="col" className="px-6 py-3">
+              Receipt
+            </th>
           </tr>
         </thead>
         <tbody className="whitespace-nowrap">
           {isLoading && docs.length === 0 ? (
             <tr>
-              <td colSpan={5}>
-                <TableSkeleton columns={5} rows={5} />
+              <td colSpan={6}>
+                <TableSkeleton columns={6} rows={5} />
               </td>
             </tr>
           ) : docs.length ? (
             docs.map((r) => (
-              <tr
-                className="border-b last:border-none font-medium"
-                key={r._id}
-              >
+              <tr className="border-b last:border-none font-medium" key={r._id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {moment(r.createdAt).format("MM/DD/YYYY")}
                 </td>
@@ -522,11 +626,34 @@ const RemittanceTable = ({
                 <td className="px-6 py-4">{getMethodChip(r.method)}</td>
                 <td className="px-6 py-4">{formatCurrency(r.amount)}</td>
                 <td className="px-6 py-4">{getStatusChip(r.status)}</td>
+                <td className="px-6 py-4">
+                  {r.receiptImageUrl ? (
+                    <a
+                      href={r.receiptImageUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#001EC5] underline text-xs font-medium"
+                    >
+                      View
+                    </a>
+                  ) : r.receiptUrl ? (
+                    <a
+                      href={r.receiptUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#001EC5] underline text-xs font-medium"
+                    >
+                      Stripe
+                    </a>
+                  ) : (
+                    <span className="text-[#9CA3AF] text-xs">—</span>
+                  )}
+                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan={5}>
+              <td colSpan={6}>
                 <CenteredEmptyState description="No remittances yet. Click 'Credit Admin' to get started." />
               </td>
             </tr>

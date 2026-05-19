@@ -99,6 +99,24 @@ export const remittanceApi = createApi({
         { type: "RemittanceList", id: "LIST" },
       ],
     }),
+    uploadRemittanceReceipt: builder.mutation<
+      ApiResponseN<Remittance>,
+      { id: string; file: File }
+    >({
+      query: ({ id, file }) => {
+        const formData = new FormData();
+        formData.append("receipt", file);
+        return {
+          url: `/remittance/${id}/receipt`,
+          method: "PATCH",
+          body: formData,
+        };
+      },
+      invalidatesTags: (_, __, { id }) => [
+        { type: "Remittance", id },
+        { type: "RemittanceList", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -109,4 +127,5 @@ export const {
   useGetZelleDetailsQuery,
   useConfirmRemittanceMutation,
   useRejectRemittanceMutation,
+  useUploadRemittanceReceiptMutation,
 } = remittanceApi;
