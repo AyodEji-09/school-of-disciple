@@ -5,6 +5,7 @@ import { centerApi } from "./rtk/center";
 import { paymentApi } from "./rtk/payment";
 import { registrationApi } from "./rtk/registration";
 import { settingsApi } from "./rtk/settings";
+import { remittanceApi } from "./rtk/remittance";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 const store = configureStore({
@@ -15,7 +16,8 @@ const store = configureStore({
       .concat(centerApi.middleware)
       .concat(paymentApi.middleware)
       .concat(registrationApi.middleware)
-      .concat(settingsApi.middleware),
+      .concat(settingsApi.middleware)
+      .concat(remittanceApi.middleware),
 });
 
 setupListeners(store.dispatch);
@@ -24,3 +26,4 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
 export default store;
+

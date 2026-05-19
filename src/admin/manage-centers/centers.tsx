@@ -245,7 +245,7 @@ const Centers = () => {
           </div>
         </Stack>
       )}
-      <div className="mt-8">
+      <div className="mt-8 pb-16">
         <div className="bg-white p-4">
           <Stack
             direction={"row"}

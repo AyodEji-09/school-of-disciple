@@ -32,9 +32,16 @@ const SettingsPage = () => {
   const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
   const [newFee, setNewFee] = useState<number | string>("");
 
+  // Zelle details state
+  const [isZelleModalOpen, setIsZelleModalOpen] = useState(false);
+  const [zelleEmail, setZelleEmail] = useState("");
+  const [zelleName, setZelleName] = useState("");
+
   useEffect(() => {
     if (settingsData?.data) {
       setRegistrationFee(settingsData.data.registrationFee);
+      setZelleEmail(settingsData.data.zelleEmail || "");
+      setZelleName(settingsData.data.zelleName || "");
     }
   }, [settingsData]);
 
@@ -66,6 +73,35 @@ const SettingsPage = () => {
       toast.error(handleError(error));
     }
   };
+
+  // Zelle handlers
+  const openZelleModal = () => {
+    setZelleEmail(settingsData?.data?.zelleEmail || "");
+    setZelleName(settingsData?.data?.zelleName || "");
+    setIsZelleModalOpen(true);
+  };
+
+  const closeZelleModal = () => setIsZelleModalOpen(false);
+
+  const handleSaveZelle = async () => {
+    if (!zelleEmail.trim() || !zelleName.trim()) {
+      toast.error("Both Zelle name and email are required");
+      return;
+    }
+
+    try {
+      await updateSettings({
+        zelleEmail: zelleEmail.trim(),
+        zelleName: zelleName.trim(),
+      }).unwrap();
+      toast.success("Zelle details updated");
+      closeZelleModal();
+    } catch (error) {
+      toast.error(handleError(error));
+    }
+  };
+
+  const hasZelleConfigured = Boolean(settingsData?.data?.zelleEmail && settingsData?.data?.zelleName);
 
   return (
     <Frame text="System Settings">
@@ -108,6 +144,50 @@ const SettingsPage = () => {
             </Card>
           </Stack>
 
+          {/* Zelle Payment Details Card */}
+          <Card sx={{ p: 3 }}>
+            <Typography level="title-lg">Zelle Payment Details</Typography>
+            <Typography level="body-sm" sx={{ mt: 1, color: "text.tertiary" }}>
+              Coordinators will see these details when they choose to pay via Zelle.
+            </Typography>
+
+            {hasZelleConfigured ? (
+              <Box sx={{ mt: 2, p: 2, borderRadius: "md", background: "#F0F4FF", border: "1px solid #D4CAFE" }}>
+                <Stack spacing={1}>
+                  <Box>
+                    <Typography level="body-xs" sx={{ color: "text.tertiary", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      Name
+                    </Typography>
+                    <Typography level="body-md" sx={{ fontWeight: 600 }}>
+                      {settingsData?.data?.zelleName}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography level="body-xs" sx={{ color: "text.tertiary", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      Email
+                    </Typography>
+                    <Typography level="body-md" sx={{ fontWeight: 600 }}>
+                      {settingsData?.data?.zelleEmail}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Box>
+            ) : (
+              <Box sx={{ mt: 2, p: 2, borderRadius: "md", background: "#FFFBEB", border: "1px solid #FDE68A" }}>
+                <Typography level="body-sm" sx={{ color: "#92400E" }}>
+                  ⚠️ Zelle details not configured yet. Coordinators will not be able to use Zelle payments until you set this up.
+                </Typography>
+              </Box>
+            )}
+
+            <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
+              <Button onClick={openZelleModal} sx={{ background: "#001F54", ":hover": { background: "#001EC5" } }}>
+                {hasZelleConfigured ? "Update Zelle Details" : "Set Up Zelle"}
+              </Button>
+            </Box>
+          </Card>
+
+          {/* Registration Fee Modal */}
           <AppModal isOpen={isFeeModalOpen} close={closeFeeModal} title="Set Registration Amount" icon>
             <div className="w-[min(440px,80vw)] mt-2">
               <div className="space-y-4">
@@ -140,6 +220,45 @@ const SettingsPage = () => {
               </div>
             </div>
           </AppModal>
+
+          {/* Zelle Details Modal */}
+          <AppModal isOpen={isZelleModalOpen} close={closeZelleModal} title="Zelle Payment Details" icon>
+            <div className="w-[min(440px,80vw)] mt-2">
+              <div className="space-y-4">
+                <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
+                  Enter the Zelle account details that coordinators will use to send payments.
+                </Typography>
+
+                <FormControl>
+                  <FormLabel>Recipient Name</FormLabel>
+                  <Input
+                    value={zelleName}
+                    onChange={(e) => setZelleName(e.target.value)}
+                    placeholder="e.g. John Smith"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Zelle Email</FormLabel>
+                  <Input
+                    type="email"
+                    value={zelleEmail}
+                    onChange={(e) => setZelleEmail(e.target.value)}
+                    placeholder="e.g. admin@example.com"
+                  />
+                </FormControl>
+
+                <Stack direction="row" gap={2} mt={4} justifyContent="flex-end">
+                  <Button variant="outlined" onClick={closeZelleModal}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveZelle} loading={isUpdating}>
+                    Save Details
+                  </Button>
+                </Stack>
+              </div>
+            </div>
+          </AppModal>
         </Stack>
       </Box>
     </Frame>
@@ -147,3 +266,4 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
+

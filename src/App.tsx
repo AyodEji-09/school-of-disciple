@@ -27,6 +27,7 @@ import ProfilePage from "./pages/ProfilePage";
 import OnboardingPage from "./pages/Onboarding";
 import RegistrationWindow from "./admin/registration";
 import StudentsPage from "./admin/students";
+import CreditAdminPage from "./admin/credit-admin";
 
 import store from "./data/store";
 import { loadUser } from "./data/reducers/userSlice";
@@ -151,6 +152,10 @@ const App = () => {
           <Route
             path="/dashboard/settings/registation"
             element={<RegistrationWindow />}
+          />
+          <Route
+            path="/dashboard/credit-admin"
+            element={<CreditAdminPage />}
           />
           <Route element={<SuperAdminRoute />}>
             <Route path="/dashboard/settings" element={<SettingsPage />} />

@@ -156,3 +156,21 @@ type RegistrationWindow = {
   createdAt: string;
   updatedAt: string;
 };
+
+type Remittance = {
+  _id: string;
+  coordinatorId: string | User;
+  centerId: string | Center;
+  amount: number;
+  method: "stripe" | "zelle";
+  status: "pending_confirmation" | "paid" | "rejected";
+  stripeSessionId?: string;
+  description?: string;
+  confirmedBy?: string | User;
+  confirmedAt?: string;
+  rejectedReason?: string;
+  receiptUrl?: string;
+  createdAt: string;
+  updatedAt?: string;
+};
+
