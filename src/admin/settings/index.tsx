@@ -65,8 +65,8 @@ const getWindowStatus = (win?: RegistrationWindow | null): WindowStatus => {
 
 const SettingsPage = () => {
   const user = useAppSelector(selectUser);
-  const isSuperAdmin = user?.type === "super";
-  const defaultTab = isSuperAdmin ? "general" : "registration";
+  const isSuperAdmin = user?.type === "admin";
+  const defaultTab = "registration";
   const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
   return (
@@ -80,30 +80,62 @@ const SettingsPage = () => {
           <TabList
             sx={{
               mb: 4,
-              borderBottom: "2px solid",
-              borderColor: "divider",
               "--Tab-indicatorThickness": "2px",
             }}
           >
-            {isSuperAdmin && (
-              <Tab value="general" sx={{ fontWeight: 600 }}>
-                General
-              </Tab>
-            )}
-            <Tab value="registration" sx={{ fontWeight: 600 }}>
+            <Tab
+              value="registration"
+              sx={{
+                fontWeight: 600,
+                bgcolor: "transparent",
+                "&.Mui-selected": { bgcolor: "transparent" },
+              }}
+            >
               Registration Windows
             </Tab>
+
+            {isSuperAdmin && (
+              <Tab
+                value="registration-fee"
+                sx={{
+                  fontWeight: 600,
+                  bgcolor: "transparent",
+                  "&.Mui-selected": { bgcolor: "transparent" },
+                }}
+              >
+                Registration Fee
+              </Tab>
+            )}
+
+            {isSuperAdmin && (
+              <Tab
+                value="general"
+                sx={{
+                  fontWeight: 600,
+                  bgcolor: "transparent",
+                  "&.Mui-selected": { bgcolor: "transparent" },
+                }}
+              >
+                Zelle Details
+              </Tab>
+            )}
           </TabList>
+
+          <TabPanel value="registration" sx={{ p: 0 }}>
+            <RegistrationTab />
+          </TabPanel>
+
+          {isSuperAdmin && (
+            <TabPanel value="registration-fee" sx={{ p: 0 }}>
+              <RegistrationFeeTab />
+            </TabPanel>
+          )}
 
           {isSuperAdmin && (
             <TabPanel value="general" sx={{ p: 0 }}>
               <GeneralTab />
             </TabPanel>
           )}
-
-          <TabPanel value="registration" sx={{ p: 0 }}>
-            <RegistrationTab />
-          </TabPanel>
         </Tabs>
       </Box>
     </Frame>
@@ -111,6 +143,268 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
+
+const RegistrationFeeTab = () => {
+  const { data: settingsData, isLoading: settingsLoading } =
+    useGetSettingsQuery();
+  const [updateSettings, { isLoading: isUpdating }] =
+    useUpdateSettingsMutation();
+
+  const [registrationFee, setRegistrationFee] = useState<number>(2000);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [feeInput, setFeeInput] = useState("20.00");
+
+  useEffect(() => {
+    if (settingsData?.data?.registrationFee !== undefined) {
+      setRegistrationFee(settingsData.data.registrationFee);
+      setFeeInput((settingsData.data.registrationFee / 100).toFixed(2));
+    }
+  }, [settingsData]);
+
+  const formattedFee = (registrationFee / 100).toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+
+  const parsedFeeInput = parseFloat(feeInput);
+  const isValidFee =
+    feeInput.trim() !== "" && !isNaN(parsedFeeInput) && parsedFeeInput >= 0;
+  const feePreview = isValidFee
+    ? parsedFeeInput.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+      })
+    : null;
+
+  const openModal = () => {
+    setFeeInput((registrationFee / 100).toFixed(2));
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setFeeInput((registrationFee / 100).toFixed(2));
+    setIsModalOpen(false);
+  };
+
+  const handleSaveFee = async () => {
+    if (!isValidFee) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+
+    const cents = Math.round(parsedFeeInput * 100);
+
+    try {
+      await updateSettings({ registrationFee: cents }).unwrap();
+      setRegistrationFee(cents);
+      setFeeInput((cents / 100).toFixed(2));
+      toast.success("Registration fee updated");
+      setIsModalOpen(false);
+    } catch (error) {
+      toast.error(handleError(error));
+    }
+  };
+
+  if (settingsLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <PulseLoader size={10} color="#001EC5" />
+      </div>
+    );
+  }
+
+  return (
+    <Stack spacing={3}>
+      <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
+        <Box
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 2.5,
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: "12px",
+              background: "linear-gradient(135deg, #001F54 0%, #001EC5 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Typography
+              sx={{
+                color: "white",
+                fontWeight: 800,
+                fontSize: 20,
+                lineHeight: 1,
+              }}
+            >
+              $
+            </Typography>
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography level="title-lg" sx={{ fontWeight: 700 }}>
+              Registration Fee
+            </Typography>
+            <Typography level="body-sm" textColor="neutral.500">
+              One-time fee charged to each student upon registration
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box
+          sx={{
+            p: 3,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: { xs: "flex-start", sm: "center" },
+            gap: 3,
+            flexDirection: { xs: "column", sm: "row" },
+          }}
+        >
+          <Box>
+            <Typography
+              level="body-xs"
+              sx={{
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "#9CA3AF",
+                fontWeight: 600,
+                mb: 0.75,
+              }}
+            >
+              Current Amount
+            </Typography>
+            <Typography
+              level="h2"
+              sx={{ color: "#001F54", fontWeight: 800, lineHeight: 1 }}
+            >
+              {formattedFee}
+            </Typography>
+            <Typography
+              level="body-xs"
+              textColor="neutral.400"
+              sx={{ mt: 0.5 }}
+            >
+              Default registration fee shown to students
+            </Typography>
+          </Box>
+
+          <Button
+            variant="outlined"
+            onClick={openModal}
+            sx={{
+              borderColor: "#001F54",
+              color: "#001F54",
+              fontWeight: 600,
+              px: 3,
+              flexShrink: 0,
+              ":hover": {
+                bgcolor: "#001F540D",
+                borderColor: "#001EC5",
+                color: "#001EC5",
+              },
+            }}
+          >
+            Set Registration Fee
+          </Button>
+        </Box>
+      </Card>
+
+      <AppModal
+        isOpen={isModalOpen}
+        close={closeModal}
+        title="Set Registration Fee"
+        icon
+      >
+        <div className="w-[min(440px,80vw)] mt-2">
+          <Stack spacing={2.5}>
+            <FormControl>
+              <FormLabel>Amount (USD)</FormLabel>
+              <Input
+                type="number"
+                value={feeInput}
+                onChange={(e) => setFeeInput(e.target.value)}
+                placeholder="20.00"
+                startDecorator={
+                  <Typography sx={{ color: "#6B7280", fontWeight: 600 }}>
+                    $
+                  </Typography>
+                }
+                slotProps={{ input: { min: 0, step: "0.01" } }}
+                autoFocus
+              />
+            </FormControl>
+
+            {feeInput !== "" && (
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: "10px",
+                  background: isValidFee ? "#F0F4FF" : "#FFF5F5",
+                  border: "1px solid",
+                  borderColor: isValidFee ? "#D4CAFE" : "#FECACA",
+                }}
+              >
+                {isValidFee ? (
+                  <>
+                    <Typography
+                      level="body-sm"
+                      sx={{ color: "#001F54", fontWeight: 600 }}
+                    >
+                      Students will be charged <strong>{feePreview}</strong>
+                    </Typography>
+                    <Typography level="body-xs" textColor="neutral.500">
+                      Stored internally as {Math.round(parsedFeeInput * 100)}{" "}
+                      cents
+                    </Typography>
+                  </>
+                ) : (
+                  <Typography level="body-sm" sx={{ color: "#DC2626" }}>
+                    Enter a valid amount, such as 20.00
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            <Stack direction="row" gap={1.5} justifyContent="flex-end">
+              <Button
+                variant="outlined"
+                onClick={closeModal}
+                disabled={isUpdating}
+                sx={{ fontWeight: 600 }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveFee}
+                loading={isUpdating}
+                disabled={!isValidFee || isUpdating}
+                sx={{
+                  bgcolor: "#001F54",
+                  ":hover": { bgcolor: "#001EC5" },
+                  fontWeight: 600,
+                  px: 3,
+                }}
+              >
+                Save Fee
+              </Button>
+            </Stack>
+          </Stack>
+        </div>
+      </AppModal>
+    </Stack>
+  );
+};
 
 // ─── General Tab (super admin only) ──────────────────────────────────────────
 
@@ -120,41 +414,28 @@ const GeneralTab = () => {
   const [updateSettings, { isLoading: isUpdating }] =
     useUpdateSettingsMutation();
 
-  const [registrationFee, setRegistrationFee] = useState<number>(0);
-  const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
-  const [newFee, setNewFee] = useState<number | string>("");
-
+  // Zelle state (modal)
   const [isZelleModalOpen, setIsZelleModalOpen] = useState(false);
   const [zelleEmail, setZelleEmail] = useState("");
   const [zelleName, setZelleName] = useState("");
 
   useEffect(() => {
     if (settingsData?.data) {
-      setRegistrationFee(settingsData.data.registrationFee);
       setZelleEmail(settingsData.data.zelleEmail || "");
       setZelleName(settingsData.data.zelleName || "");
     }
   }, [settingsData]);
 
-  const formattedFee = (registrationFee / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
+  // ── Zelle helpers ─────────────────────────────────────────────────────────
 
-  const handleSaveNewFee = async () => {
-    const feeNum = Number(newFee);
-    if (Number.isNaN(feeNum) || feeNum < 0) {
-      toast.error("Enter a valid non-negative fee in base units (e.g. 1000)");
-      return;
-    }
-    try {
-      await updateSettings({ registrationFee: feeNum }).unwrap();
-      setRegistrationFee(feeNum);
-      toast.success("Registration fee updated");
-      setIsFeeModalOpen(false);
-    } catch (error) {
-      toast.error(handleError(error));
-    }
+  const hasZelleConfigured = Boolean(
+    settingsData?.data?.zelleEmail && settingsData?.data?.zelleName,
+  );
+
+  const startEditZelle = () => {
+    setZelleEmail(settingsData?.data?.zelleEmail || "");
+    setZelleName(settingsData?.data?.zelleName || "");
+    setIsZelleModalOpen(true);
   };
 
   const handleSaveZelle = async () => {
@@ -174,10 +455,6 @@ const GeneralTab = () => {
     }
   };
 
-  const hasZelleConfigured = Boolean(
-    settingsData?.data?.zelleEmail && settingsData?.data?.zelleName,
-  );
-
   if (settingsLoading) {
     return (
       <div className="flex justify-center py-16">
@@ -188,172 +465,224 @@ const GeneralTab = () => {
 
   return (
     <Stack spacing={3}>
-      {/* Registration Fee + Zelle side by side */}
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-        <Card sx={{ flex: 1, p: 3 }}>
-          <Typography level="title-lg">Registration Fee</Typography>
-          <Typography level="body-sm" sx={{ mt: 1, color: "text.tertiary" }}>
-            Current fee: <strong>{formattedFee}</strong>
-          </Typography>
-          <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
-            <Button
-              onClick={() => {
-                setNewFee(registrationFee ?? "");
-                setIsFeeModalOpen(true);
-              }}
+      {/* ── Zelle Payment Details Card ──────────────────────────────────────── */}
+      <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
+        {/* Card header stripe */}
+        <Box
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 2.5,
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: "12px",
+              background: "linear-gradient(135deg, #4C1D95 0%, #6D28D9 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Typography
               sx={{
-                background: "#001F54",
-                ":hover": { background: "#001EC5" },
+                color: "white",
+                fontWeight: 800,
+                fontSize: 18,
+                lineHeight: 1,
               }}
             >
-              Set Amount
-            </Button>
+              Z
+            </Typography>
           </Box>
-        </Card>
-
-        <Card sx={{ flex: 1, p: 3 }}>
-          <Typography level="title-lg">Zelle Payment Details</Typography>
-          <Typography level="body-sm" sx={{ mt: 1, color: "text.tertiary" }}>
-            Coordinators see these details when paying via Zelle.
-          </Typography>
-          {hasZelleConfigured ? (
+          <Box sx={{ flex: 1 }}>
+            <Typography level="title-lg" sx={{ fontWeight: 700 }}>
+              Payment Settings
+            </Typography>
+            <Typography level="body-sm" textColor="neutral.500">
+              Shown to coordinators when they choose to remit via Zelle
+            </Typography>
+          </Box>
+          {hasZelleConfigured && (
             <Box
               sx={{
-                mt: 2,
-                p: 2,
-                borderRadius: "md",
-                background: "#F0F4FF",
-                border: "1px solid #D4CAFE",
+                px: 1.5,
+                py: 0.5,
+                borderRadius: "20px",
+                bgcolor: "#D1FAE5",
+                border: "1px solid #6EE7B7",
+                flexShrink: 0,
               }}
             >
-              <Stack spacing={0.5}>
-                <Typography level="body-xs" textColor="neutral">
-                  Name
-                </Typography>
-                <Typography level="body-md" sx={{ fontWeight: 600 }}>
-                  {settingsData?.data?.zelleName}
-                </Typography>
-                <Typography level="body-xs" textColor="neutral" sx={{ mt: 1 }}>
-                  Email
-                </Typography>
-                <Typography level="body-md" sx={{ fontWeight: 600 }}>
-                  {settingsData?.data?.zelleEmail}
-                </Typography>
-              </Stack>
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                mt: 2,
-                p: 2,
-                borderRadius: "md",
-                background: "#FFFBEB",
-                border: "1px solid #FDE68A",
-              }}
-            >
-              <Typography level="body-sm" sx={{ color: "#92400E" }}>
-                ⚠️ Not configured yet. Coordinators won't be able to use Zelle
-                until you set this up.
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#065F46",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Configured
               </Typography>
             </Box>
           )}
-          <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
-            <Button
-              onClick={() => {
-                setZelleEmail(settingsData?.data?.zelleEmail || "");
-                setZelleName(settingsData?.data?.zelleName || "");
-                setIsZelleModalOpen(true);
-              }}
-              sx={{
-                background: "#001F54",
-                ":hover": { background: "#001EC5" },
-              }}
-            >
-              {hasZelleConfigured ? "Update Zelle" : "Set Up Zelle"}
-            </Button>
-          </Box>
-        </Card>
-      </Stack>
+        </Box>
 
-      {/* Fee Modal */}
-      <AppModal
-        isOpen={isFeeModalOpen}
-        close={() => setIsFeeModalOpen(false)}
-        title="Set Registration Amount"
-        icon
-      >
-        <div className="w-[min(440px,80vw)] mt-2">
-          <FormControl>
-            <FormLabel>Amount (in cents / base units)</FormLabel>
-            <Input
-              type="number"
-              value={newFee}
-              onChange={(e) => setNewFee(e.target.value)}
-              placeholder="e.g. 1000"
-              slotProps={{ input: { min: 0 } }}
-            />
-            <Typography level="body-xs" mt={1} textColor="neutral">
-              Enter the amount in base units (no decimals). e.g. 1000 = $10.00
-            </Typography>
-            {Number.isFinite(Number(newFee)) && (
-              <Typography level="body-sm" mt={0.5} textColor="neutral">
-                Equals:{" "}
-                {(Number(newFee) / 100).toLocaleString("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                })}
-              </Typography>
-            )}
-          </FormControl>
-          <Stack direction="row" gap={2} mt={4} justifyContent="flex-end">
-            <Button variant="outlined" onClick={() => setIsFeeModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveNewFee} loading={isUpdating}>
-              Save Amount
-            </Button>
-          </Stack>
-        </div>
-      </AppModal>
-
-      {/* Zelle Modal */}
-      <AppModal
-        isOpen={isZelleModalOpen}
-        close={() => setIsZelleModalOpen(false)}
-        title="Zelle Payment Details"
-        icon
-      >
-        <div className="w-[min(440px,80vw)] mt-2 space-y-4">
-          <FormControl>
-            <FormLabel>Recipient Name</FormLabel>
-            <Input
-              value={zelleName}
-              onChange={(e) => setZelleName(e.target.value)}
-              placeholder="e.g. John Smith"
-            />
-          </FormControl>
-          <FormControl>
-            <FormLabel>Zelle Email</FormLabel>
-            <Input
-              type="email"
-              value={zelleEmail}
-              onChange={(e) => setZelleEmail(e.target.value)}
-              placeholder="e.g. admin@example.com"
-            />
-          </FormControl>
-          <Stack direction="row" gap={2} mt={4} justifyContent="flex-end">
-            <Button
-              variant="outlined"
-              onClick={() => setIsZelleModalOpen(false)}
+        <Box sx={{ p: 3 }}>
+          {hasZelleConfigured ? (
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              justifyContent="space-between"
+              alignItems={{ xs: "flex-start", sm: "center" }}
+              gap={3}
             >
-              Cancel
-            </Button>
-            <Button onClick={handleSaveZelle} loading={isUpdating}>
-              Save Details
-            </Button>
-          </Stack>
-        </div>
-      </AppModal>
+              {/* Current details */}
+              <Stack direction={{ xs: "column", sm: "row" }} gap={4}>
+                <Box>
+                  <Typography
+                    level="body-xs"
+                    sx={{
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "#9CA3AF",
+                      fontWeight: 600,
+                      mb: 0.5,
+                    }}
+                  >
+                    Recipient Name
+                  </Typography>
+                  <Typography
+                    level="title-sm"
+                    sx={{ color: "#001F54", fontWeight: 700 }}
+                  >
+                    {settingsData?.data?.zelleName}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography
+                    level="body-xs"
+                    sx={{
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "#9CA3AF",
+                      fontWeight: 600,
+                      mb: 0.5,
+                    }}
+                  >
+                    Zelle Email
+                  </Typography>
+                  <Typography
+                    level="title-sm"
+                    sx={{ color: "#001F54", fontWeight: 700 }}
+                  >
+                    {settingsData?.data?.zelleEmail}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Button
+                variant="outlined"
+                onClick={startEditZelle}
+                sx={{
+                  borderColor: "#6D28D9",
+                  color: "#6D28D9",
+                  fontWeight: 600,
+                  px: 3,
+                  flexShrink: 0,
+                  ":hover": {
+                    bgcolor: "rgba(109,40,217,0.06)",
+                    borderColor: "#5B21B6",
+                  },
+                }}
+              >
+                Edit Details
+              </Button>
+            </Stack>
+          ) : (
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              justifyContent="space-between"
+              alignItems={{ xs: "flex-start", sm: "center" }}
+              gap={3}
+            >
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: "10px",
+                  background: "#FFFBEB",
+                  border: "1px solid #FDE68A",
+                  flex: 1,
+                }}
+              >
+                <Typography level="body-sm" sx={{ color: "#92400E" }}>
+                  ⚠️ Zelle details have not been configured yet. Coordinators
+                  won't be able to remit via Zelle until you set this up.
+                </Typography>
+              </Box>
+              <Button
+                onClick={startEditZelle}
+                sx={{
+                  bgcolor: "#6D28D9",
+                  ":hover": { bgcolor: "#5B21B6" },
+                  fontWeight: 600,
+                  px: 3,
+                  flexShrink: 0,
+                }}
+              >
+                Set Up Zelle
+              </Button>
+            </Stack>
+          )}
+
+          <AppModal
+            isOpen={isZelleModalOpen}
+            close={() => setIsZelleModalOpen(false)}
+            title="Zelle Payment Details"
+            icon
+          >
+            <div className="w-[min(440px,80vw)] mt-2 space-y-4">
+              <FormControl>
+                <FormLabel>Recipient Name</FormLabel>
+                <Input
+                  value={zelleName}
+                  onChange={(e) => setZelleName(e.target.value)}
+                  placeholder="e.g. John Smith"
+                  autoFocus
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>Zelle Email / Phone</FormLabel>
+                <Input
+                  type="email"
+                  value={zelleEmail}
+                  onChange={(e) => setZelleEmail(e.target.value)}
+                  placeholder="e.g. payments@church.org"
+                />
+              </FormControl>
+              <Stack direction="row" gap={2} mt={4} justifyContent="flex-end">
+                <Button
+                  variant="outlined"
+                  onClick={() => setIsZelleModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveZelle} loading={isUpdating}>
+                  Save Details
+                </Button>
+              </Stack>
+            </div>
+          </AppModal>
+        </Box>
+      </Card>
     </Stack>
   );
 };
