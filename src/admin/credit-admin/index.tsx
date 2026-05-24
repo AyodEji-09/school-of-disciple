@@ -337,7 +337,7 @@ const CreditAdminPage = () => {
                     fontSize: "md",
                   }}
                 >
-                  💳 Pay with Stripe
+                  Pay with Stripe
                 </Button>
                 <Button
                   fullWidth
@@ -357,7 +357,7 @@ const CreditAdminPage = () => {
                     fontSize: "md",
                   }}
                 >
-                  🏦 Pay with Zelle
+                  Pay with Zelle
                 </Button>
               </Stack>
             </Stack>
