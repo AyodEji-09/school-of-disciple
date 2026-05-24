@@ -32,6 +32,10 @@ const AppModal = ({
           layout="center"
           // size={size ?? "sm"}
           sx={{
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
             borderRadius: "md",
             p: 3,
             boxShadow: "lg",
@@ -50,7 +54,9 @@ const AppModal = ({
           >
             {title}
           </Typography>
-          <div>{children}</div>
+          <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+            {children}
+          </div>
         </ModalDialog>
       </Modal>
     </>

@@ -99,10 +99,15 @@ const CreditAdminPage = () => {
       return;
     }
 
+    if (!description.trim()) {
+      toast.error("Please enter a description for this remittance");
+      return;
+    }
+
     try {
       const res = await createStripeRemittance({
         amount: amountCents,
-        description: description || undefined,
+        description: description.trim(),
       }).unwrap();
 
       if (res.data?.url) {
@@ -130,10 +135,15 @@ const CreditAdminPage = () => {
   };
 
   const submitZellePayment = async () => {
+    if (!description.trim()) {
+      toast.error("Please enter a description for this remittance");
+      return;
+    }
+
     try {
       const result = await createZelleRemittance({
         amount: amountCents,
-        description: description || undefined,
+        description: description.trim(),
       }).unwrap();
 
       // Upload receipt if coordinator attached one
@@ -297,11 +307,12 @@ const CreditAdminPage = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel>Description (optional)</FormLabel>
+                <FormLabel>Description</FormLabel>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="e.g. School fees for May 2026"
+                  required
                   minRows={2}
                 />
               </FormControl>
@@ -360,7 +371,7 @@ const CreditAdminPage = () => {
           title="Zelle Payment Details"
           icon
         >
-          <div className="w-[min(440px,85vw)] mt-2 max-h-[80vh] overflow-y-auto pr-1">
+          <div className="w-[min(440px,85vw)] mt-2">
             <Card
               variant="soft"
               sx={{
@@ -465,6 +476,8 @@ const CreditAdminPage = () => {
               </Typography>
               <Box
                 sx={{
+                  width: "100%",
+                  display: "block",
                   border: "2px dashed",
                   borderColor: receiptFile ? "#001EC5" : "#D1D5DB",
                   borderRadius: "md",
@@ -516,7 +529,12 @@ const CreditAdminPage = () => {
               </Box>
             </Box>
 
-            <Stack direction="row" gap={2} mt={3} justifyContent="flex-end">
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              gap={2}
+              mt={3}
+              justifyContent="flex-end"
+            >
               <Button variant="outlined" onClick={closeZelleModal}>
                 Cancel
               </Button>

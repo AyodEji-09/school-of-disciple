@@ -46,7 +46,7 @@ export const remittanceApi = createApi({
     }),
     createStripeRemittance: builder.mutation<
       ApiResponseN<{ url: string }>,
-      { amount: number; description?: string }
+      { amount: number; description: string }
     >({
       query: (body) => ({
         url: "/remittance/stripe",
@@ -60,7 +60,7 @@ export const remittanceApi = createApi({
         remittance: Remittance;
         zelleDetails: { email: string; name: string };
       }>,
-      { amount: number; description?: string }
+      { amount: number; description: string }
     >({
       query: (body) => ({
         url: "/remittance/zelle",
