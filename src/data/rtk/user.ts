@@ -22,13 +22,24 @@ export const userApi = createApi({
         search?: string;
         page?: number | null;
         center?: string;
+        admissionYear?: string | number;
       }
     >({
-      query: ({ type, center, limit = 20, search, page = 1 }) => {
+      query: ({
+        type,
+        center,
+        admissionYear,
+        limit = 20,
+        search,
+        page = 1,
+      }) => {
         const params = new URLSearchParams();
         params.set("type", type);
 
         if (center) params.set("center", center);
+        if (admissionYear !== undefined && admissionYear !== "") {
+          params.set("admissionYear", String(admissionYear));
+        }
         if (page != null) params.set("page", String(page));
         if (limit != null) params.set("limit", String(limit));
 
