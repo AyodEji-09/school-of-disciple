@@ -27,17 +27,23 @@ export const PersonalSectionView = ({
     <Input
       label="Mailing Address - City"
       value={intakeForm.personalInfo?.mailingCity || ""}
-      onChange={(e) => updateNested("personalInfo", "mailingCity", e.target.value)}
+      onChange={(e) =>
+        updateNested("personalInfo", "mailingCity", e.target.value)
+      }
     />
     <Input
       label="Mailing Address - State"
       value={intakeForm.personalInfo?.mailingState || ""}
-      onChange={(e) => updateNested("personalInfo", "mailingState", e.target.value)}
+      onChange={(e) =>
+        updateNested("personalInfo", "mailingState", e.target.value)
+      }
     />
     <Input
       label="Mailing Address - Zip Code"
       value={intakeForm.personalInfo?.mailingZipCode || ""}
-      onChange={(e) => updateNested("personalInfo", "mailingZipCode", e.target.value)}
+      onChange={(e) =>
+        updateNested("personalInfo", "mailingZipCode", e.target.value)
+      }
     />
     <Input
       label="Residential Address"
@@ -46,12 +52,28 @@ export const PersonalSectionView = ({
         updateNested("personalInfo", "residentialAddress", e.target.value)
       }
     />
-    <Input
-      label="Date of Birth"
-      type="date"
-      value={intakeForm.personalInfo?.dateOfBirth || ""}
-      onChange={(e) => updateNested("personalInfo", "dateOfBirth", e.target.value)}
-    />
+    {(() => {
+      const today = new Date();
+      const minYear = today.getFullYear() - 100; // allow reasonable range
+      const maxDate = new Date(
+        today.getFullYear() - 15,
+        today.getMonth(),
+        today.getDate(),
+      );
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      const maxDob = `${maxDate.getFullYear()}-${pad(maxDate.getMonth() + 1)}-${pad(maxDate.getDate())}`;
+      return (
+        <Input
+          label="Date of Birth"
+          type="date"
+          max={maxDob}
+          value={intakeForm.personalInfo?.dateOfBirth || ""}
+          onChange={(e) =>
+            updateNested("personalInfo", "dateOfBirth", e.target.value)
+          }
+        />
+      );
+    })()}
     <SelectField
       label="Gender"
       value={intakeForm.personalInfo?.gender || ""}
@@ -59,7 +81,6 @@ export const PersonalSectionView = ({
       options={[
         { value: "male", label: "Male" },
         { value: "female", label: "Female" },
-        { value: "other", label: "Other" },
       ]}
     />
     <SelectField
@@ -76,22 +97,30 @@ export const PersonalSectionView = ({
     <Input
       label="Nationality"
       value={intakeForm.personalInfo?.nationality || ""}
-      onChange={(e) => updateNested("personalInfo", "nationality", e.target.value)}
+      onChange={(e) =>
+        updateNested("personalInfo", "nationality", e.target.value)
+      }
     />
     <Input
       label="Ethnic Origin"
       value={intakeForm.personalInfo?.ethnicOrigin || ""}
-      onChange={(e) => updateNested("personalInfo", "ethnicOrigin", e.target.value)}
+      onChange={(e) =>
+        updateNested("personalInfo", "ethnicOrigin", e.target.value)
+      }
     />
     <Input
       label="Home Phone"
       value={intakeForm.personalInfo?.homePhone || ""}
-      onChange={(e) => updateNested("personalInfo", "homePhone", e.target.value)}
+      onChange={(e) =>
+        updateNested("personalInfo", "homePhone", e.target.value)
+      }
     />
     <Input
       label="Office Phone"
       value={intakeForm.personalInfo?.officePhone || ""}
-      onChange={(e) => updateNested("personalInfo", "officePhone", e.target.value)}
+      onChange={(e) =>
+        updateNested("personalInfo", "officePhone", e.target.value)
+      }
     />
     <Input
       label="Email Address"
@@ -105,18 +134,23 @@ export const PersonalSectionView = ({
         className="flex-1"
         value={intakeForm.personalInfo?.height || ""}
         onChange={(e) => updateNested("personalInfo", "height", e.target.value)}
-        placeholder={intakeForm.personalInfo?.heightUnit === "ft" ? "e.g. 5'11\"" : "e.g. 180"}
+        placeholder={"e.g. 5'11\""}
+        pattern={
+          "^\\s*(\\d{1,2})(?:\\s*(?:'|ft|feet)\\s*)?(?:(\\d{1,2})\\s*(?:\"|in|inches)?)?\\s*$"
+        }
+        title={"Enter height in feet and inches, e.g. 5'11 or 5 ft 11 in"}
       />
-      <SelectField
-        label="Unit"
-        sx={{ minWidth: 100 }}
-        value={intakeForm.personalInfo?.heightUnit || ""}
-        onChange={(value) => updateNested("personalInfo", "heightUnit", value as "ft" | "cm")}
-        options={[
-          { value: "ft", label: "ft/in" },
-          { value: "cm", label: "cm" },
-        ]}
-      />
+      <div className="flex flex-col gap-1 text-sm text-[#001F54] font-medium">
+        Unit
+        <select
+          className="rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none"
+          value={"ft"}
+          disabled
+        >
+          <option value="ft">ft/in</option>
+        </select>
+      </div>
+      <input type="hidden" value="ft" />
     </div>
   </div>
 );
@@ -127,139 +161,210 @@ export const SpiritualSectionView = ({
 }: {
   intakeForm: IntakeFormData;
   updateNested: UpdateNested;
-}) => (
-  <>
-    <Card variant="soft" className="p-4">
-      <Typography level="title-sm" textColor="#001F54" sx={{ mb: 1 }}>
-        Salvation Experience
-      </Typography>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <SelectField
-          label="Have you been born again?"
-          value={intakeForm.spiritualExperience?.bornAgain || ""}
-          onChange={(value) =>
-            updateNested("spiritualExperience", "bornAgain", value as "yes" | "no")
-          }
-          options={[
-            { value: "yes", label: "Yes" },
-            { value: "no", label: "No" },
-          ]}
-        />
-        <Input
-          label="If yes, when?"
-          value={intakeForm.spiritualExperience?.bornAgainWhen || ""}
-          onChange={(e) =>
-            updateNested("spiritualExperience", "bornAgainWhen", e.target.value)
-          }
-        />
-        <Input
-          label="If yes, where?"
-          value={intakeForm.spiritualExperience?.bornAgainWhere || ""}
-          onChange={(e) =>
-            updateNested("spiritualExperience", "bornAgainWhere", e.target.value)
-          }
-        />
-      </div>
-    </Card>
+}) => {
+  const bornAgain = intakeForm.spiritualExperience?.bornAgain;
+  const holyGhostBaptized = intakeForm.spiritualExperience?.holyGhostBaptized;
+  const waterImmersionBaptized =
+    intakeForm.spiritualExperience?.waterImmersionBaptized;
 
-    <Card variant="soft" className="p-4">
-      <Typography level="title-sm" textColor="#001F54" sx={{ mb: 1 }}>
-        Baptism Experience
-      </Typography>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <SelectField
-          label="Baptised in the Holy Ghost?"
-          value={intakeForm.spiritualExperience?.holyGhostBaptized || ""}
-          onChange={(value) =>
-            updateNested(
-              "spiritualExperience",
-              "holyGhostBaptized",
-              value as "yes" | "no",
-            )
-          }
-          options={[
-            { value: "yes", label: "Yes" },
-            { value: "no", label: "No" },
-          ]}
-        />
-        <Input
-          label="If yes, when?"
-          value={intakeForm.spiritualExperience?.holyGhostWhen || ""}
-          onChange={(e) =>
-            updateNested("spiritualExperience", "holyGhostWhen", e.target.value)
-          }
-        />
-        <Input
-          label="If yes, where?"
-          value={intakeForm.spiritualExperience?.holyGhostWhere || ""}
-          onChange={(e) =>
-            updateNested("spiritualExperience", "holyGhostWhere", e.target.value)
-          }
-        />
-      </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-4">
-        <SelectField
-          label="Baptized in water immersion?"
-          value={intakeForm.spiritualExperience?.waterImmersionBaptized || ""}
-          onChange={(value) =>
-            updateNested(
-              "spiritualExperience",
-              "waterImmersionBaptized",
-              value as "yes" | "no",
-            )
-          }
-          options={[
-            { value: "yes", label: "Yes" },
-            { value: "no", label: "No" },
-          ]}
-        />
-        <Input
-          label="If yes, when?"
-          value={intakeForm.spiritualExperience?.waterImmersionWhen || ""}
-          onChange={(e) =>
-            updateNested("spiritualExperience", "waterImmersionWhen", e.target.value)
-          }
-        />
-        <Input
-          label="If yes, where?"
-          value={intakeForm.spiritualExperience?.waterImmersionWhere || ""}
-          onChange={(e) =>
-            updateNested("spiritualExperience", "waterImmersionWhere", e.target.value)
-          }
-        />
-      </div>
-    </Card>
+  const clearSpiritualFollowUps = (
+    key: "bornAgain" | "holyGhostBaptized" | "waterImmersionBaptized",
+    value: "yes" | "no",
+  ) => {
+    updateNested("spiritualExperience", key, value);
 
-    <Card variant="soft" className="p-4">
-      <Typography level="title-sm" textColor="#001F54" sx={{ mb: 1 }}>
-        Church Information
-      </Typography>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Input
-          label="Church Name"
-          value={intakeForm.spiritualExperience?.churchName || ""}
-          onChange={(e) =>
-            updateNested("spiritualExperience", "churchName", e.target.value)
-          }
-        />
-        <Input
-          label="Church Location"
-          value={intakeForm.spiritualExperience?.churchLocation || ""}
-          onChange={(e) =>
-            updateNested("spiritualExperience", "churchLocation", e.target.value)
-          }
-        />
-        <Input
-          label="Pastor's Name"
-          value={intakeForm.spiritualExperience?.pastorName || ""}
-          onChange={(e) =>
-            updateNested("spiritualExperience", "pastorName", e.target.value)
-          }
-        />
-      </div>
-    </Card>
-  </>
-);
+    if (value === "yes") return;
+
+    if (key === "bornAgain") {
+      updateNested("spiritualExperience", "bornAgainWhen", "");
+      updateNested("spiritualExperience", "bornAgainWhere", "");
+    }
+
+    if (key === "holyGhostBaptized") {
+      updateNested("spiritualExperience", "holyGhostWhen", "");
+      updateNested("spiritualExperience", "holyGhostWhere", "");
+    }
+
+    if (key === "waterImmersionBaptized") {
+      updateNested("spiritualExperience", "waterImmersionWhen", "");
+      updateNested("spiritualExperience", "waterImmersionWhere", "");
+    }
+  };
+
+  return (
+    <>
+      <Card variant="soft" className="p-4">
+        <Typography level="title-sm" textColor="#001F54" sx={{ mb: 1 }}>
+          Salvation Experience
+        </Typography>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <SelectField
+            label="Have you been born again?"
+            value={intakeForm.spiritualExperience?.bornAgain || ""}
+            onChange={(value) =>
+              clearSpiritualFollowUps("bornAgain", value as "yes" | "no")
+            }
+            options={[
+              { value: "yes", label: "Yes" },
+              { value: "no", label: "No" },
+            ]}
+          />
+          {bornAgain === "yes" && (
+            <>
+              <Input
+                label="When?"
+                value={intakeForm.spiritualExperience?.bornAgainWhen || ""}
+                onChange={(e) =>
+                  updateNested(
+                    "spiritualExperience",
+                    "bornAgainWhen",
+                    e.target.value,
+                  )
+                }
+              />
+              <Input
+                label="Where?"
+                value={intakeForm.spiritualExperience?.bornAgainWhere || ""}
+                onChange={(e) =>
+                  updateNested(
+                    "spiritualExperience",
+                    "bornAgainWhere",
+                    e.target.value,
+                  )
+                }
+              />
+            </>
+          )}
+        </div>
+      </Card>
+
+      <Card variant="soft" className="p-4">
+        <Typography level="title-sm" textColor="#001F54" sx={{ mb: 1 }}>
+          Baptism Experience
+        </Typography>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <SelectField
+            label="Baptised in the Holy Ghost?"
+            value={intakeForm.spiritualExperience?.holyGhostBaptized || ""}
+            onChange={(value) =>
+              clearSpiritualFollowUps(
+                "holyGhostBaptized",
+                value as "yes" | "no",
+              )
+            }
+            options={[
+              { value: "yes", label: "Yes" },
+              { value: "no", label: "No" },
+            ]}
+          />
+          {holyGhostBaptized === "yes" && (
+            <>
+              <Input
+                label="When?"
+                value={intakeForm.spiritualExperience?.holyGhostWhen || ""}
+                onChange={(e) =>
+                  updateNested(
+                    "spiritualExperience",
+                    "holyGhostWhen",
+                    e.target.value,
+                  )
+                }
+              />
+              <Input
+                label="Where?"
+                value={intakeForm.spiritualExperience?.holyGhostWhere || ""}
+                onChange={(e) =>
+                  updateNested(
+                    "spiritualExperience",
+                    "holyGhostWhere",
+                    e.target.value,
+                  )
+                }
+              />
+            </>
+          )}
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-4">
+          <SelectField
+            label="Baptized in water immersion?"
+            value={intakeForm.spiritualExperience?.waterImmersionBaptized || ""}
+            onChange={(value) =>
+              clearSpiritualFollowUps(
+                "waterImmersionBaptized",
+                value as "yes" | "no",
+              )
+            }
+            options={[
+              { value: "yes", label: "Yes" },
+              { value: "no", label: "No" },
+            ]}
+          />
+          {waterImmersionBaptized === "yes" && (
+            <>
+              <Input
+                label="When?"
+                value={intakeForm.spiritualExperience?.waterImmersionWhen || ""}
+                onChange={(e) =>
+                  updateNested(
+                    "spiritualExperience",
+                    "waterImmersionWhen",
+                    e.target.value,
+                  )
+                }
+              />
+              <Input
+                label="Where?"
+                value={
+                  intakeForm.spiritualExperience?.waterImmersionWhere || ""
+                }
+                onChange={(e) =>
+                  updateNested(
+                    "spiritualExperience",
+                    "waterImmersionWhere",
+                    e.target.value,
+                  )
+                }
+              />
+            </>
+          )}
+        </div>
+      </Card>
+
+      <Card variant="soft" className="p-4">
+        <Typography level="title-sm" textColor="#001F54" sx={{ mb: 1 }}>
+          Church Information
+        </Typography>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Input
+            label="Church Name"
+            value={intakeForm.spiritualExperience?.churchName || ""}
+            onChange={(e) =>
+              updateNested("spiritualExperience", "churchName", e.target.value)
+            }
+          />
+          <Input
+            label="Church Location"
+            value={intakeForm.spiritualExperience?.churchLocation || ""}
+            onChange={(e) =>
+              updateNested(
+                "spiritualExperience",
+                "churchLocation",
+                e.target.value,
+              )
+            }
+          />
+          <Input
+            label="Pastor's Name"
+            value={intakeForm.spiritualExperience?.pastorName || ""}
+            onChange={(e) =>
+              updateNested("spiritualExperience", "pastorName", e.target.value)
+            }
+          />
+        </div>
+      </Card>
+    </>
+  );
+};
 
 export const EducationSectionView = ({
   educationRows,
@@ -268,7 +373,11 @@ export const EducationSectionView = ({
   addEducationRow,
 }: {
   educationRows: EducationRow[];
-  updateEducationRow: (index: number, key: keyof EducationRow, value: string) => void;
+  updateEducationRow: (
+    index: number,
+    key: keyof EducationRow,
+    value: string,
+  ) => void;
   removeEducationRow: (index: number) => void;
   addEducationRow: () => void;
 }) => (
@@ -350,9 +459,6 @@ export const EmploymentSectionView = ({
           updateNested("employmentStatus", "familyAnnualIncome", e.target.value)
         }
       />
-      <p className="text-xs text-[#6B7280] mt-1">
-        Mandatory only if applying for tuition waiver.
-      </p>
     </div>
   </div>
 );
@@ -376,7 +482,9 @@ export const DeclarationSectionView = ({
       <input
         type="checkbox"
         checked={Boolean(intakeForm.declaration?.agreed)}
-        onChange={(e) => updateNested("declaration", "agreed", e.target.checked)}
+        onChange={(e) =>
+          updateNested("declaration", "agreed", e.target.checked)
+        }
         className="mt-1 h-4 w-4 rounded border-gray-300"
       />
       <span>I agree to this declaration.</span>

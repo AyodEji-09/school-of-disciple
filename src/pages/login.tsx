@@ -126,8 +126,8 @@ const Login = () => {
   };
 
   return (
-    <UseBox img="login-bg.png">
-      <Stack mt={8}>
+    <UseBox img="manholding.jpg">
+      <Stack mt={8} className="scrollbar-hide">
         <Typography level="h2">Login</Typography>
 
         <form className="mt-10" onSubmit={handleSubmit(onSubmit)}>

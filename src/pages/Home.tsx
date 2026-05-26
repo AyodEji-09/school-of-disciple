@@ -36,7 +36,7 @@ const Home = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <MatricCard
               title="Session"
-              text="10 years of extensive training"
+              text="1 year of extensive training"
               icon={<SlGraduation />}
             />
             <MatricCard
@@ -76,7 +76,7 @@ const Home = () => {
               believers for effective Christian living and service. It prepares
               them to become dynamic disciples and end-time soldiers of Christ.
               The School of Disciples RCCG Americas 1 has centers across the
-              U.S., offering both in-person and virtual meetings
+              U.S., offering both in-person and virtual meetings.
             </p>
           </div>
         </div>

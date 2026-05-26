@@ -31,7 +31,7 @@ const team: Team = [
     id: 5,
     name: "Pastor Michael Oluwafemi",
     title: "National Coordinator Emeritus (The Americas-1)",
-    desc: "Pastor Oluwafemi is one of the Special Assistant to the Continental Overseer (SATCO) and the pastor in charge of Province 3, Region 6. He is the national coordinator of School of Disciples RCCG Americas 1.",
+    desc: "Pastor Oluwafemi was the national coordinator of the School of Disciples, RCCG Americas 1, and a Special Assistant to the Continental Overseer (SATCO) until June, 2025.  He was also the pastor in charge of Province 3, Region 6. He is currently an RCCG national Elder and serves in an advisory role for the School of Disciples.",
     img: "p2.jpeg",
   },
   {

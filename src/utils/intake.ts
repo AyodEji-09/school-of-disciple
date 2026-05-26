@@ -68,6 +68,7 @@ const EMPTY_FORM: IntakeFormData = {
     officePhone: "",
     email: "",
     height: "",
+    heightUnit: "ft",
   },
   spiritualExperience: {
     bornAgain: undefined,
@@ -190,14 +191,15 @@ export const calculateProgress = (data: IntakeFormData) => {
     data.educationalExperience?.qualificationsObtained,
   );
 
-  push(data.employmentStatus?.status, data.employmentStatus?.familyAnnualIncome);
+  push(data.employmentStatus?.status);
   push(data.declaration?.agreed);
 
   const completed = items.filter(isFilled).length;
   return items.length ? Math.round((completed / items.length) * 100) : 0;
 };
 
-const keyFor = (userId?: string) => (userId ? `intake_${userId}` : `intake_draft`);
+const keyFor = (userId?: string) =>
+  userId ? `intake_${userId}` : `intake_draft`;
 
 export const saveLocalIntake = (
   userId: string | undefined,
