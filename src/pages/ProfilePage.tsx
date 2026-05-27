@@ -113,9 +113,6 @@ const ProfilePage = () => {
 
   const onChange = (key: keyof ProfileForm, value: string) => {
     setForm((prev) => {
-      if (isCoordinator && key === "residentialAddress") {
-        return { ...prev, residentialAddress: value, address: value };
-      }
       return { ...prev, [key]: value };
     });
   };
@@ -168,33 +165,32 @@ const ProfilePage = () => {
       }
 
       // Update profile fields and nested intake personal info
-      const normalizedAddress = isCoordinator
-        ? form.residentialAddress || form.address
-        : form.address;
+      const updatePayload: any = {
+        firstName: titleCase(form.firstName),
+        lastName: titleCase(form.lastName),
+        phone: form.phone,
+      };
+
+      if (isCoordinator) {
+        updatePayload.address = form.address || form.residentialAddress;
+        updatePayload.birthday = form.birthday || undefined;
+      } else if (!isAdmin) {
+        // Student user
+        updatePayload.intakeFormData = {
+          personalInfo: {
+            residentialAddress: form.residentialAddress || form.address,
+            mailingCity: form.mailingCity,
+            mailingState: form.mailingState,
+            mailingZipCode: form.mailingZipCode,
+            dateOfBirth: form.birthday || undefined,
+            height: form.height,
+          },
+        };
+      }
 
       const updateRes = await updateUser({
         id: user._id,
-        body: {
-          firstName: titleCase(form.firstName),
-          lastName: titleCase(form.lastName),
-          phone: form.phone,
-          address: normalizedAddress,
-          ...(isAdmin
-            ? {}
-            : {
-                birthday: form.birthday || undefined,
-                intakeFormData: {
-                  personalInfo: {
-                    residentialAddress: normalizedAddress,
-                    mailingCity: form.mailingCity,
-                    mailingState: form.mailingState,
-                    mailingZipCode: form.mailingZipCode,
-                    dateOfBirth: form.birthday || undefined,
-                    ...(isCoordinator ? {} : { height: form.height }),
-                  },
-                },
-              }),
-        },
+        body: updatePayload,
       }).unwrap();
 
       if (updateRes?.data) {
@@ -270,7 +266,9 @@ const ProfilePage = () => {
                   label="First Name"
                   value={form.firstName}
                   onChange={(e) => onChange("firstName", e.target.value)}
-                  onBlur={() => onChange("firstName", titleCase(form.firstName))}
+                  onBlur={() =>
+                    onChange("firstName", titleCase(form.firstName))
+                  }
                 />
                 <Input
                   label="Last Name"
@@ -291,14 +289,8 @@ const ProfilePage = () => {
                 />
               </div>
 
-              {/* Phone and Birthday */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Phone"
-                  value={form.phone}
-                  onChange={(e) => onChange("phone", e.target.value)}
-                />
-                {!isAdmin && (
+              {isCoordinator && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-[#001F54] font-medium">
                       Birthday
@@ -310,12 +302,23 @@ const ProfilePage = () => {
                       className="w-full h-10 border border-[#CBD5E1] rounded-md px-3 mt-1 outline-none focus:border-[#001EC5]"
                     />
                   </div>
-                )}
-              </div>
+                  <Input
+                    label="Phone"
+                    value={form.phone}
+                    onChange={(e) => onChange("phone", e.target.value)}
+                  />
+                  <Input
+                    label="Address"
+                    className="md:col-span-2"
+                    value={form.address}
+                    onChange={(e) => onChange("address", e.target.value)}
+                  />
+                </div>
+              )}
 
-              {!isAdmin && (
+              {!isAdmin && !isCoordinator && (
                 <>
-                  {/* Personal Info Prefill Editable */}
+                  {/* Student personal info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       label="Residential Address"
@@ -340,20 +343,20 @@ const ProfilePage = () => {
                     <Input
                       label="Mailing Zip Code"
                       value={form.mailingZipCode}
-                      onChange={(e) => onChange("mailingZipCode", e.target.value)}
+                      onChange={(e) =>
+                        onChange("mailingZipCode", e.target.value)
+                      }
                     />
                   </div>
 
-                  {!isCoordinator && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Height (ft/in)"
-                        value={form.height}
-                        onChange={(e) => onChange("height", e.target.value)}
-                        placeholder={"e.g. 5'11\""}
-                      />
-                    </div>
-                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="Height (ft/in)"
+                      value={form.height}
+                      onChange={(e) => onChange("height", e.target.value)}
+                      placeholder={"e.g. 5'11\""}
+                    />
+                  </div>
                 </>
               )}
 

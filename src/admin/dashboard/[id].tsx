@@ -159,32 +159,10 @@ const CenterManager = () => {
                     </Typography>
                     <Stack spacing={1.5}>
                       <DetailRow label="Email" value={manager.email || "N/A"} />
-                      {
-                        <DetailRow
-                          label="Phone"
-                          value={manager.phone || "N/A"}
-                        />
-                      }
+                      <DetailRow label="Phone" value={manager.phone || "N/A"} />
                       <DetailRow
                         label="Address"
                         value={manager.address || "N/A"}
-                      />
-                      <DetailRow label="State" value={manager.state || "N/A"} />
-                      <DetailRow
-                        label="Residential Address"
-                        value={personalInfo?.residentialAddress || "N/A"}
-                      />
-                      <DetailRow
-                        label="Mailing City"
-                        value={personalInfo?.mailingCity || "N/A"}
-                      />
-                      <DetailRow
-                        label="Mailing State"
-                        value={personalInfo?.mailingState || "N/A"}
-                      />
-                      <DetailRow
-                        label="Mailing Zip Code"
-                        value={personalInfo?.mailingZipCode || "N/A"}
                       />
                       <DetailRow
                         label="Date of Birth"

@@ -32,9 +32,9 @@ type User = {
   avatar: avatarObject;
   emailVerified: boolean;
   type: string;
-  address: string;
+  address?: string;
   state?: string;
-  description: string;
+  description?: string;
   socialLinks?: {
     twitter?: string;
     instagram?: string;
@@ -43,9 +43,9 @@ type User = {
     tiktok?: string;
     website?: string;
   };
-  age: string;
-  birthday: Date;
-  gender: string;
+  age?: string;
+  birthday?: Date;
+  gender?: string;
   status: string;
   loginLast: Date;
   deactivated: boolean;
