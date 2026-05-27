@@ -9,10 +9,21 @@ export const handleError = (error: unknown): string => {
   }
 };
 
+export const titleCaseName = (value: string) =>
+  value
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => {
+      const [first = "", ...rest] = word;
+      return `${first.toUpperCase()}${rest.join("").toLowerCase()}`;
+    })
+    .join(" ");
+
 export const getUserFullName = (user?: User) => {
   if (user) {
-    const firstName = (user.firstName || "").trim();
-    const lastName = (user.lastName || "").trim();
+    const firstName = titleCaseName(user.firstName || "");
+    const lastName = titleCaseName(user.lastName || "");
     const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
     if (fullName) return fullName;
@@ -38,11 +49,7 @@ export const uploadAvatar = async (photo: File) => {
 export function capitalizeWords(str: string): string {
   if (!str) return "";
 
-  return str
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  return titleCaseName(str);
 }
 
 export const formatCenterAddress = (center?: Center | null): string => {

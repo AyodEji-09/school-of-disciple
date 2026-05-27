@@ -9,6 +9,7 @@ import { handleError } from "../../utils";
 import axios from "axios";
 import Input from "../../components/input/input.component";
 import { useGetAllCenterQuery } from "../../data/rtk/center";
+import { titleCaseName } from "../../utils";
 
 interface FormType {
   firstName: string;
@@ -41,7 +42,12 @@ const AddCenterManager = () => {
     console.log({ data });
     setLoading(true);
     try {
-      const res = await axios.post("/admin/invite-coordinator", data);
+      const normalizedData = {
+        ...data,
+        firstName: titleCaseName(data.firstName),
+        lastName: titleCaseName(data.lastName),
+      };
+      const res = await axios.post("/admin/invite-coordinator", normalizedData);
       console.log({ res });
       toast.success(res.data.message);
       navigate("/");
@@ -65,7 +71,12 @@ const AddCenterManager = () => {
               control={control}
               rules={{ required: "This field is required" }}
               render={({ field: { value, onChange } }) => (
-                <Input label="First Name" value={value} onChange={onChange} />
+                <Input
+                  label="First Name"
+                  value={value}
+                  onChange={onChange}
+                  onBlur={(e) => onChange(titleCaseName(e.target.value || value))}
+                />
               )}
             />
             {errors.firstName && (
@@ -80,7 +91,12 @@ const AddCenterManager = () => {
               control={control}
               rules={{ required: "This field is required" }}
               render={({ field: { value, onChange } }) => (
-                <Input label="Last Name" value={value} onChange={onChange} />
+                <Input
+                  label="Last Name"
+                  value={value}
+                  onChange={onChange}
+                  onBlur={(e) => onChange(titleCaseName(e.target.value || value))}
+                />
               )}
             />
             {errors.lastName && (

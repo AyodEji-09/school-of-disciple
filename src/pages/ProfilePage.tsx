@@ -19,8 +19,12 @@ type ProfileForm = {
   lastName: string;
   phone: string;
   address: string;
-  state: string;
   birthday: string;
+  residentialAddress?: string;
+  mailingCity?: string;
+  mailingState?: string;
+  mailingZipCode?: string;
+  height?: string;
   // description: string;
   // twitter: string;
   // instagram: string;
@@ -33,6 +37,8 @@ type ProfileForm = {
 const ProfilePage = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
+  const isAdmin = user?.type === "admin" || user?.type === "super";
+  const isCoordinator = user?.type === "coordinator";
   const [updateUser] = useUpdateUserMutation();
   const [uploadProfileImage] = useUploadProfileImageMutation();
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -48,8 +54,12 @@ const ProfilePage = () => {
     lastName: "",
     phone: "",
     address: "",
-    state: "",
     birthday: "",
+    residentialAddress: "",
+    mailingCity: "",
+    mailingState: "",
+    mailingZipCode: "",
+    height: "",
     // description: "",
     // twitter: "",
     // instagram: "",
@@ -61,21 +71,21 @@ const ProfilePage = () => {
   useEffect(() => {
     if (!user) return;
 
+    const personal = user.intakeFormData?.personalInfo || {};
+
     setForm({
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
+      firstName: user.firstName ? titleCase(user.firstName) : "",
+      lastName: user.lastName ? titleCase(user.lastName) : "",
       phone: user.phone || "",
-      address: user.address || "",
-      state: user.state || "",
+      address: user.address || personal.residentialAddress || "",
       birthday: user.birthday
         ? new Date(user.birthday).toISOString().slice(0, 10)
-        : "",
-      // description: user.description || "",
-      // twitter: user.socialLinks?.twitter || "",
-      // instagram: user.socialLinks?.instagram || "",
-      // facebook: user.socialLinks?.facebook || "",
-      // linkedin: user.socialLinks?.linkedin || "",
-      // tiktok: user.socialLinks?.tiktok || "",
+        : personal.dateOfBirth || "",
+      residentialAddress: personal.residentialAddress || user.address || "",
+      mailingCity: personal.mailingCity || "",
+      mailingState: personal.mailingState || "",
+      mailingZipCode: personal.mailingZipCode || "",
+      height: personal.height || "",
     });
   }, [user]);
 
@@ -87,12 +97,31 @@ const ProfilePage = () => {
     };
   }, [avatarPreviewUrl]);
 
+  const titleCase = (value: string) =>
+    value
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => {
+        const [first = "", ...rest] = word;
+        return `${first.toUpperCase()}${rest.join("").toLowerCase()}`;
+      })
+      .join(" ");
+
   const initials =
     `${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`.toUpperCase();
 
   const onChange = (key: keyof ProfileForm, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => {
+      if (isCoordinator && key === "residentialAddress") {
+        return { ...prev, residentialAddress: value, address: value };
+      }
+      return { ...prev, [key]: value };
+    });
   };
+
+  const heightPattern =
+    /^\s*(\d{1,2})(?:\s*(?:'|ft|feet)\s*)?(?:(\d{1,2})\s*(?:"|in|inches)?)?\s*$/i;
 
   const getMutationError = (error: unknown) => {
     const rtkError = error as { data?: { message?: string }; message?: string };
@@ -124,6 +153,11 @@ const ProfilePage = () => {
   const handleSave = async () => {
     if (!user?._id) return;
 
+    if (!isCoordinator && form.height && !heightPattern.test(form.height)) {
+      toast.error("Height must match the format 5'11\" or 5 ft 11 in");
+      return;
+    }
+
     setLoading(true);
     try {
       // Upload avatar if selected (let axios auto-detect FormData and set proper boundary)
@@ -133,25 +167,33 @@ const ProfilePage = () => {
         setUploading(false);
       }
 
-      // Update profile fields
+      // Update profile fields and nested intake personal info
+      const normalizedAddress = isCoordinator
+        ? form.residentialAddress || form.address
+        : form.address;
+
       const updateRes = await updateUser({
         id: user._id,
         body: {
-          firstName: form.firstName,
-          lastName: form.lastName,
+          firstName: titleCase(form.firstName),
+          lastName: titleCase(form.lastName),
           phone: form.phone,
-          address: form.address,
-          state: form.state,
-          birthday: form.birthday || undefined,
-          // description: form.description,
-          // socialLinks: {
-          //   twitter: form.twitter,
-          //   instagram: form.instagram,
-          //   facebook: form.facebook,
-          //   linkedin: form.linkedin,
-          //   website: form.website,
-          //   tiktok: form.tiktok,
-          // },
+          address: normalizedAddress,
+          ...(isAdmin
+            ? {}
+            : {
+                birthday: form.birthday || undefined,
+                intakeFormData: {
+                  personalInfo: {
+                    residentialAddress: normalizedAddress,
+                    mailingCity: form.mailingCity,
+                    mailingState: form.mailingState,
+                    mailingZipCode: form.mailingZipCode,
+                    dateOfBirth: form.birthday || undefined,
+                    ...(isCoordinator ? {} : { height: form.height }),
+                  },
+                },
+              }),
         },
       }).unwrap();
 
@@ -228,11 +270,13 @@ const ProfilePage = () => {
                   label="First Name"
                   value={form.firstName}
                   onChange={(e) => onChange("firstName", e.target.value)}
+                  onBlur={() => onChange("firstName", titleCase(form.firstName))}
                 />
                 <Input
                   label="Last Name"
                   value={form.lastName}
                   onChange={(e) => onChange("lastName", e.target.value)}
+                  onBlur={() => onChange("lastName", titleCase(form.lastName))}
                 />
               </div>
 
@@ -247,35 +291,71 @@ const ProfilePage = () => {
                 />
               </div>
 
-              {/* Phone and State */}
+              {/* Phone and Birthday */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label="Phone"
                   value={form.phone}
                   onChange={(e) => onChange("phone", e.target.value)}
                 />
-                <Input
-                  label="State"
-                  value={form.state}
-                  placeholder="e.g. Lagos"
-                  onChange={(e) => onChange("state", e.target.value)}
-                />
+                {!isAdmin && (
+                  <div>
+                    <label className="text-sm text-[#001F54] font-medium">
+                      Birthday
+                    </label>
+                    <input
+                      type="date"
+                      value={form.birthday}
+                      onChange={(e) => onChange("birthday", e.target.value)}
+                      className="w-full h-10 border border-[#CBD5E1] rounded-md px-3 mt-1 outline-none focus:border-[#001EC5]"
+                    />
+                  </div>
+                )}
               </div>
 
-              {/* Birthday */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-[#001F54] font-medium">
-                    Birthday
-                  </label>
-                  <input
-                    type="date"
-                    value={form.birthday}
-                    onChange={(e) => onChange("birthday", e.target.value)}
-                    className="w-full h-10 border border-[#CBD5E1] rounded-md px-3 mt-1 outline-none focus:border-[#001EC5]"
-                  />
-                </div>
-              </div>
+              {!isAdmin && (
+                <>
+                  {/* Personal Info Prefill Editable */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="Residential Address"
+                      value={form.residentialAddress}
+                      onChange={(e) =>
+                        onChange("residentialAddress", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="Mailing City"
+                      value={form.mailingCity}
+                      onChange={(e) => onChange("mailingCity", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="Mailing State"
+                      value={form.mailingState}
+                      onChange={(e) => onChange("mailingState", e.target.value)}
+                    />
+                    <Input
+                      label="Mailing Zip Code"
+                      value={form.mailingZipCode}
+                      onChange={(e) => onChange("mailingZipCode", e.target.value)}
+                    />
+                  </div>
+
+                  {!isCoordinator && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Height (ft/in)"
+                        value={form.height}
+                        onChange={(e) => onChange("height", e.target.value)}
+                        placeholder={"e.g. 5'11\""}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
 
               {/* Bio (temporarily disabled) */}
               {/*
@@ -348,7 +428,7 @@ const ProfilePage = () => {
 
               {/* Footer text */}
               <p className="text-sm text-gray-500 mt-4">
-                Update your personal details and links.
+                Update your personal details.
               </p>
 
               {/* Save Button */}

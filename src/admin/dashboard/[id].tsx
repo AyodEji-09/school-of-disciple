@@ -34,6 +34,7 @@ const CenterManager = () => {
   const [updateDeactivation] = useUpdateCoordinatorDeactivationMutation();
 
   const manager = user?.data;
+  const personalInfo = manager?.intakeFormData?.personalInfo;
   const coordinatorStatus =
     manager?.coordinatorStatus ||
     (!manager?.emailVerified
@@ -168,12 +169,31 @@ const CenterManager = () => {
                         label="Address"
                         value={manager.address || "N/A"}
                       />
-                      {!isAdmin && (
-                        <DetailRow
-                          label="State"
-                          value={manager.state || "N/A"}
-                        />
-                      )}
+                      <DetailRow label="State" value={manager.state || "N/A"} />
+                      <DetailRow
+                        label="Residential Address"
+                        value={personalInfo?.residentialAddress || "N/A"}
+                      />
+                      <DetailRow
+                        label="Mailing City"
+                        value={personalInfo?.mailingCity || "N/A"}
+                      />
+                      <DetailRow
+                        label="Mailing State"
+                        value={personalInfo?.mailingState || "N/A"}
+                      />
+                      <DetailRow
+                        label="Mailing Zip Code"
+                        value={personalInfo?.mailingZipCode || "N/A"}
+                      />
+                      <DetailRow
+                        label="Date of Birth"
+                        value={
+                          manager.birthday
+                            ? moment(manager.birthday).format("MM/DD/YYYY")
+                            : personalInfo?.dateOfBirth || "N/A"
+                        }
+                      />
                     </Stack>
                   </Box>
 

@@ -16,6 +16,7 @@ import { useAppDispatch } from "../data/hooks";
 import { login } from "../data/reducers/userSlice";
 import Onboarding from "./Onboarding";
 import { hasCompletedIntake } from "../utils/intake";
+import { titleCaseName } from "../utils";
 
 const getRegistrationWindowState = (
   window?: RegistrationWindow | null,
@@ -144,19 +145,25 @@ const Register = () => {
       return;
     }
 
+    const normalizedData = {
+      ...data,
+      firstName: titleCaseName(data.firstName),
+      lastName: titleCaseName(data.lastName),
+    };
+
     setLoading(true);
     try {
-      const res = await axios.post<ApiResponseN<null>>("/auth/register", data);
+      const res = await axios.post<ApiResponseN<null>>("/auth/register", normalizedData);
       toast.success(res.data.message);
 
       const credentials = {
-        email: data.email,
-        password: data.password,
+        email: normalizedData.email,
+        password: normalizedData.password,
       };
       setPendingCredentials(credentials);
 
       try {
-        await sendVerificationOtp(data.email);
+        await sendVerificationOtp(normalizedData.email);
         setIsModalOpen(true);
         toast.info("A verification code has been sent to your email");
         setCountdown(60);
@@ -236,6 +243,9 @@ const Register = () => {
                       label="First Name"
                       value={value}
                       onChange={onChange}
+                      onBlur={(e) =>
+                        onChange(titleCaseName(e.target.value || value))
+                      }
                     />
                   )}
                 />
@@ -257,6 +267,9 @@ const Register = () => {
                       label="Last Name"
                       value={value}
                       onChange={onChange}
+                      onBlur={(e) =>
+                        onChange(titleCaseName(e.target.value || value))
+                      }
                     />
                   )}
                 />

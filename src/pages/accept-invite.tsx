@@ -6,6 +6,7 @@ import Input from "../components/input/input.component";
 import { toast } from "react-toastify";
 import { handleError } from "../utils";
 import axios from "axios";
+import { titleCaseName } from "../utils";
 
 type FormType = {
   firstName: string;
@@ -41,15 +42,20 @@ const AcceptInvite = () => {
 
   useEffect(() => {
     if (invitedEmail) setValue("email", invitedEmail);
-    if (invitedFirstName) setValue("firstName", invitedFirstName);
-    if (invitedLastName) setValue("lastName", invitedLastName);
+    if (invitedFirstName) setValue("firstName", titleCaseName(invitedFirstName));
+    if (invitedLastName) setValue("lastName", titleCaseName(invitedLastName));
   }, [invitedEmail, invitedFirstName, invitedLastName, setValue]);
   const onSubmit = async (data: FormType) => {
     setLoading(true);
     try {
+      const normalizedData = {
+        ...data,
+        firstName: titleCaseName(data.firstName),
+        lastName: titleCaseName(data.lastName),
+      };
       const res = await axios.post<ApiResponseN<null>>(
         `/auth/accept-invite/${token}`,
-        data,
+        normalizedData,
       );
       toast.success(res.data.message);
       navigate("/login");
@@ -91,6 +97,9 @@ const AcceptInvite = () => {
                         label="First Name"
                         value={value}
                         onChange={onChange}
+                        onBlur={(e) =>
+                          onChange(titleCaseName(e.target.value || value))
+                        }
                       />
                     )}
                   />
@@ -112,6 +121,9 @@ const AcceptInvite = () => {
                         label="Last Name"
                         value={value}
                         onChange={onChange}
+                        onBlur={(e) =>
+                          onChange(titleCaseName(e.target.value || value))
+                        }
                       />
                     )}
                   />
