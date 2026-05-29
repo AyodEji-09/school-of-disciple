@@ -521,14 +521,7 @@ const ReceiptCell = ({
     );
   }
 
-  // Only show upload for Zelle orders that are pending
-  if (
-    order.paymentMethod !== "zelle" ||
-    (order.status !== "pending_confirmation" &&
-      order.status !== "pending_payment")
-  ) {
-    return <span className="text-xs text-slate-400">—</span>;
-  }
+
 
   return (
     <>
