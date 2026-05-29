@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Frame from "../../components/frame/Frame";
+import { RiCheckLine, RiUploadCloud2Line } from "react-icons/ri";
 import {
   Box,
   Button,
@@ -36,11 +37,13 @@ import {
   useGetRemittancesQuery,
   useConfirmRemittanceMutation,
   useRejectRemittanceMutation,
+  useUploadRemittanceReceiptMutation,
 } from "../../data/rtk/remittance";
 import {
   useGetTransactionsQuery,
   useConfirmTransactionMutation,
   useRejectTransactionMutation,
+  useUploadTransactionReceiptMutation,
 } from "../../data/rtk/transaction";
 import { getUserFullName } from "../../utils";
 import {
@@ -106,6 +109,62 @@ const getCenterNameFromPayment = (payment: Payment) => {
   if (!student || !student.center) return "-";
   if (typeof student.center === "string") return "-";
   return student.center.name || "-";
+};
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Receipt Cell Component                                                    */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+const ReceiptCell = ({
+  receiptUrl,
+  itemId,
+  onUpload,
+  uploading,
+}: {
+  receiptUrl?: string;
+  itemId: string;
+  onUpload: (id: string, file: File) => void;
+  uploading: boolean;
+}) => {
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  if (receiptUrl) {
+    return (
+      <a
+        href={receiptUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-xs font-medium text-[#001EC5] hover:underline"
+      >
+        <RiCheckLine size={14} />
+        View
+      </a>
+    );
+  }
+
+  return (
+    <>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*,application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUpload(itemId, file);
+        }}
+      />
+      <button
+        type="button"
+        disabled={uploading}
+        onClick={() => fileRef.current?.click()}
+        className="inline-flex items-center gap-1 text-xs font-medium text-[#001EC5] hover:underline disabled:opacity-50"
+      >
+        <RiUploadCloud2Line size={14} />
+        {uploading ? "Uploading..." : "Upload"}
+      </button>
+    </>
+  );
 };
 
 /* ────────────────────────────────────────────────────────────────────────── */
@@ -665,6 +724,18 @@ const PendingApprovals = () => {
   const [rejectTransaction] = useRejectTransactionMutation();
   const [actionId, setActionId] = useState<string | null>(null);
 
+  const [uploadTransactionReceipt, { isLoading: uploadingReceipt }] =
+    useUploadTransactionReceiptMutation();
+
+  const handleReceiptUpload = async (transactionId: string, file: File) => {
+    try {
+      await uploadTransactionReceipt({ id: transactionId, file }).unwrap();
+      toast.success("Receipt uploaded successfully");
+    } catch (error) {
+      toast.error(handleError(error));
+    }
+  };
+
   const docs = transactionsRes?.data?.docs || [];
   const hasDocs = docs.length > 0;
 
@@ -845,18 +916,12 @@ const PendingApprovals = () => {
                     <td className="px-6 py-4">{formatCurrency(t.amount)}</td>
                     <td className="px-6 py-4">{t.description || "-"}</td>
                     <td className="px-6 py-4">
-                      {t.zelleReceiptUrl ? (
-                        <a
-                          href={t.zelleReceiptUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[#001EC5] underline text-xs font-medium"
-                        >
-                          View Receipt
-                        </a>
-                      ) : (
-                        <span className="text-[#9CA3AF] text-xs">—</span>
-                      )}
+                      <ReceiptCell
+                        receiptUrl={t.zelleReceiptUrl || t.receiptUrl || t.receiptImageUrl}
+                        itemId={t._id}
+                        onUpload={handleReceiptUpload}
+                        uploading={uploadingReceipt}
+                      />
                     </td>
                     <td className="px-6 py-4">
                       <Stack direction="row" gap={1}>
@@ -903,6 +968,18 @@ const AdminRemittanceHistory = () => {
   const [selectedCenter, setSelectedCenter] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  const [uploadRemittanceReceipt, { isLoading: uploadingReceipt }] =
+    useUploadRemittanceReceiptMutation();
+
+  const handleReceiptUpload = async (remittanceId: string, file: File) => {
+    try {
+      await uploadRemittanceReceipt({ id: remittanceId, file }).unwrap();
+      toast.success("Receipt uploaded successfully");
+    } catch (error) {
+      toast.error(handleError(error));
+    }
+  };
 
   // All registration windows for year dropdown
   const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
@@ -1237,27 +1314,12 @@ const AdminRemittanceHistory = () => {
                     <td className="px-6 py-4">{formatCurrency(r.amount)}</td>
                     <td className="px-6 py-4">{getStatusChip(r.status)}</td>
                     <td className="px-6 py-4">
-                      {r.receiptImageUrl ? (
-                        <a
-                          href={r.receiptImageUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[#001EC5] underline text-xs font-medium"
-                        >
-                          View Receipt
-                        </a>
-                      ) : r.receiptUrl ? (
-                        <a
-                          href={r.receiptUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[#001EC5] underline text-xs font-medium"
-                        >
-                          Stripe Receipt
-                        </a>
-                      ) : (
-                        <span className="text-[#9CA3AF] text-xs">—</span>
-                      )}
+                      <ReceiptCell
+                        receiptUrl={r.receiptImageUrl || r.receiptUrl}
+                        itemId={r._id}
+                        onUpload={handleReceiptUpload}
+                        uploading={uploadingReceipt}
+                      />
                     </td>
                   </tr>
                 ))
