@@ -148,6 +148,12 @@ const DefaultHeader = () => {
     },
     {
       id: 7,
+      name: "Order Manuals",
+      url: "/dashboard/manual-order",
+      role: ["coordinator"],
+    },
+    {
+      id: 8,
       name: "Dashboard",
       url: "/my-dashboard",
       role: ["user"],
@@ -323,6 +329,12 @@ const DefaultHeader = () => {
                         const isPendingTx = n.type === "transaction_pending" && !n.isRead;
                         const txId = n.transactionId?._id || n.transactionId;
                         const receiptUrl = n.transactionId?.zelleReceiptUrl;
+                        const txCreatedBy = n.transactionId?.createdBy;
+                        const txCenter = n.transactionId?.center;
+                        const coordinatorName = txCreatedBy
+                          ? `${txCreatedBy.firstName || ""} ${txCreatedBy.lastName || ""}`.trim() || txCreatedBy.email
+                          : null;
+                        const centerName = txCenter?.name;
 
                         return (
                           <Box key={n._id} sx={{ bgcolor: n.isRead ? "transparent" : "#F0F7FF" }}>
@@ -358,6 +370,18 @@ const DefaultHeader = () => {
                                   {moment(n.createdAt).fromNow()}
                                 </Typography>
                               </Stack>
+
+                              {/* Coordinator & Center info */}
+                              {(coordinatorName || centerName) && (
+                                <Typography
+                                  level="body-xs"
+                                  textColor="neutral.500"
+                                  sx={{ mb: 0.5 }}
+                                >
+                                  {coordinatorName && <><strong>{coordinatorName}</strong>{centerName ? " · " : ""}</>}
+                                  {centerName}
+                                </Typography>
+                              )}
 
                               {/* Notification Message */}
                               <Typography

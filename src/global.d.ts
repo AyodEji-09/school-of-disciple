@@ -176,3 +176,35 @@ type Remittance = {
   createdAt: string;
   updatedAt?: string;
 };
+
+type ManualOrder = {
+  _id: string;
+  coordinatorId: string | User;
+  coordinatorEmail: string;
+  coordinatorName: string;
+  centerId: string | Center;
+  centerName: string;
+  zone: string;
+  phone: string;
+  zonalRegionalCoordinatorName: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+  mailingAddress: string;
+  concerns?: string;
+  paymentMethod: "stripe" | "zelle";
+  status:
+    | "pending_payment"
+    | "pending_confirmation"
+    | "paid"
+    | "rejected"
+    | "processing"
+    | "completed";
+  stripeSessionId?: string;
+  receiptUrl?: string;
+  confirmedBy?: string | User;
+  confirmedAt?: string;
+  rejectedReason?: string;
+  createdAt: string;
+  updatedAt?: string;
+};

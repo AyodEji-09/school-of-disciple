@@ -88,6 +88,24 @@ export const manualOrderApi = createApi({
         { type: "ManualOrderList", id: "LIST" },
       ],
     }),
+    uploadManualOrderReceipt: builder.mutation<
+      ApiResponseN<ManualOrder>,
+      { id: string; file: File }
+    >({
+      query: ({ id, file }) => {
+        const formData = new FormData();
+        formData.append("receipt", file);
+        return {
+          url: `/manual-order/${id}/receipt`,
+          method: "PATCH",
+          body: formData,
+        };
+      },
+      invalidatesTags: (_, __, { id }) => [
+        { type: "ManualOrder", id },
+        { type: "ManualOrderList", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -96,4 +114,5 @@ export const {
   useCreateStripeManualOrderMutation,
   useCreateZelleManualOrderMutation,
   useConfirmManualOrderMutation,
+  useUploadManualOrderReceiptMutation,
 } = manualOrderApi;

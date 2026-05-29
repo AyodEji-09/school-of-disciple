@@ -11,9 +11,13 @@ import {
   Textarea,
   Typography,
 } from "@mui/joy";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
+import {
+  RiCheckLine,
+  RiUploadCloud2Line,
+} from "react-icons/ri";
 import Frame from "../../components/frame/Frame";
 import AppModal from "../../components/modal/modal";
 import AppButton from "../../components/Button/AppButton";
@@ -61,6 +65,15 @@ const CreditAdminPage = () => {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [uploadReceipt, { isLoading: uploadingReceipt }] =
     useUploadRemittanceReceiptMutation();
+
+  const handleReceiptUpload = async (remittanceId: string, file: File) => {
+    try {
+      await uploadReceipt({ id: remittanceId, file }).unwrap();
+      toast.success("Receipt uploaded successfully");
+    } catch (error) {
+      toast.error(handleError(error));
+    }
+  };
 
   const [zelleDetails, setZelleDetails] = useState<{
     email: string;
@@ -267,7 +280,12 @@ const CreditAdminPage = () => {
               </Typography>
             </Box>
             <Divider />
-            <RemittanceTable docs={docs} isLoading={isLoading} />
+            <RemittanceTable
+              docs={docs}
+              isLoading={isLoading}
+              onUpload={handleReceiptUpload}
+              uploading={uploadingReceipt}
+            />
           </Card>
         </Stack>
 
@@ -559,6 +577,67 @@ const CreditAdminPage = () => {
 
 export default CreditAdminPage;
 
+/* ────── Receipt Cell ────── */
+
+const ReceiptCell = ({
+  remittance,
+  onUpload,
+  uploading,
+}: {
+  remittance: Remittance;
+  onUpload: (id: string, file: File) => void;
+  uploading: boolean;
+}) => {
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const receiptUrl = remittance.receiptImageUrl || remittance.receiptUrl;
+
+  if (receiptUrl) {
+    return (
+      <a
+        href={receiptUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-xs font-medium text-[#001EC5] hover:underline"
+      >
+        <RiCheckLine size={14} />
+        View
+      </a>
+    );
+  }
+
+  if (
+    remittance.method === "zelle" &&
+    remittance.status === "pending_confirmation"
+  ) {
+    return (
+      <>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*,application/pdf"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onUpload(remittance._id, file);
+          }}
+        />
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => fileRef.current?.click()}
+          className="inline-flex items-center gap-1 text-xs font-medium text-[#001EC5] hover:underline disabled:opacity-50"
+        >
+          <RiUploadCloud2Line size={14} />
+          {uploading ? "Uploading..." : "Upload"}
+        </button>
+      </>
+    );
+  }
+
+  return <span className="text-[#9CA3AF] text-xs">—</span>;
+};
+
 /* ────── Remittance History Table ────── */
 
 const getStatusChip = (status: Remittance["status"]) => {
@@ -596,9 +675,13 @@ const getMethodChip = (method: Remittance["method"]) => {
 const RemittanceTable = ({
   docs,
   isLoading,
+  onUpload,
+  uploading,
 }: {
   docs: Remittance[];
   isLoading: boolean;
+  onUpload: (id: string, file: File) => void;
+  uploading: boolean;
 }) => {
   return (
     <Box className="overflow-x-auto w-full">
@@ -645,27 +728,11 @@ const RemittanceTable = ({
                 <td className="px-6 py-4">{formatCurrency(r.amount)}</td>
                 <td className="px-6 py-4">{getStatusChip(r.status)}</td>
                 <td className="px-6 py-4">
-                  {r.receiptImageUrl ? (
-                    <a
-                      href={r.receiptImageUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[#001EC5] underline text-xs font-medium"
-                    >
-                      View
-                    </a>
-                  ) : r.receiptUrl ? (
-                    <a
-                      href={r.receiptUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[#001EC5] underline text-xs font-medium"
-                    >
-                      Stripe
-                    </a>
-                  ) : (
-                    <span className="text-[#9CA3AF] text-xs">—</span>
-                  )}
+                  <ReceiptCell
+                    remittance={r}
+                    onUpload={onUpload}
+                    uploading={uploading}
+                  />
                 </td>
               </tr>
             ))
