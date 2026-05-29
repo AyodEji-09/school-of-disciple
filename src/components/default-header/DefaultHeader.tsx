@@ -27,10 +27,14 @@ import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import { capitalizeWords, getUserFullName, handleError } from "../../utils";
 import {
-  useGetRemittancesQuery,
-  useConfirmRemittanceMutation,
-  useRejectRemittanceMutation,
-} from "../../data/rtk/remittance";
+  useGetNotificationsQuery,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
+} from "../../data/rtk/notification";
+import {
+  useConfirmTransactionMutation,
+  useRejectTransactionMutation,
+} from "../../data/rtk/transaction";
 import { toast } from "react-toastify";
 import moment from "moment";
 
@@ -61,22 +65,24 @@ const DefaultHeader = () => {
       setOpen(inOpen);
     };
 
-  const { data: pendingRemittancesData } = useGetRemittancesQuery(
-    { status: "pending_confirmation", limit: 20 },
-    { skip: !isAdmin },
-  );
-  const [confirmRemittance] = useConfirmRemittanceMutation();
-  const [rejectRemittance] = useRejectRemittanceMutation();
+  const { data: notificationsRes } = useGetNotificationsQuery(undefined, {
+    skip: !user,
+  });
+  const [markAsRead] = useMarkAsReadMutation();
+  const [markAllAsRead] = useMarkAllAsReadMutation();
+  const [confirmTransaction] = useConfirmTransactionMutation();
+  const [rejectTransaction] = useRejectTransactionMutation();
 
-  const pendingDocs = pendingRemittancesData?.data?.docs ?? [];
-  const pendingCount = pendingDocs.length;
+  const notifications = notificationsRes?.data ?? [];
+  const pendingCount = notifications.filter((n: any) => !n.isRead).length;
 
-  const handleConfirm = async (id: string) => {
-    if (!window.confirm("Confirm this remittance as received?")) return;
-    setActionId(id);
+  const handleConfirm = async (transactionId: string, notificationId: string) => {
+    if (!window.confirm("Confirm this transaction as received?")) return;
+    setActionId(transactionId);
     try {
-      await confirmRemittance(id).unwrap();
-      toast.success("Remittance confirmed");
+      await confirmTransaction(transactionId).unwrap();
+      await markAsRead(notificationId).unwrap();
+      toast.success("Transaction confirmed successfully");
     } catch (error) {
       toast.error(handleError(error));
     } finally {
@@ -84,13 +90,14 @@ const DefaultHeader = () => {
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (transactionId: string, notificationId: string) => {
     const reason = window.prompt("Reason for rejection (optional):");
     if (reason === null) return;
-    setActionId(id);
+    setActionId(transactionId);
     try {
-      await rejectRemittance({ id, reason: reason || undefined }).unwrap();
-      toast.success("Remittance rejected");
+      await rejectTransaction({ id: transactionId, reason: reason || undefined }).unwrap();
+      await markAsRead(notificationId).unwrap();
+      toast.success("Transaction rejected");
     } catch (error) {
       toast.error(handleError(error));
     } finally {
@@ -98,14 +105,13 @@ const DefaultHeader = () => {
     }
   };
 
-  const getCoordinatorName = (r: Remittance) => {
-    if (typeof r.coordinatorId === "string") return r.coordinatorId;
-    return getUserFullName(r.coordinatorId as User) || "Coordinator";
-  };
-
-  const getCenterName = (r: Remittance) => {
-    if (typeof r.centerId === "string") return "—";
-    return (r.centerId as Center)?.name || "—";
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllAsRead().unwrap();
+      toast.success("All notifications marked as read");
+    } catch (error) {
+      toast.error(handleError(error));
+    }
   };
 
   const routes = [
@@ -253,9 +259,7 @@ const DefaultHeader = () => {
                       </Box>
                     )}
                   </Box>
-                </MenuButton>
-
-                <Menu
+                </MenuButton>                <Menu
                   placement="bottom-end"
                   sx={{
                     "--List-padding": "0",
@@ -284,19 +288,25 @@ const DefaultHeader = () => {
                       alignItems="center"
                     >
                       <Typography level="title-sm">
-                        Pending Remittances
+                        Notifications
                       </Typography>
                       {pendingCount > 0 && (
-                        <Chip size="sm" color="warning" variant="solid">
-                          {pendingCount}
-                        </Chip>
+                        <Button
+                          size="sm"
+                          variant="plain"
+                          color="primary"
+                          onClick={handleMarkAllRead}
+                          sx={{ fontSize: "11px", fontWeight: 600, p: 0.5 }}
+                        >
+                          Mark all as read
+                        </Button>
                       )}
                     </Stack>
                   </Box>
 
                   {/* Scrollable list */}
                   <Box sx={{ overflowY: "auto", flexGrow: 1 }}>
-                    {pendingCount === 0 ? (
+                    {notifications.length === 0 ? (
                       <Box
                         sx={{
                           py: 5,
@@ -305,126 +315,124 @@ const DefaultHeader = () => {
                         }}
                       >
                         <Typography level="body-sm" textColor="neutral.400">
-                          All caught up — no pending remittances.
+                          All caught up — no new notifications.
                         </Typography>
                       </Box>
                     ) : (
-                      pendingDocs.map((r, idx) => (
-                        <Box key={r._id}>
-                          {idx > 0 && <Divider />}
-                          <Box sx={{ px: 2.5, py: 2 }}>
-                            {/* Coordinator + date */}
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                              alignItems="flex-start"
-                              mb={0.5}
-                            >
-                              <Typography
-                                level="title-sm"
-                                sx={{ fontWeight: 600 }}
-                              >
-                                {getCoordinatorName(r)}
-                              </Typography>
-                              <Typography
-                                level="body-xs"
-                                textColor="neutral.500"
-                                sx={{ flexShrink: 0, ml: 1 }}
-                              >
-                                {moment(r.createdAt).fromNow()}
-                              </Typography>
-                            </Stack>
+                      notifications.map((n: any, idx: number) => {
+                        const isPendingTx = n.type === "transaction_pending" && !n.isRead;
+                        const txId = n.transactionId?._id || n.transactionId;
+                        const receiptUrl = n.transactionId?.zelleReceiptUrl;
 
-                            {/* Center + amount + method */}
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                              alignItems="center"
-                              mb={1}
-                            >
-                              <Typography
-                                level="body-xs"
-                                textColor="neutral.600"
-                              >
-                                {getCenterName(r)}
-                              </Typography>
+                        return (
+                          <Box key={n._id} sx={{ bgcolor: n.isRead ? "transparent" : "#F0F7FF" }}>
+                            {idx > 0 && <Divider />}
+                            <Box sx={{ px: 2.5, py: 2 }}>
+                              {/* Header row: Status tag or Notification Type + time */}
                               <Stack
                                 direction="row"
-                                gap={1}
-                                alignItems="center"
+                                justifyContent="space-between"
+                                alignItems="flex-start"
+                                mb={0.5}
                               >
                                 <Typography
-                                  level="body-sm"
-                                  sx={{ fontWeight: 700, color: "#001EC5" }}
-                                >
-                                  {formatCurrency(r.amount)}
-                                </Typography>
-                                <Chip
-                                  size="sm"
-                                  variant="outlined"
+                                  level="title-xs"
                                   sx={{
-                                    borderColor:
-                                      r.method === "stripe"
-                                        ? "#635BFF"
-                                        : "#6D28D9",
-                                    color:
-                                      r.method === "stripe"
-                                        ? "#635BFF"
-                                        : "#6D28D9",
-                                    fontSize: "10px",
+                                    fontWeight: 600,
+                                    color: n.isRead ? "neutral.600" : "#001F54",
                                   }}
                                 >
-                                  {r.method === "stripe" ? "Stripe" : "Zelle"}
-                                </Chip>
+                                  {n.type === "transaction_pending"
+                                    ? "Pending Zelle Approval"
+                                    : n.type === "transaction_confirmed"
+                                      ? "Payment Confirmed"
+                                      : n.type === "transaction_rejected"
+                                        ? "Payment Rejected"
+                                        : "Notification"}
+                                </Typography>
+                                <Typography
+                                  level="body-xs"
+                                  textColor="neutral.500"
+                                  sx={{ flexShrink: 0, ml: 1 }}
+                                >
+                                  {moment(n.createdAt).fromNow()}
+                                </Typography>
                               </Stack>
-                            </Stack>
 
-                            {/* Receipt link if available */}
-                            {(r.receiptImageUrl || r.receiptUrl) && (
-                              <Box mb={1}>
-                                <a
-                                  href={r.receiptImageUrl || r.receiptUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  style={{
-                                    fontSize: "12px",
-                                    color: "#001EC5",
-                                    textDecoration: "underline",
-                                  }}
-                                >
-                                  View Receipt →
-                                </a>
-                              </Box>
-                            )}
+                              {/* Notification Message */}
+                              <Typography
+                                level="body-sm"
+                                textColor="neutral.700"
+                                sx={{ mb: isPendingTx ? 1.5 : 0.5 }}
+                              >
+                                {n.message}
+                              </Typography>
 
-                            {/* Action buttons */}
-                            <Stack direction="row" gap={1}>
-                              <Button
-                                size="sm"
-                                color="success"
-                                variant="solid"
-                                loading={actionId === r._id}
-                                disabled={actionId === r._id}
-                                onClick={() => handleConfirm(r._id)}
-                                sx={{ fontWeight: 600, flex: 1 }}
-                              >
-                                Confirm
-                              </Button>
-                              <Button
-                                size="sm"
-                                color="danger"
-                                variant="outlined"
-                                loading={actionId === r._id}
-                                disabled={actionId === r._id}
-                                onClick={() => handleReject(r._id)}
-                                sx={{ fontWeight: 600, flex: 1 }}
-                              >
-                                Reject
-                              </Button>
-                            </Stack>
+                              {/* Quick Actions (only if Zelle transaction is pending confirmation) */}
+                              {isPendingTx && txId && (
+                                <Stack direction="column" gap={1} sx={{ mt: 1 }}>
+                                  {receiptUrl && (
+                                    <Box mb={0.5}>
+                                      <a
+                                        href={receiptUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        style={{
+                                          fontSize: "12px",
+                                          color: "#001EC5",
+                                          textDecoration: "underline",
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        View Receipt →
+                                      </a>
+                                    </Box>
+                                  )}
+                                  <Stack direction="row" gap={1}>
+                                    <Button
+                                      size="sm"
+                                      color="success"
+                                      variant="solid"
+                                      loading={actionId === txId}
+                                      disabled={actionId === txId}
+                                      onClick={() => handleConfirm(txId, n._id)}
+                                      sx={{ fontWeight: 600, flex: 1 }}
+                                    >
+                                      Confirm
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      color="danger"
+                                      variant="outlined"
+                                      loading={actionId === txId}
+                                      disabled={actionId === txId}
+                                      onClick={() => handleReject(txId, n._id)}
+                                      sx={{ fontWeight: 600, flex: 1 }}
+                                    >
+                                      Reject
+                                    </Button>
+                                  </Stack>
+                                </Stack>
+                              )}
+
+                              {/* Read button for other unread notifications */}
+                              {!n.isRead && !isPendingTx && (
+                                <Stack direction="row" justifyContent="flex-end" sx={{ mt: 0.5 }}>
+                                  <Button
+                                    size="sm"
+                                    variant="plain"
+                                    color="neutral"
+                                    onClick={() => markAsRead(n._id)}
+                                    sx={{ fontSize: "11px", p: 0 }}
+                                  >
+                                    Mark as read
+                                  </Button>
+                                </Stack>
+                              )}
+                            </Box>
                           </Box>
-                        </Box>
-                      ))
+                        );
+                      })
                     )}
                   </Box>
 

@@ -6,6 +6,9 @@ import { paymentApi } from "./rtk/payment";
 import { registrationApi } from "./rtk/registration";
 import { settingsApi } from "./rtk/settings";
 import { remittanceApi } from "./rtk/remittance";
+import { manualOrderApi } from "./rtk/manual-order";
+import { transactionApi } from "./rtk/transaction";
+import { notificationApi } from "./rtk/notification";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 const store = configureStore({
@@ -17,7 +20,10 @@ const store = configureStore({
       .concat(paymentApi.middleware)
       .concat(registrationApi.middleware)
       .concat(settingsApi.middleware)
-      .concat(remittanceApi.middleware),
+      .concat(remittanceApi.middleware)
+      .concat(manualOrderApi.middleware)
+      .concat(transactionApi.middleware)
+      .concat(notificationApi.middleware),
 });
 
 setupListeners(store.dispatch);

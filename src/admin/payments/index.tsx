@@ -37,6 +37,11 @@ import {
   useConfirmRemittanceMutation,
   useRejectRemittanceMutation,
 } from "../../data/rtk/remittance";
+import {
+  useGetTransactionsQuery,
+  useConfirmTransactionMutation,
+  useRejectTransactionMutation,
+} from "../../data/rtk/transaction";
 import { getUserFullName } from "../../utils";
 import {
   useGetAllRegistrationWindowsQuery,
@@ -122,8 +127,8 @@ const Payments = () => {
   const toggleModal = () => setIsOpen(!isOpen);
 
   // KPI queries – unfiltered (all-time totals)
-  const { data: pendingRemittances } = useGetRemittancesQuery(
-    { limit: 50, status: "pending_confirmation" },
+  const { data: pendingTransactionsRes } = useGetTransactionsQuery(
+    { limit: 100, status: "pending" },
     { skip: !isAdmin },
   );
   const { data: historicalRemittances } = useGetRemittancesQuery(
@@ -141,7 +146,7 @@ const Payments = () => {
     { skip: isCoordinator && !coordinatorCenterId },
   );
 
-  const pendingCount = pendingRemittances?.data?.docs?.length || 0;
+  const pendingCount = pendingTransactionsRes?.data?.docs?.length || 0;
 
   return (
     <Frame text="Payments">
@@ -160,7 +165,7 @@ const Payments = () => {
             <div className="bg-white p-4 rounded-md space-y-2">
               <Typography level="h3">{pendingCount}</Typography>
               <Typography level="body-md" textColor="#000000">
-                Pending Remittances
+                Pending Approvals
               </Typography>
             </div>
             <div className="bg-white p-4 rounded-md space-y-2">
@@ -196,7 +201,7 @@ const Payments = () => {
                     : "text-slate-500 hover:text-slate-700"
                 }`}
               >
-                Pending Remittances
+                Pending Approvals
                 {pendingCount > 0 && (
                   <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-amber-500 rounded-full animate-pulse">
                     {pendingCount}
@@ -217,7 +222,7 @@ const Payments = () => {
 
             <div className="transition-all duration-300">
               {activeTab === "student_payments" && <TransactionTable />}
-              {activeTab === "pending_remittances" && <PendingRemittances />}
+              {activeTab === "pending_remittances" && <PendingApprovals />}
               {activeTab === "remittance_history" && <AdminRemittanceHistory />}
             </div>
           </div>
@@ -648,37 +653,47 @@ const TransactionTable = () => {
 };
 
 /* ────────────────────────────────────────────────────────────────────────── */
-/*  PendingRemittances  (unchanged — show ALL pending regardless of year)      */
+/*  PendingApprovals  (Zelle approvals across all transaction types)          */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-const PendingRemittances = () => {
-  const { data: remittances, isLoading } = useGetRemittancesQuery({
-    limit: 50,
-    status: "pending_confirmation",
+const PendingApprovals = () => {
+  const { data: transactionsRes, isLoading } = useGetTransactionsQuery({
+    limit: 100,
+    status: "pending",
   });
-  const [confirmRemittance] = useConfirmRemittanceMutation();
-  const [rejectRemittance] = useRejectRemittanceMutation();
+  const [confirmTransaction] = useConfirmTransactionMutation();
+  const [rejectTransaction] = useRejectTransactionMutation();
   const [actionId, setActionId] = useState<string | null>(null);
 
-  const docs = remittances?.data?.docs || [];
+  const docs = transactionsRes?.data?.docs || [];
   const hasDocs = docs.length > 0;
 
-  const getCoordinatorName = (r: Remittance) => {
-    if (typeof r.coordinatorId === "string") return r.coordinatorId;
-    return getUserFullName(r.coordinatorId as User);
+  const getPayerName = (t: any) => {
+    if (!t.createdBy) return "-";
+    const first = t.createdBy.firstName || "";
+    const last = t.createdBy.lastName || "";
+    return `${first} ${last}`.trim() || t.createdBy.email || "-";
   };
 
-  const getCenterName = (r: Remittance) => {
-    if (typeof r.centerId === "string") return "-";
-    return (r.centerId as Center)?.name || "-";
+  const getCenterName = (t: any) => {
+    return t.center?.name || "-";
+  };
+
+  const getTypeLabel = (type: string) => {
+    const config: Record<string, { label: string; color: "primary" | "warning" | "success" }> = {
+      registration: { label: "Student Registration", color: "primary" },
+      remittance: { label: "Coordinator Remittance", color: "warning" },
+      manual_order: { label: "Manual Order", color: "success" },
+    };
+    return config[type] || { label: type, color: "primary" };
   };
 
   const handleConfirm = async (id: string) => {
-    if (!window.confirm("Confirm this remittance as received?")) return;
+    if (!window.confirm("Confirm this transaction as received?")) return;
     setActionId(id);
     try {
-      await confirmRemittance(id).unwrap();
-      toast.success("Remittance confirmed");
+      await confirmTransaction(id).unwrap();
+      toast.success("Transaction confirmed successfully");
     } catch (error) {
       toast.error(handleError(error));
     } finally {
@@ -691,8 +706,8 @@ const PendingRemittances = () => {
     if (reason === null) return;
     setActionId(id);
     try {
-      await rejectRemittance({ id, reason: reason || undefined }).unwrap();
-      toast.success("Remittance rejected");
+      await rejectTransaction({ id, reason: reason || undefined }).unwrap();
+      toast.success("Transaction rejected");
     } catch (error) {
       toast.error(handleError(error));
     } finally {
@@ -725,8 +740,7 @@ const PendingRemittances = () => {
           All Caught Up!
         </Typography>
         <Typography level="body-sm" sx={{ color: "text.secondary" }}>
-          There are no pending coordinator remittances requiring your
-          confirmation at the moment.
+          There are no pending transactions requiring your confirmation at the moment.
         </Typography>
       </div>
     );
@@ -741,12 +755,12 @@ const PendingRemittances = () => {
           alignItems="center"
         >
           <div>
-            <Typography level="title-lg">Pending Remittances</Typography>
+            <Typography level="title-lg">Pending Approvals</Typography>
             <Typography
               level="body-sm"
               sx={{ mt: 0.5, color: "text.tertiary" }}
             >
-              Coordinator payments awaiting your confirmation
+              Coordinator and student payments awaiting your confirmation
             </Typography>
           </div>
           {hasDocs && (
@@ -765,7 +779,10 @@ const PendingRemittances = () => {
                 Date
               </th>
               <th scope="col" className="px-6 py-3">
-                Coordinator
+                Type
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Payer
               </th>
               <th scope="col" className="px-6 py-3">
                 Center
@@ -790,85 +807,84 @@ const PendingRemittances = () => {
           <tbody className="whitespace-nowrap">
             {isLoading && !hasDocs ? (
               <tr>
-                <td colSpan={8}>
-                  <TableSkeleton columns={8} rows={3} />
+                <td colSpan={9}>
+                  <TableSkeleton columns={9} rows={3} />
                 </td>
               </tr>
             ) : (
-              docs.map((r) => (
-                <tr
-                  className="border-b last:border-none font-medium"
-                  key={r._id}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {moment(r.createdAt).format("MM/DD/YYYY")}
-                  </td>
-                  <td className="px-6 py-4">{getCoordinatorName(r)}</td>
-                  <td className="px-6 py-4">{getCenterName(r)}</td>
-                  <td className="px-6 py-4">
-                    <Chip
-                      variant="outlined"
-                      size="sm"
-                      sx={{
-                        borderColor:
-                          r.method === "stripe" ? "#635BFF" : "#6D28D9",
-                        color: r.method === "stripe" ? "#635BFF" : "#6D28D9",
-                      }}
-                    >
-                      {r.method === "stripe" ? "Stripe" : "Zelle"}
-                    </Chip>
-                  </td>
-                  <td className="px-6 py-4">{formatCurrency(r.amount)}</td>
-                  <td className="px-6 py-4">{r.description || "-"}</td>
-                  <td className="px-6 py-4">
-                    {r.receiptImageUrl ? (
-                      <a
-                        href={r.receiptImageUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#001EC5] underline text-xs font-medium"
-                      >
-                        View Receipt
-                      </a>
-                    ) : r.receiptUrl ? (
-                      <a
-                        href={r.receiptUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#001EC5] underline text-xs font-medium"
-                      >
-                        Stripe Receipt
-                      </a>
-                    ) : (
-                      <span className="text-[#9CA3AF] text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <Stack direction="row" gap={1}>
-                      <Button
-                        size="sm"
-                        color="success"
-                        variant="solid"
-                        disabled={actionId === r._id}
-                        onClick={() => handleConfirm(r._id)}
-                        sx={{ fontWeight: 600 }}
-                      >
-                        Confirm
-                      </Button>
-                      <Button
-                        size="sm"
-                        color="danger"
+              docs.map((t: any) => {
+                const typeInfo = getTypeLabel(t.type);
+                return (
+                  <tr
+                    className="border-b last:border-none font-medium"
+                    key={t._id}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {moment(t.createdAt).format("MM/DD/YYYY")}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Chip color={typeInfo.color} variant="soft" size="sm">
+                        {typeInfo.label}
+                      </Chip>
+                    </td>
+                    <td className="px-6 py-4">{getPayerName(t)}</td>
+                    <td className="px-6 py-4">{getCenterName(t)}</td>
+                    <td className="px-6 py-4">
+                      <Chip
                         variant="outlined"
-                        disabled={actionId === r._id}
-                        onClick={() => handleReject(r._id)}
-                        sx={{ fontWeight: 600 }}
+                        size="sm"
+                        sx={{
+                          borderColor:
+                            t.method === "stripe" ? "#635BFF" : "#6D28D9",
+                          color: t.method === "stripe" ? "#635BFF" : "#6D28D9",
+                        }}
                       >
-                        Reject
-                      </Button>
-                    </Stack>
-                  </td>
-                </tr>
-              ))
+                        {t.method === "stripe" ? "Stripe" : "Zelle"}
+                      </Chip>
+                    </td>
+                    <td className="px-6 py-4">{formatCurrency(t.amount)}</td>
+                    <td className="px-6 py-4">{t.description || "-"}</td>
+                    <td className="px-6 py-4">
+                      {t.zelleReceiptUrl ? (
+                        <a
+                          href={t.zelleReceiptUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#001EC5] underline text-xs font-medium"
+                        >
+                          View Receipt
+                        </a>
+                      ) : (
+                        <span className="text-[#9CA3AF] text-xs">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Stack direction="row" gap={1}>
+                        <Button
+                          size="sm"
+                          color="success"
+                          variant="solid"
+                          disabled={actionId === t._id}
+                          onClick={() => handleConfirm(t._id)}
+                          sx={{ fontWeight: 600 }}
+                        >
+                          Confirm
+                        </Button>
+                        <Button
+                          size="sm"
+                          color="danger"
+                          variant="outlined"
+                          disabled={actionId === t._id}
+                          onClick={() => handleReject(t._id)}
+                          sx={{ fontWeight: 600 }}
+                        >
+                          Reject
+                        </Button>
+                      </Stack>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
