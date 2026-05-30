@@ -23,12 +23,14 @@ export const userApi = createApi({
         page?: number | null;
         center?: string;
         admissionYear?: string | number;
+        academicYear?: string;
       }
     >({
       query: ({
         type,
         center,
         admissionYear,
+        academicYear,
         limit = 20,
         search,
         page = 1,
@@ -40,6 +42,7 @@ export const userApi = createApi({
         if (admissionYear !== undefined && admissionYear !== "") {
           params.set("admissionYear", String(admissionYear));
         }
+        if (academicYear) params.set("academicYear", academicYear);
         if (page != null) params.set("page", String(page));
         if (limit != null) params.set("limit", String(limit));
 

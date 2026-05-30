@@ -17,6 +17,10 @@ import AvatarText from "../../components/avatar-text/AvatarText";
 import { useGetUsersQuery } from "../../data/rtk/user";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import {
+  useGetAllRegistrationWindowsQuery,
+  useGetRegistrationWindowQuery,
+} from "../../data/rtk/registration";
+import {
   CenteredEmptyState,
   TableSkeleton,
 } from "../../components/query-state/QueryStates";
@@ -26,30 +30,38 @@ import { getUserFullName } from "../../utils";
 
 const StudentsPage = () => {
   const [searchVar, setSearchVar] = useState("");
-  const [selectedYear, setSelectedYear] = useState(
-    String(new Date().getFullYear()),
-  );
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
   const [selectedCenter, setSelectedCenter] = useState("");
   const [page, setPage] = useState(1);
+  const [initialized, setInitialized] = useState(false);
 
-  const currentYear = new Date().getFullYear();
-  const admissionYears = Array.from({ length: 16 }, (_, index) =>
-    String(currentYear - index),
-  );
+  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
+    page: 1,
+    limit: 100,
+  });
+  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
+
+  useEffect(() => {
+    if (!initialized && currentWindowRes?.data?.label) {
+      setSelectedAcademicYear(currentWindowRes.data.label);
+      setInitialized(true);
+    }
+  }, [currentWindowRes, initialized]);
 
   const { data: centersRes } = useGetCentersQuery({ limit: 100 });
   const centers = centersRes?.data?.docs ?? [];
+  const academicYears = allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [searchVar, selectedYear, selectedCenter]);
+  }, [searchVar, selectedAcademicYear, selectedCenter]);
 
   const { data: students, isLoading } = useGetUsersQuery({
     type: "user",
     page,
     limit: 20,
-    ...(selectedYear ? { admissionYear: selectedYear } : {}),
+    ...(selectedAcademicYear ? { academicYear: selectedAcademicYear } : {}),
     ...(selectedCenter ? { center: selectedCenter } : {}),
     ...(searchVar ? { search: searchVar } : {}),
   });
@@ -58,16 +70,6 @@ const StudentsPage = () => {
   const studentDocs = students?.data?.docs || [];
   const totalPages = students?.data?.totalPages || 1;
   const totalItems = students?.data?.totalItems || 0;
-  const paidCount = studentDocs.filter(
-    (student) => student.paymentStatus === "paid",
-  ).length;
-  const pendingCount = studentDocs.filter(
-    (student) => student.paymentStatus === "pending",
-  ).length;
-  const failedCount = studentDocs.filter(
-    (student) => student.paymentStatus === "failed",
-  ).length;
-  const selectedYearLabel = selectedYear || "All Years";
   const selectedCenterLabel = selectedCenter
     ? (centers.find((center) => center._id === selectedCenter)?.name ??
       "Selected Center")
@@ -107,7 +109,7 @@ const StudentsPage = () => {
                 sx={{ mt: 0.5, color: "text.tertiary" }}
               >
                 {totalItems} registered student{totalItems !== 1 ? "s" : ""}
-                {selectedYear ? ` in ${selectedYearLabel}` : ""}
+                {selectedAcademicYear ? ` in ${selectedAcademicYear}` : ""}
                 {selectedCenter ? ` at ${selectedCenterLabel}` : ""}
               </Typography>
             </div>
@@ -123,15 +125,17 @@ const StudentsPage = () => {
             >
               <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
               <FormControl size="sm" sx={{ minWidth: 180 }}>
-                <FormLabel>Admission Year</FormLabel>
+                <FormLabel>Academic Year</FormLabel>
                 <Select
                   size="sm"
-                  value={selectedYear}
-                  onChange={(_, val) => setSelectedYear((val as string) ?? "")}
+                  value={selectedAcademicYear}
+                  onChange={(_, val) =>
+                    setSelectedAcademicYear((val as string) ?? "")
+                  }
                   placeholder="All Years"
                 >
                   <Option value="">All Years</Option>
-                  {admissionYears.map((year) => (
+                  {academicYears.map((year) => (
                     <Option key={year} value={year}>
                       {year}
                     </Option>
@@ -156,18 +160,6 @@ const StudentsPage = () => {
                   ))}
                 </Select>
               </FormControl>
-              {(searchVar || selectedYear || selectedCenter) && (
-                <AppButton
-                  variant="outlined"
-                  onClick={() => {
-                    setSearchVar("");
-                    setSelectedYear(String(currentYear));
-                    setSelectedCenter("");
-                  }}
-                >
-                  Clear Filters
-                </AppButton>
-              )}
             </Box>
           </Box>
 

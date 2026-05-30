@@ -1,4 +1,8 @@
 import {
+  FormControl,
+  FormLabel,
+  Option,
+  Select,
   Chip,
   Dropdown,
   IconButton,
@@ -8,7 +12,7 @@ import {
   Stack,
   Typography,
 } from "@mui/joy";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ReportCard from "../../components/card/ReportCard";
@@ -23,6 +27,10 @@ import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import { useGetUsersQuery } from "../../data/rtk/user";
 import { useGetCentersQuery } from "../../data/rtk/center";
+import {
+  useGetAllRegistrationWindowsQuery,
+  useGetRegistrationWindowQuery,
+} from "../../data/rtk/registration";
 import {
   CenteredEmptyState,
   MetricCardSkeleton,
@@ -400,9 +408,28 @@ const CenterCoordinatorTable = () => {
 
 const StudentsTable = ({ centerId }: { centerId?: string }) => {
   const [searchVar, setSearchVar] = useState("");
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
+  const [initialized, setInitialized] = useState(false);
+
+  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
+    page: 1,
+    limit: 100,
+  });
+  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
+
+  useEffect(() => {
+    if (!initialized && currentWindowRes?.data?.label) {
+      setSelectedAcademicYear(currentWindowRes.data.label);
+      setInitialized(true);
+    }
+  }, [currentWindowRes, initialized]);
+
+  const academicYears = allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+
   const { data: students, isLoading } = useGetUsersQuery({
     type: "user",
     ...(centerId ? { center: centerId } : {}),
+    ...(selectedAcademicYear ? { academicYear: selectedAcademicYear } : {}),
     ...(searchVar ? { search: searchVar } : {}),
   });
   const navigate = useNavigate();
@@ -421,11 +448,31 @@ const StudentsTable = ({ centerId }: { centerId?: string }) => {
           justifyContent={"space-between"}
           alignItems={"center"}
           gap={4}
+          flexWrap="wrap"
         >
-          <Typography level="title-lg" mb={4}>
-            Students
-          </Typography>
-          <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
+          <Typography level="title-lg">Students</Typography>
+
+          <Stack direction="row" gap={1.5} flexWrap="wrap" alignItems="end">
+            <FormControl size="sm" sx={{ minWidth: 220 }}>
+              <FormLabel>Academic Year</FormLabel>
+              <Select
+                size="sm"
+                value={selectedAcademicYear}
+                onChange={(_, val) =>
+                  setSelectedAcademicYear((val as string) ?? "")
+                }
+                placeholder="All Years"
+              >
+                <Option value="">All Years</Option>
+                {academicYears.map((year) => (
+                  <Option key={year} value={year}>
+                    {year}
+                  </Option>
+                ))}
+              </Select>
+            </FormControl>
+            <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
+          </Stack>
         </Stack>
         <div className={"overflow-x-auto w-full"}>
           <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">

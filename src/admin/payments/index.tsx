@@ -261,16 +261,14 @@ const TransactionTable = () => {
   const [selectedCenter, setSelectedCenter] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
 
-  // All registration windows for year dropdown (admin-only route)
-  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery(
-    { page: 1, limit: 100 },
-    { skip: !isAdmin },
-  );
+  // All registration windows for year dropdown
+  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
+    page: 1,
+    limit: 100,
+  });
 
   // Current/latest window – used to set the default year
-  const { data: currentWindowRes } = useGetRegistrationWindowQuery(undefined, {
-    skip: isCoordinator,
-  });
+  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
 
   // Centers for center dropdown (admin only)
   const { data: centersRes } = useGetCentersQuery(
@@ -501,27 +499,26 @@ const TransactionTable = () => {
       <Divider />
 
       <Box sx={{ p: 3 }}>
-        {/* Filter Bar – admin only (coordinators are always scoped to their center) */}
-        {isAdmin && (
-          <Stack direction="row" gap={2} flexWrap="wrap" mb={3}>
-            <FormControl size="sm">
-              <FormLabel>Academic Year</FormLabel>
-              <Select
-                size="sm"
-                value={selectedYear}
-                onChange={(_, val) => setSelectedYear((val as string) ?? "")}
-                placeholder="All Years"
-                sx={{ minWidth: 220 }}
-              >
-                <Option value="">All Years</Option>
-                {academicYears.map((year) => (
-                  <Option key={year} value={year}>
-                    {year}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
+        <Stack direction="row" gap={2} flexWrap="wrap" mb={3}>
+          <FormControl size="sm">
+            <FormLabel>Academic Year</FormLabel>
+            <Select
+              size="sm"
+              value={selectedYear}
+              onChange={(_, val) => setSelectedYear((val as string) ?? "")}
+              placeholder="All Years"
+              sx={{ minWidth: 220 }}
+            >
+              <Option value="">All Years</Option>
+              {academicYears.map((year) => (
+                <Option key={year} value={year}>
+                  {year}
+                </Option>
+              ))}
+            </Select>
+          </FormControl>
 
+          {isAdmin && (
             <FormControl size="sm">
               <FormLabel>Center</FormLabel>
               <Select
@@ -539,8 +536,8 @@ const TransactionTable = () => {
                 ))}
               </Select>
             </FormControl>
-          </Stack>
-        )}
+          )}
+        </Stack>
 
         {/* Table */}
         <Box
