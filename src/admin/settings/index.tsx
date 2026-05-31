@@ -103,7 +103,7 @@ const SettingsPage = () => {
                   "&.Mui-selected": { bgcolor: "transparent" },
                 }}
               >
-                Registration Fee
+                Fees
               </Tab>
             )}
 
@@ -151,55 +151,106 @@ const RegistrationFeeTab = () => {
     useUpdateSettingsMutation();
 
   const [registrationFee, setRegistrationFee] = useState<number>(2000);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [feeInput, setFeeInput] = useState("20.00");
+  const [manualOrderFee, setManualOrderFee] = useState<number>(7500);
+  const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
+  const [isManualOrderModalOpen, setIsManualOrderModalOpen] = useState(false);
+  const [registrationFeeInput, setRegistrationFeeInput] = useState("20.00");
+  const [manualOrderFeeInput, setManualOrderFeeInput] = useState("75.00");
 
   useEffect(() => {
     if (settingsData?.data?.registrationFee !== undefined) {
       setRegistrationFee(settingsData.data.registrationFee);
-      setFeeInput((settingsData.data.registrationFee / 100).toFixed(2));
+      setRegistrationFeeInput((settingsData.data.registrationFee / 100).toFixed(2));
+    }
+    if (settingsData?.data?.manualOrderFee !== undefined) {
+      setManualOrderFee(settingsData.data.manualOrderFee);
+      setManualOrderFeeInput((settingsData.data.manualOrderFee / 100).toFixed(2));
     }
   }, [settingsData]);
 
-  const formattedFee = (registrationFee / 100).toLocaleString("en-US", {
+  const formattedRegistrationFee = (registrationFee / 100).toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
   });
 
-  const parsedFeeInput = parseFloat(feeInput);
-  const isValidFee =
-    feeInput.trim() !== "" && !isNaN(parsedFeeInput) && parsedFeeInput >= 0;
-  const feePreview = isValidFee
-    ? parsedFeeInput.toLocaleString("en-US", {
+  const formattedManualOrderFee = (manualOrderFee / 100).toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+
+  const parsedRegistrationFeeInput = parseFloat(registrationFeeInput);
+  const isValidRegistrationFee =
+    registrationFeeInput.trim() !== "" && !isNaN(parsedRegistrationFeeInput) && parsedRegistrationFeeInput >= 0;
+  const registrationFeePreview = isValidRegistrationFee
+    ? parsedRegistrationFeeInput.toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
       })
     : null;
 
-  const openModal = () => {
-    setFeeInput((registrationFee / 100).toFixed(2));
-    setIsModalOpen(true);
+  const parsedManualOrderFeeInput = parseFloat(manualOrderFeeInput);
+  const isValidManualOrderFee =
+    manualOrderFeeInput.trim() !== "" && !isNaN(parsedManualOrderFeeInput) && parsedManualOrderFeeInput >= 0;
+  const manualOrderFeePreview = isValidManualOrderFee
+    ? parsedManualOrderFeeInput.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+      })
+    : null;
+
+  const openRegistrationModal = () => {
+    setRegistrationFeeInput((registrationFee / 100).toFixed(2));
+    setIsRegistrationModalOpen(true);
   };
 
-  const closeModal = () => {
-    setFeeInput((registrationFee / 100).toFixed(2));
-    setIsModalOpen(false);
+  const closeRegistrationModal = () => {
+    setRegistrationFeeInput((registrationFee / 100).toFixed(2));
+    setIsRegistrationModalOpen(false);
   };
 
-  const handleSaveFee = async () => {
-    if (!isValidFee) {
+  const openManualOrderModal = () => {
+    setManualOrderFeeInput((manualOrderFee / 100).toFixed(2));
+    setIsManualOrderModalOpen(true);
+  };
+
+  const closeManualOrderModal = () => {
+    setManualOrderFeeInput((manualOrderFee / 100).toFixed(2));
+    setIsManualOrderModalOpen(false);
+  };
+
+  const handleSaveRegistrationFee = async () => {
+    if (!isValidRegistrationFee) {
       toast.error("Enter a valid amount");
       return;
     }
 
-    const cents = Math.round(parsedFeeInput * 100);
+    const cents = Math.round(parsedRegistrationFeeInput * 100);
 
     try {
       await updateSettings({ registrationFee: cents }).unwrap();
       setRegistrationFee(cents);
-      setFeeInput((cents / 100).toFixed(2));
+      setRegistrationFeeInput((cents / 100).toFixed(2));
       toast.success("Registration fee updated");
-      setIsModalOpen(false);
+      setIsRegistrationModalOpen(false);
+    } catch (error) {
+      toast.error(handleError(error));
+    }
+  };
+
+  const handleSaveManualOrderFee = async () => {
+    if (!isValidManualOrderFee) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+
+    const cents = Math.round(parsedManualOrderFeeInput * 100);
+
+    try {
+      await updateSettings({ manualOrderFee: cents }).unwrap();
+      setManualOrderFee(cents);
+      setManualOrderFeeInput((cents / 100).toFixed(2));
+      toast.success("Manual order fee updated");
+      setIsManualOrderModalOpen(false);
     } catch (error) {
       toast.error(handleError(error));
     }
@@ -288,7 +339,7 @@ const RegistrationFeeTab = () => {
               level="h2"
               sx={{ color: "#001F54", fontWeight: 800, lineHeight: 1 }}
             >
-              {formattedFee}
+              {formattedRegistrationFee}
             </Typography>
             <Typography
               level="body-xs"
@@ -301,7 +352,7 @@ const RegistrationFeeTab = () => {
 
           <Button
             variant="outlined"
-            onClick={openModal}
+            onClick={openRegistrationModal}
             sx={{
               borderColor: "#001F54",
               color: "#001F54",
@@ -320,9 +371,114 @@ const RegistrationFeeTab = () => {
         </Box>
       </Card>
 
+      <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
+        <Box
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 2.5,
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: "12px",
+              background: "linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Typography
+              sx={{
+                color: "white",
+                fontWeight: 800,
+                fontSize: 20,
+                lineHeight: 1,
+              }}
+            >
+              📚
+            </Typography>
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography level="title-lg" sx={{ fontWeight: 700 }}>
+              Manual Order Fee
+            </Typography>
+            <Typography level="body-sm" textColor="neutral.500">
+              Per-unit cost charged to coordinators for manual book orders
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box
+          sx={{
+            p: 3,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: { xs: "flex-start", sm: "center" },
+            gap: 3,
+            flexDirection: { xs: "column", sm: "row" },
+          }}
+        >
+          <Box>
+            <Typography
+              level="body-xs"
+              sx={{
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "#9CA3AF",
+                fontWeight: 600,
+                mb: 0.75,
+              }}
+            >
+              Current Amount
+            </Typography>
+            <Typography
+              level="h2"
+              sx={{ color: "#001F54", fontWeight: 800, lineHeight: 1 }}
+            >
+              {formattedManualOrderFee}
+            </Typography>
+            <Typography
+              level="body-xs"
+              textColor="neutral.400"
+              sx={{ mt: 0.5 }}
+            >
+              Charged per book unit ordered
+            </Typography>
+          </Box>
+
+          <Button
+            variant="outlined"
+            onClick={openManualOrderModal}
+            sx={{
+              borderColor: "#001F54",
+              color: "#001F54",
+              fontWeight: 600,
+              px: 3,
+              flexShrink: 0,
+              ":hover": {
+                bgcolor: "#001F540D",
+                borderColor: "#001EC5",
+                color: "#001EC5",
+              },
+            }}
+          >
+            Set Manual Fee
+          </Button>
+        </Box>
+      </Card>
+
       <AppModal
-        isOpen={isModalOpen}
-        close={closeModal}
+        isOpen={isRegistrationModalOpen}
+        close={closeRegistrationModal}
         title="Set Registration Fee"
         icon
       >
@@ -332,8 +488,8 @@ const RegistrationFeeTab = () => {
               <FormLabel>Amount (USD)</FormLabel>
               <Input
                 type="number"
-                value={feeInput}
-                onChange={(e) => setFeeInput(e.target.value)}
+                value={registrationFeeInput}
+                onChange={(e) => setRegistrationFeeInput(e.target.value)}
                 placeholder="20.00"
                 startDecorator={
                   <Typography sx={{ color: "#6B7280", fontWeight: 600 }}>
@@ -345,26 +501,26 @@ const RegistrationFeeTab = () => {
               />
             </FormControl>
 
-            {feeInput !== "" && (
+            {registrationFeeInput !== "" && (
               <Box
                 sx={{
                   p: 2,
                   borderRadius: "10px",
-                  background: isValidFee ? "#F0F4FF" : "#FFF5F5",
+                  background: isValidRegistrationFee ? "#F0F4FF" : "#FFF5F5",
                   border: "1px solid",
-                  borderColor: isValidFee ? "#D4CAFE" : "#FECACA",
+                  borderColor: isValidRegistrationFee ? "#D4CAFE" : "#FECACA",
                 }}
               >
-                {isValidFee ? (
+                {isValidRegistrationFee ? (
                   <>
                     <Typography
                       level="body-sm"
                       sx={{ color: "#001F54", fontWeight: 600 }}
                     >
-                      Students will be charged <strong>{feePreview}</strong>
+                      Students will be charged <strong>{registrationFeePreview}</strong>
                     </Typography>
                     <Typography level="body-xs" textColor="neutral.500">
-                      Stored internally as {Math.round(parsedFeeInput * 100)}{" "}
+                      Stored internally as {Math.round(parsedRegistrationFeeInput * 100)}{" "}
                       cents
                     </Typography>
                   </>
@@ -379,16 +535,99 @@ const RegistrationFeeTab = () => {
             <Stack direction="row" gap={1.5} justifyContent="flex-end">
               <Button
                 variant="outlined"
-                onClick={closeModal}
+                onClick={closeRegistrationModal}
                 disabled={isUpdating}
                 sx={{ fontWeight: 600 }}
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleSaveFee}
+                onClick={handleSaveRegistrationFee}
                 loading={isUpdating}
-                disabled={!isValidFee || isUpdating}
+                disabled={!isValidRegistrationFee || isUpdating}
+                sx={{
+                  bgcolor: "#001F54",
+                  ":hover": { bgcolor: "#001EC5" },
+                  fontWeight: 600,
+                  px: 3,
+                }}
+              >
+                Save Fee
+              </Button>
+            </Stack>
+          </Stack>
+        </div>
+      </AppModal>
+
+      <AppModal
+        isOpen={isManualOrderModalOpen}
+        close={closeManualOrderModal}
+        title="Set Manual Order Fee"
+        icon
+      >
+        <div className="w-[min(440px,80vw)] mt-2">
+          <Stack spacing={2.5}>
+            <FormControl>
+              <FormLabel>Amount (USD)</FormLabel>
+              <Input
+                type="number"
+                value={manualOrderFeeInput}
+                onChange={(e) => setManualOrderFeeInput(e.target.value)}
+                placeholder="75.00"
+                startDecorator={
+                  <Typography sx={{ color: "#6B7280", fontWeight: 600 }}>
+                    $
+                  </Typography>
+                }
+                slotProps={{ input: { min: 0, step: "0.01" } }}
+                autoFocus
+              />
+            </FormControl>
+
+            {manualOrderFeeInput !== "" && (
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: "10px",
+                  background: isValidManualOrderFee ? "#F0F4FF" : "#FFF5F5",
+                  border: "1px solid",
+                  borderColor: isValidManualOrderFee ? "#D4CAFE" : "#FECACA",
+                }}
+              >
+                {isValidManualOrderFee ? (
+                  <>
+                    <Typography
+                      level="body-sm"
+                      sx={{ color: "#001F54", fontWeight: 600 }}
+                    >
+                      Per unit cost: <strong>{manualOrderFeePreview}</strong>
+                    </Typography>
+                    <Typography level="body-xs" textColor="neutral.500">
+                      Stored internally as {Math.round(parsedManualOrderFeeInput * 100)}{" "}
+                      cents
+                    </Typography>
+                  </>
+                ) : (
+                  <Typography level="body-sm" sx={{ color: "#DC2626" }}>
+                    Enter a valid amount, such as 75.00
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            <Stack direction="row" gap={1.5} justifyContent="flex-end">
+              <Button
+                variant="outlined"
+                onClick={closeManualOrderModal}
+                disabled={isUpdating}
+                sx={{ fontWeight: 600 }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveManualOrderFee}
+                loading={isUpdating}
+                disabled={!isValidManualOrderFee || isUpdating}
                 sx={{
                   bgcolor: "#001F54",
                   ":hover": { bgcolor: "#001EC5" },

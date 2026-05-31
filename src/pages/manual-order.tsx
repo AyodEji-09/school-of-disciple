@@ -32,8 +32,7 @@ import {
   useUploadManualOrderReceiptMutation,
 } from "../data/rtk/manual-order";
 import { useGetZelleDetailsQuery } from "../data/rtk/remittance";
-
-const UNIT_PRICE = 75;
+import { useGetSettingsQuery } from "../data/rtk/settings";
 
 type ManualOrderForm = {
   centerName: string;
@@ -57,6 +56,7 @@ const ManualOrderPage = () => {
   const [searchParams] = useSearchParams();
   const user = useAppSelector(selectUser);
   const { data: zelleDetails } = useGetZelleDetailsQuery();
+  const { data: settingsRes } = useGetSettingsQuery();
   const { data: manualOrdersRes, isLoading: manualOrdersLoading } =
     useGetManualOrdersQuery({ limit: 10 });
   const [createStripeManualOrder, { isLoading: stripeLoading }] =
@@ -100,8 +100,9 @@ const ManualOrderPage = () => {
     }
   }, [navigate, searchParams]);
 
+  const unitPrice = (settingsRes?.data?.manualOrderFee ?? 7500) / 100;
   const quantity = Number(form.quantity || 0);
-  const total = useMemo(() => quantity * UNIT_PRICE, [quantity]);
+  const total = useMemo(() => quantity * unitPrice, [quantity, unitPrice]);
   const manualOrders = manualOrdersRes?.data?.docs || [];
 
   const updateField = <K extends keyof ManualOrderForm>(
@@ -170,7 +171,7 @@ const ManualOrderPage = () => {
                   Manuals Order Details
                 </Typography>
                 <Typography level="body-sm" textColor="#475569">
-                  Each manual costs $75 per student. Enter the coordinator and
+                  Each manual costs {formatCurrency(unitPrice)} per student. Enter the coordinator and
                   delivery details below.
                 </Typography>
               </Box>
@@ -287,10 +288,10 @@ const ManualOrderPage = () => {
                 <Stack spacing={1.2}>
                   <SummaryLine
                     label="Price per student"
-                    value={formatCurrency(UNIT_PRICE)}
+                    value={formatCurrency(unitPrice)}
                   />
                   <SummaryLine label="Quantity" value={String(quantity || 0)} />
-                  <Divider />
+                  <Divider sx={{ my: 0.5 }} />
                   <SummaryLine
                     label="Total"
                     value={formatCurrency(total)}

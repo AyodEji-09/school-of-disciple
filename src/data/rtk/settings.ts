@@ -4,6 +4,7 @@ import { TOKEN, useURL } from "../config";
 export interface GlobalSettings {
   _id: string;
   registrationFee: number;
+  manualOrderFee: number;
   zelleEmail?: string;
   zelleName?: string;
   createdAt: string;
@@ -26,7 +27,7 @@ export const settingsApi = createApi({
     }),
     updateSettings: builder.mutation<
       ApiResponseN<GlobalSettings>,
-      { registrationFee?: number; zelleEmail?: string; zelleName?: string }
+      { registrationFee?: number; manualOrderFee?: number; zelleEmail?: string; zelleName?: string }
     >({
       query: (body) => ({
         url: "/settings",
