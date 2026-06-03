@@ -9,6 +9,7 @@ import { remittanceApi } from "./rtk/remittance";
 import { manualOrderApi } from "./rtk/manual-order";
 import { transactionApi } from "./rtk/transaction";
 import { notificationApi } from "./rtk/notification";
+import { academicApi } from "./rtk/academic";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 const store = configureStore({
@@ -23,7 +24,8 @@ const store = configureStore({
       .concat(remittanceApi.middleware)
       .concat(manualOrderApi.middleware)
       .concat(transactionApi.middleware)
-      .concat(notificationApi.middleware),
+      .concat(notificationApi.middleware)
+      .concat(academicApi.middleware),
 });
 
 setupListeners(store.dispatch);

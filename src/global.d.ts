@@ -209,3 +209,66 @@ type ManualOrder = {
   createdAt: string;
   updatedAt?: string;
 };
+
+// ── Academic ──────────────────────────────────────────────────────────────────
+
+type AcademicSession = {
+  _id: string;
+  name: string;
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+};
+
+type AcademicTerm = {
+  _id: string;
+  name: string;
+  sessionId: string | AcademicSession;
+  createdAt: string;
+};
+
+type AcademicSubject = {
+  _id: string;
+  name: string;
+  code: string;
+  creditUnit?: number;
+};
+
+type SubjectResult = {
+  subjectId: AcademicSubject | string;
+  score: number;
+  grade: string;
+  remark: string;
+};
+
+type ResultStatus = "draft" | "submitted" | "published" | "locked";
+type PublicationStatus = "pending" | "approved" | "rejected";
+
+type StudentResult = {
+  _id: string;
+  studentId: { _id: string; firstName: string; lastName: string; matricNumber: string } | string;
+  centerId: { _id: string; name: string } | string;
+  sessionId: { _id: string; name: string } | string;
+  termId: { _id: string; name: string } | string;
+  subjects: SubjectResult[];
+  totalScore: number;
+  average: number;
+  status: ResultStatus;
+  submittedAt?: string;
+  publishedAt?: string;
+  lockedAt?: string;
+  createdAt: string;
+};
+
+type ResultPublication = {
+  _id: string;
+  centerId: { _id: string; name: string } | string;
+  sessionId: { _id: string; name: string } | string;
+  termId: { _id: string; name: string } | string;
+  submittedBy: { _id: string; firstName: string; lastName: string } | string;
+  approvedBy?: { _id: string; firstName: string; lastName: string } | string;
+  status: PublicationStatus;
+  rejectionReason?: string;
+  reviewedAt?: string;
+  createdAt: string;
+};

@@ -158,6 +158,24 @@ const DefaultHeader = () => {
       url: "/my-dashboard",
       role: ["user"],
     },
+    {
+      id: 9,
+      name: "Results",
+      url: "/dashboard/results",
+      role: ["admin", "coordinator"],
+    },
+    {
+      id: 10,
+      name: "My Results",
+      url: "/my-dashboard/results",
+      role: ["user"],
+    },
+    {
+      id: 11,
+      name: "Academic Setup",
+      url: "/dashboard/results/setup",
+      role: ["admin"],
+    },
   ];
 
   return (

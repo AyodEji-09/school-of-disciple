@@ -48,6 +48,20 @@ import {
 import { hasCompletedIntake } from "./utils/intake";
 import SettingsPage from "./admin/settings";
 
+// Academic Results pages
+import ResultsPage from "./admin/results";
+import UploadResultPage from "./admin/results/upload";
+import BulkUploadPage from "./admin/results/bulk-upload";
+import EditResultPage from "./admin/results/edit";
+import ResultDetailPage from "./admin/results/[id]";
+import SubmitPublicationPage from "./admin/results/submit";
+import PublicationsPage from "./admin/results/publications";
+import AnalyticsPage from "./admin/results/analytics";
+import ReportsPage from "./admin/results/reports";
+import MyResultsPage from "./pages/MyResults";
+import MyResultDetailPage from "./pages/MyResultDetail";
+import AcademicSetupPage from "./admin/results/setup";
+
 SetDefaultHeaders();
 
 const SmartRedirect = () => {
@@ -153,6 +167,20 @@ const App = () => {
 
           <Route path="/dashboard/credit-admin" element={<CreditAdminPage />} />
           <Route path="/dashboard/manual-order" element={<ManualOrderPage />} />
+
+          {/* Academic Results */}
+          <Route path="/dashboard/results" element={<ResultsPage />} />
+          <Route path="/dashboard/results/upload" element={<UploadResultPage />} />
+          <Route path="/dashboard/results/bulk-upload" element={<BulkUploadPage />} />
+          <Route path="/dashboard/results/submit" element={<SubmitPublicationPage />} />
+          <Route path="/dashboard/results/analytics" element={<AnalyticsPage />} />
+          <Route path="/dashboard/results/reports" element={<ReportsPage />} />
+          <Route path="/dashboard/results/:id/edit" element={<EditResultPage />} />
+          <Route path="/dashboard/results/:id" element={<ResultDetailPage />} />
+
+          <Route path="/dashboard/results/publications" element={<PublicationsPage />} />
+          <Route path="/dashboard/results/setup" element={<AcademicSetupPage />} />
+
           <Route element={<SuperAdminRoute />}>
             <Route path="/dashboard/settings" element={<SettingsPage />} />
           </Route>
@@ -160,6 +188,8 @@ const App = () => {
 
         <Route element={<UserRoute />}>
           <Route path="/my-dashboard" element={<UserDashboard />} />
+          <Route path="/my-dashboard/results" element={<MyResultsPage />} />
+          <Route path="/my-dashboard/results/:id" element={<MyResultDetailPage />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
