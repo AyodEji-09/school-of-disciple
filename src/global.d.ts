@@ -153,7 +153,8 @@ type RegistrationWindow = {
   _id: string;
   startDate: string;
   endDate: string;
-  label: string;
+  sessionId: string | AcademicSession;
+  label?: string;
   createdBy: User;
   createdAt: string;
   updatedAt: string;

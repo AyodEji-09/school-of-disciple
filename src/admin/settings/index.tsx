@@ -6,6 +6,8 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Option,
+  Select,
   Stack,
   Tab,
   TabList,
@@ -36,12 +38,13 @@ import {
   useSetRegistrationWindowMutation,
   useUpdateRegistrationWindowMutation,
 } from "../../data/rtk/registration";
+import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { CenteredEmptyState } from "../../components/query-state/QueryStates";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface RegFormType {
-  label: string;
+  sessionId: string;
   startDate: string;
   endDate: string;
 }
@@ -160,27 +163,39 @@ const RegistrationFeeTab = () => {
   useEffect(() => {
     if (settingsData?.data?.registrationFee !== undefined) {
       setRegistrationFee(settingsData.data.registrationFee);
-      setRegistrationFeeInput((settingsData.data.registrationFee / 100).toFixed(2));
+      setRegistrationFeeInput(
+        (settingsData.data.registrationFee / 100).toFixed(2),
+      );
     }
     if (settingsData?.data?.manualOrderFee !== undefined) {
       setManualOrderFee(settingsData.data.manualOrderFee);
-      setManualOrderFeeInput((settingsData.data.manualOrderFee / 100).toFixed(2));
+      setManualOrderFeeInput(
+        (settingsData.data.manualOrderFee / 100).toFixed(2),
+      );
     }
   }, [settingsData]);
 
-  const formattedRegistrationFee = (registrationFee / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
+  const formattedRegistrationFee = (registrationFee / 100).toLocaleString(
+    "en-US",
+    {
+      style: "currency",
+      currency: "USD",
+    },
+  );
 
-  const formattedManualOrderFee = (manualOrderFee / 100).toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
+  const formattedManualOrderFee = (manualOrderFee / 100).toLocaleString(
+    "en-US",
+    {
+      style: "currency",
+      currency: "USD",
+    },
+  );
 
   const parsedRegistrationFeeInput = parseFloat(registrationFeeInput);
   const isValidRegistrationFee =
-    registrationFeeInput.trim() !== "" && !isNaN(parsedRegistrationFeeInput) && parsedRegistrationFeeInput >= 0;
+    registrationFeeInput.trim() !== "" &&
+    !isNaN(parsedRegistrationFeeInput) &&
+    parsedRegistrationFeeInput >= 0;
   const registrationFeePreview = isValidRegistrationFee
     ? parsedRegistrationFeeInput.toLocaleString("en-US", {
         style: "currency",
@@ -190,7 +205,9 @@ const RegistrationFeeTab = () => {
 
   const parsedManualOrderFeeInput = parseFloat(manualOrderFeeInput);
   const isValidManualOrderFee =
-    manualOrderFeeInput.trim() !== "" && !isNaN(parsedManualOrderFeeInput) && parsedManualOrderFeeInput >= 0;
+    manualOrderFeeInput.trim() !== "" &&
+    !isNaN(parsedManualOrderFeeInput) &&
+    parsedManualOrderFeeInput >= 0;
   const manualOrderFeePreview = isValidManualOrderFee
     ? parsedManualOrderFeeInput.toLocaleString("en-US", {
         style: "currency",
@@ -517,11 +534,12 @@ const RegistrationFeeTab = () => {
                       level="body-sm"
                       sx={{ color: "#001F54", fontWeight: 600 }}
                     >
-                      Students will be charged <strong>{registrationFeePreview}</strong>
+                      Students will be charged{" "}
+                      <strong>{registrationFeePreview}</strong>
                     </Typography>
                     <Typography level="body-xs" textColor="neutral.500">
-                      Stored internally as {Math.round(parsedRegistrationFeeInput * 100)}{" "}
-                      cents
+                      Stored internally as{" "}
+                      {Math.round(parsedRegistrationFeeInput * 100)} cents
                     </Typography>
                   </>
                 ) : (
@@ -603,8 +621,8 @@ const RegistrationFeeTab = () => {
                       Per unit cost: <strong>{manualOrderFeePreview}</strong>
                     </Typography>
                     <Typography level="body-xs" textColor="neutral.500">
-                      Stored internally as {Math.round(parsedManualOrderFeeInput * 100)}{" "}
-                      cents
+                      Stored internally as{" "}
+                      {Math.round(parsedManualOrderFeeInput * 100)} cents
                     </Typography>
                   </>
                 ) : (
@@ -940,10 +958,12 @@ const RegistrationTab = () => {
     useSetRegistrationWindowMutation();
   const [updateWindow, { isLoading: updating }] =
     useUpdateRegistrationWindowMutation();
+  const { data: sessionsRes } = useGetSessionsQuery();
 
   const currentWindow = currentWindowRes?.data;
   const status = getWindowStatus(currentWindow);
   const isSubmitting = creating || updating;
+  const sessions = sessionsRes?.data ?? [];
 
   const {
     control,
@@ -951,14 +971,18 @@ const RegistrationTab = () => {
     reset,
     formState: { errors },
   } = useForm<RegFormType>({
-    defaultValues: { label: "", startDate: "", endDate: "" },
+    defaultValues: { sessionId: "", startDate: "", endDate: "" },
   });
 
   const openEditModal = () => {
     if (currentWindow) {
       setMode("edit");
+      const sid =
+        typeof currentWindow.sessionId === "object"
+          ? (currentWindow.sessionId as any)?._id
+          : currentWindow.sessionId;
       reset({
-        label: currentWindow.label,
+        sessionId: sid ?? "",
         startDate: moment(currentWindow.startDate).format("YYYY-MM-DDTHH:mm"),
         endDate: moment(currentWindow.endDate).format("YYYY-MM-DDTHH:mm"),
       });
@@ -967,8 +991,10 @@ const RegistrationTab = () => {
   };
 
   const openCreateModal = () => {
+    // Pre-select the current session if one exists
+    const currentSession = sessions.find((s: any) => s.isCurrent);
     setMode("create");
-    reset({ label: "", startDate: "", endDate: "" });
+    reset({ sessionId: currentSession?._id ?? "", startDate: "", endDate: "" });
     setIsModalOpen(true);
   };
 
@@ -978,7 +1004,7 @@ const RegistrationTab = () => {
 
   const onSubmit = async (data: RegFormType) => {
     const payload = {
-      label: data.label,
+      sessionId: data.sessionId,
       startDate: new Date(data.startDate).toISOString(),
       endDate: new Date(data.endDate).toISOString(),
     };
@@ -1015,15 +1041,21 @@ const RegistrationTab = () => {
             >
               <div className="space-y-1">
                 <Typography level="body-sm" textColor="#6B7280">
-                  Active Registration Window
+                  {status.label === "Upcoming"
+                    ? "Upcoming Registration Window"
+                    : status.label === "Open"
+                      ? "Active Registration Window"
+                      : "Registration Window"}
                 </Typography>
                 <Stack direction="row" alignItems="center" gap={1.5}>
                   <Typography level="h4">
                     {currentWindow?.label ?? "No window configured yet"}
                   </Typography>
-                  <Chip color={status.color} variant="soft" size="md">
-                    {status.label}
-                  </Chip>
+                  {currentWindow && (
+                    <Chip color={status.color} variant="soft" size="md">
+                      {status.label}
+                    </Chip>
+                  )}
                 </Stack>
                 {currentWindow ? (
                   <Typography level="body-sm" textColor="#6B7280">
@@ -1040,21 +1072,53 @@ const RegistrationTab = () => {
                   </Typography>
                 )}
               </div>
+
               <Stack direction="row" gap={2} flexShrink={0}>
-                {currentWindow && (
-                  <AppButton
-                    type="button"
-                    variant="outlined"
-                    onClick={openEditModal}
-                  >
-                    Edit Window
+                {/* Open or Upcoming: only allow editing, never creating a new one */}
+                {(status.label === "Open" || status.label === "Upcoming") ? (
+                  <AppButton type="button" onClick={openEditModal}>
+                    {status.label === "Upcoming"
+                      ? "Edit Upcoming Window"
+                      : "Edit Window"}
                   </AppButton>
+                ) : (
+                  /* Closed or Not Configured: allow creating + editing if one exists */
+                  <>
+                    {currentWindow && (
+                      <AppButton
+                        type="button"
+                        variant="outlined"
+                        onClick={openEditModal}
+                      >
+                        Edit Last Window
+                      </AppButton>
+                    )}
+                    <AppButton type="button" onClick={openCreateModal}>
+                      {currentWindow ? "New Window" : "Set Window"}
+                    </AppButton>
+                  </>
                 )}
-                <AppButton type="button" onClick={openCreateModal}>
-                  {currentWindow ? "New Window" : "Set Window"}
-                </AppButton>
               </Stack>
             </Stack>
+
+            {/* Informational banner for upcoming state */}
+            {status.label === "Upcoming" && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 1.5,
+                  borderRadius: "8px",
+                  bgcolor: "#FFFBEB",
+                  border: "1px solid #FDE68A",
+                }}
+              >
+                <Typography level="body-sm" sx={{ color: "#92400E" }}>
+                  ⏳ This window hasn't opened yet. Edit it if you need to
+                  adjust the dates. A new window cannot be created while one is
+                  already scheduled.
+                </Typography>
+              </Box>
+            )}
           </Card>
 
           {/* History */}
@@ -1150,21 +1214,29 @@ const RegistrationTab = () => {
             <div className="space-y-4">
               <div>
                 <Controller
-                  name="label"
+                  name="sessionId"
                   control={control}
-                  rules={{ required: "Label is required" }}
+                  rules={{ required: "Academic session is required" }}
                   render={({ field: { value, onChange } }) => (
-                    <InputField
-                      label="Label"
-                      value={value}
-                      onChange={onChange}
-                      placeholder="e.g. 2025/2026 Academic Year"
-                    />
+                    <FormControl>
+                      <FormLabel>Academic Session</FormLabel>
+                      <Select
+                        value={value}
+                        onChange={(_, val) => onChange(val)}
+                        placeholder="Select a session…"
+                      >
+                        {sessions.map((s: any) => (
+                          <Option key={s._id} value={s._id}>
+                            {s.name}{s.isCurrent ? " · Current" : ""}
+                          </Option>
+                        ))}
+                      </Select>
+                    </FormControl>
                   )}
                 />
-                {errors.label && (
+                {errors.sessionId && (
                   <p className="text-[#dc2626] text-xs mt-1">
-                    {errors.label.message}
+                    {errors.sessionId.message}
                   </p>
                 )}
               </div>

@@ -25,7 +25,7 @@ export const registrationApi = createApi({
     }),
     setRegistrationWindow: builder.mutation<
       ApiResponseN<RegistrationWindow>,
-      { startDate: string; endDate: string; label: string }
+      { startDate: string; endDate: string; sessionId: string }
     >({
       query: (body) => ({
         url: "/registration/window",
@@ -36,7 +36,7 @@ export const registrationApi = createApi({
     }),
     updateRegistrationWindow: builder.mutation<
       ApiResponseN<RegistrationWindow>,
-      { id: string; startDate: string; endDate: string; label: string }
+      { id: string; startDate: string; endDate: string; sessionId: string }
     >({
       query: ({ id, ...body }) => ({
         url: `/registration/window/${id}`,
