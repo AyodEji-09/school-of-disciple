@@ -15,19 +15,19 @@ import { toast } from "react-toastify";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { RiArrowLeftLine, RiBankCardLine, RiShieldCheckLine } from "react-icons/ri";
 
-import Frame from "../components/frame/Frame";
-import AppButton from "../components/Button/AppButton";
-import AppModal from "../components/modal/modal";
-import { handleError } from "../utils";
-import { useAppSelector } from "../data/hooks";
-import { selectUser } from "../data/selectors/authSelector";
+import Frame from "../../components/frame/Frame";
+import AppButton from "../../components/Button/AppButton";
+import AppModal from "../../components/modal/modal";
+import { handleError } from "../../utils";
+import { useAppSelector } from "../../data/hooks";
+import { selectUser } from "../../data/selectors/authSelector";
 import {
   useCreateStripeManualOrderMutation,
   useCreateZelleManualOrderMutation,
   useUploadManualOrderReceiptMutation,
-} from "../data/rtk/manual-order";
-import { useGetZelleDetailsQuery } from "../data/rtk/remittance";
-import { useGetSettingsQuery } from "../data/rtk/settings";
+} from "../../data/rtk/manual-order";
+import { useGetZelleDetailsQuery } from "../../data/rtk/remittance";
+import { useGetSettingsQuery } from "../../data/rtk/settings";
 
 type ManualOrderForm = {
   centerName: string;

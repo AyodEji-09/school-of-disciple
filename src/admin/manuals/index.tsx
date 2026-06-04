@@ -10,18 +10,18 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { RiAddLine, RiCheckLine, RiUploadCloud2Line } from "react-icons/ri";
 
-import Frame from "../components/frame/Frame";
-import AppButton from "../components/Button/AppButton";
-import AppPagination from "../components/pagination/Pagination";
-import { handleError } from "../utils";
+import Frame from "../../components/frame/Frame";
+import AppButton from "../../components/Button/AppButton";
+import AppPagination from "../../components/pagination/Pagination";
+import { handleError } from "../../utils";
 import {
   CenteredEmptyState,
   TableSkeleton,
-} from "../components/query-state/QueryStates";
+} from "../../components/query-state/QueryStates";
 import {
   useGetManualOrdersQuery,
   useUploadManualOrderReceiptMutation,
-} from "../data/rtk/manual-order";
+} from "../../data/rtk/manual-order";
 
 const formatCurrency = (cents: number) =>
   `$${(cents / 100).toLocaleString(undefined, {

@@ -1,51 +1,113 @@
-import {
-  FormControl,
-  FormLabel,
-  Option,
-  Select,
-  Chip,
-  Dropdown,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  Stack,
-  Typography,
-} from "@mui/joy";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
-import ReportCard from "../../components/card/ReportCard";
-import AppButton from "../../components/Button/AppButton";
+import { Stack, Typography } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
-import { getUserFullName, handleError } from "../../utils";
-import AppSearch from "../../components/search/AppSearch";
+import ReportCard from "../../components/card/ReportCard";
+import { getUserFullName } from "../../utils";
 import Frame from "../../components/frame/Frame";
-import AvatarText from "../../components/avatar-text/AvatarText";
-import { MoreVert } from "@mui/icons-material";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import { useGetUsersQuery } from "../../data/rtk/user";
 import { useGetCentersQuery } from "../../data/rtk/center";
-import {
-  useGetAllRegistrationWindowsQuery,
-  useGetRegistrationWindowQuery,
-} from "../../data/rtk/registration";
-import {
-  CenteredEmptyState,
-  MetricCardSkeleton,
-  TableSkeleton,
-} from "../../components/query-state/QueryStates";
+import { useGetTransactionsQuery } from "../../data/rtk/transaction";
+import { MetricCardSkeleton } from "../../components/query-state/QueryStates";
+import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
+import PersonAddAlt1OutlinedIcon from "@mui/icons-material/PersonAddAlt1Outlined";
+import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
+import HourglassEmptyOutlinedIcon from "@mui/icons-material/HourglassEmptyOutlined";
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
+
+type QuickAction = {
+  id: string;
+  label: string;
+  description: string;
+  url: string;
+  icon: React.ReactNode;
+};
+
+const ADMIN_QUICK_ACTIONS: QuickAction[] = [
+  {
+    id: "qa-centers",
+    label: "Manage Centers",
+    description: "Add, edit, or remove center locations",
+    url: "/dashboard/manage-centers",
+    icon: <SchoolOutlinedIcon sx={{ fontSize: 22 }} />,
+  },
+  {
+    id: "qa-coordinators",
+    label: "Coordinators",
+    description: "Invite and manage center coordinators",
+    url: "/dashboard/coordinators",
+    icon: <GroupOutlinedIcon sx={{ fontSize: 22 }} />,
+  },
+  {
+    id: "qa-students",
+    label: "All Students",
+    description: "Browse all registered students",
+    url: "/dashboard/students",
+    icon: <PersonAddAlt1OutlinedIcon sx={{ fontSize: 22 }} />,
+  },
+  {
+    id: "qa-manual-orders",
+    label: "Manual Orders",
+    description: "Manage manual book orders",
+    url: "/dashboard/manual-orders",
+    icon: <MenuBookOutlinedIcon sx={{ fontSize: 22 }} />,
+  },
+  {
+    id: "qa-configurations",
+    label: "Configurations",
+    description: "Registration windows, fees & Zelle",
+    url: "/dashboard/configurations/registration",
+    icon: <SettingsOutlinedIcon sx={{ fontSize: 22 }} />,
+  },
+];
+
+const COORDINATOR_QUICK_ACTIONS: QuickAction[] = [
+  {
+    id: "qa-my-students",
+    label: "My Students",
+    description: "View students at your center",
+    url: "/dashboard/my-students",
+    icon: <PeopleAltOutlinedIcon sx={{ fontSize: 22 }} />,
+  },
+  {
+    id: "qa-upload",
+    label: "Upload Result",
+    description: "Upload a single student result",
+    url: "/dashboard/results/upload",
+    icon: <CloudUploadOutlinedIcon sx={{ fontSize: 22 }} />,
+  },
+  {
+    id: "qa-bulk-upload",
+    label: "Bulk Upload",
+    description: "Upload many results at once",
+    url: "/dashboard/results/bulk-upload",
+    icon: <FileUploadOutlinedIcon sx={{ fontSize: 22 }} />,
+  },
+  {
+    id: "qa-manuals",
+    label: "My Manuals",
+    description: "Order and view manuals",
+    url: "/dashboard/manual-order",
+    icon: <LibraryBooksOutlinedIcon sx={{ fontSize: 22 }} />,
+  },
+];
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
+  const isAdmin = user?.type === "admin";
   const isCoordinator = user?.type === "coordinator";
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : user?.center?._id;
   const isUnassignedCoordinator = isCoordinator && !coordinatorCenterId;
+
   const { data: coordinators, isLoading: coordinatorsLoading } =
-    useGetUsersQuery({ type: "coordinator" }, { skip: isCoordinator });
+    useGetUsersQuery({ type: "coordinator" }, { skip: !isAdmin });
   const { data: students, isLoading: studentsLoading } = useGetUsersQuery(
     {
       type: "user",
@@ -57,14 +119,37 @@ const Dashboard = () => {
   );
   const { data: centers, isLoading: centersLoading } = useGetCentersQuery(
     { page: 1, limit: 20 },
-    { skip: isCoordinator },
+    { skip: !isAdmin },
   );
+  const { data: pendingTxs } = useGetTransactionsQuery(
+    { status: "pending" },
+    { skip: !isAdmin },
+  );
+  const pendingApprovalsCount = pendingTxs?.data?.totalItems ?? 0;
 
-  const isStatsLoading =
-    user?.type === "admin"
-      ? coordinatorsLoading || centersLoading || studentsLoading
-      : studentsLoading;
-  const statsSkeletonCount = user?.type === "admin" ? 3 : 1;
+  const isStatsLoading = isAdmin
+    ? coordinatorsLoading || centersLoading || studentsLoading
+    : studentsLoading;
+  const statsSkeletonCount = isAdmin ? 3 : 1;
+
+  const quickActions = isAdmin
+    ? ADMIN_QUICK_ACTIONS.map((a) =>
+        a.id === "qa-configurations" && pendingApprovalsCount > 0
+          ? {
+              ...a,
+              description: `${pendingApprovalsCount} payment${
+                pendingApprovalsCount === 1 ? "" : "s"
+              } awaiting approval`,
+              url: "/dashboard/payments/approvals",
+              icon: <HourglassEmptyOutlinedIcon sx={{ fontSize: 22 }} />,
+            }
+          : a,
+      )
+    : isCoordinator
+      ? COORDINATOR_QUICK_ACTIONS
+      : [];
+
+  const hasUnassignedView = isUnassignedCoordinator;
 
   return (
     <Frame text={`Welcome ${user ? getUserFullName(user) : ""}`}>
@@ -75,20 +160,20 @@ const Dashboard = () => {
           ))
         ) : (
           <>
-            {user?.type === "admin" && (
+            {isAdmin && (
               <ReportCard
                 number={coordinators?.data?.totalItems || 0}
                 title="Center Coordinators"
               />
             )}
-            {user?.type === "admin" && (
+            {isAdmin && (
               <ReportCard
                 number={centers?.data?.totalItems || 0}
                 title="Centers"
               />
             )}
             <ReportCard
-              title="Students"
+              title={isCoordinator ? "My Students" : "Students"}
               number={
                 isUnassignedCoordinator ? 0 : students?.data?.totalItems || 0
               }
@@ -96,442 +181,52 @@ const Dashboard = () => {
           </>
         )}
       </div>
-      {user?.type === "admin" && (
-        <Stack py={4}>
-          <div className="w-fit ml-auto flex gap-4 flex-wrap">
-            <AppButton
-              variant="outlined"
-              onClick={() => navigate("/dashboard/manage-centers")}
-            >
-              Add Center
-            </AppButton>
-            <AppButton
-              variant="outlined"
-              onClick={() => navigate("/dashboard/add-manager")}
-            >
-              Add Center Manager
-            </AppButton>
+
+      {quickActions.length > 0 && (
+        <Stack py={4} gap={2}>
+          <Typography level="title-lg" sx={{ color: "#001F54" }}>
+            Quick Actions
+          </Typography>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {quickActions.map((action) => (
+              <button
+                key={action.id}
+                onClick={() => navigate(action.url)}
+                className="group bg-white border border-[#E6ECFF] hover:border-[#001EC5] hover:shadow-sm rounded-lg p-4 text-left flex items-start gap-3 transition-all"
+              >
+                <span className="shrink-0 w-10 h-10 rounded-lg bg-[#F0F4FF] text-[#001EC5] flex items-center justify-center group-hover:bg-[#001EC5] group-hover:text-white transition-colors">
+                  {action.icon}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-[#001F54] group-hover:text-[#001EC5]">
+                    {action.label}
+                  </span>
+                  <span className="block text-xs text-[#6B7280] mt-0.5 leading-snug">
+                    {action.description}
+                  </span>
+                </span>
+              </button>
+            ))}
           </div>
         </Stack>
       )}
-      <div className="mt-12">
-        {user?.type === "coordinator" ? (
-          isUnassignedCoordinator ? (
-            <UnassignedCoordinatorNotice />
-          ) : (
-            <StudentsTable centerId={coordinatorCenterId} />
-          )
-        ) : (
-          <CenterCoordinatorTable />
-        )}
-      </div>
+
+      {hasUnassignedView && (
+        <div className="mt-12">
+          <div className="bg-white border border-[#E6ECFF] rounded-lg p-8 text-center max-w-2xl mx-auto">
+            <Typography level="h3" textColor="#001F54" mb={1}>
+              You are not assigned to any center yet
+            </Typography>
+            <Typography level="body-md" textColor="#475569">
+              Your coordinator account is active, but no center has been
+              assigned. Please contact an admin to complete your center
+              assignment.
+            </Typography>
+          </div>
+        </div>
+      )}
     </Frame>
   );
 };
 
 export default Dashboard;
-
-const UnassignedCoordinatorNotice = () => {
-  return (
-    <div className="bg-white border border-[#E6ECFF] rounded-lg p-8 text-center max-w-2xl mx-auto">
-      <Typography level="h3" textColor="#001F54" mb={1}>
-        You are not assigned to any center yet
-      </Typography>
-      <Typography level="body-md" textColor="#475569">
-        Your coordinator account is active, but no center has been assigned.
-        Please contact an admin to complete your center assignment.
-      </Typography>
-    </div>
-  );
-};
-
-const CenterCoordinatorTable = () => {
-  const navigate = useNavigate();
-  const [searchVar, setSearchVar] = useState("");
-  const [resendInviteId, setResendInviteId] = useState<string | null>(null);
-  const [deleteInviteId, setDeleteInviteId] = useState<string | null>(null);
-  const {
-    data: coordinators,
-    isLoading,
-    refetch,
-  } = useGetUsersQuery({
-    type: "coordinator",
-    ...(searchVar ? { search: searchVar } : {}),
-  });
-  const coordinatorDocs = coordinators?.data?.docs || [];
-
-  const getCenterName = (entry: User) => {
-    if (!entry?.center || typeof entry.center === "string") return "-";
-    return entry.center.name || "-";
-  };
-
-  const getCoordinatorStatus = (entry: User) => {
-    if (entry.coordinatorStatus) return entry.coordinatorStatus;
-    if (!entry.emailVerified) return "pending";
-    if (entry.deactivated) return "deactivated";
-    if (!entry.center) return "unassigned";
-    return "assigned";
-  };
-
-  const getCenterId = (entry: User) => {
-    if (!entry?.center) return null;
-    if (typeof entry.center === "string") return entry.center;
-    return entry.center._id;
-  };
-
-  const resendInvite = async (entry: User) => {
-    const centerId = getCenterId(entry);
-    if (!entry?.email || !centerId) {
-      toast.error("Coordinator email or center is missing");
-      return;
-    }
-
-    setResendInviteId(entry._id);
-    try {
-      const res = await axios.post<ApiResponseN<null>>(
-        "/admin/invite-coordinator",
-        {
-          email: entry.email,
-          centerId,
-          firstName: entry.firstName,
-          lastName: entry.lastName,
-        },
-      );
-      toast.success(res.data.message || "Invite resent successfully");
-    } catch (error) {
-      toast.error(handleError(error));
-    } finally {
-      setResendInviteId(null);
-    }
-  };
-
-  const handleDeleteInvite = async (entry: User) => {
-    if (!entry?._id) return;
-    if (!window.confirm("Are you sure you want to delete this invite?")) return;
-
-    setDeleteInviteId(entry._id);
-    try {
-      await axios.delete(`/admin/invite-coordinator/${entry._id}`);
-      toast.success("Invite deleted successfully");
-      refetch();
-    } catch (error) {
-      toast.error(handleError(error));
-    } finally {
-      setDeleteInviteId(null);
-    }
-  };
-
-  const getStatusChip = (
-    status: "assigned" | "unassigned" | "deactivated" | "pending",
-  ) => {
-    const config = {
-      assigned: { color: "success" as const, label: "Assigned" },
-      unassigned: { color: "warning" as const, label: "Unassigned" },
-      deactivated: { color: "danger" as const, label: "Deactivated" },
-      pending: { color: "neutral" as const, label: "Pending Invite" },
-    };
-
-    return (
-      <Chip color={config[status].color} variant="soft" size="sm">
-        {config[status].label}
-      </Chip>
-    );
-  };
-
-  const getActionLabel = (entry: User) => {
-    const status = getCoordinatorStatus(entry);
-    if (status === "pending") return "Pending";
-    if (status === "deactivated") return "Deactivated";
-    if (status === "unassigned") return "Assign";
-    return "View";
-  };
-
-  return (
-    <div className="grid gap-4 pb-16">
-      <div className="bg-white p-4 overflow-x-auto">
-        <Stack
-          direction={"row"}
-          justifyContent={"space-between"}
-          alignItems={"center"}
-          gap={4}
-        >
-          <Typography level="title-lg" mb={4}>
-            Center Coordinators
-          </Typography>
-          <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
-        </Stack>
-        <div className={"overflow-x-auto w-full"}>
-          <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-            <thead className="text-xs whitespace-nowrap">
-              <tr>
-                <th scope="col" className="px-6 py-3">
-                  Name
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Phone Number
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Center
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Email
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="whitespace-nowrap">
-              {isLoading && coordinatorDocs.length === 0 ? (
-                <tr>
-                  <td colSpan={6}>
-                    <TableSkeleton columns={6} rows={5} />
-                  </td>
-                </tr>
-              ) : coordinatorDocs.length ? (
-                coordinatorDocs.map((coordinator, idx) => (
-                  <tr
-                    className="border-b last:border-none font-medium"
-                    key={idx}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <AvatarText text={getUserFullName(coordinator)} />
-                    </td>
-                    <td className="px-6 py-4">{coordinator?.phone}</td>
-                    <td className="px-6 py-4">{getCenterName(coordinator)}</td>
-                    <td className="px-6 py-4">{coordinator?.email}</td>
-                    <td className="px-6 py-4">
-                      {getStatusChip(getCoordinatorStatus(coordinator))}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Dropdown>
-                        <MenuButton
-                          slots={{ root: IconButton }}
-                          slotProps={{
-                            root: { variant: "outlined", color: "neutral" },
-                          }}
-                        >
-                          <MoreVert />
-                        </MenuButton>
-                        <Menu>
-                          <MenuItem
-                            onClick={() =>
-                              navigate(`/dashboard/manager/${coordinator._id}`)
-                            }
-                          >
-                            {getActionLabel(coordinator)}
-                          </MenuItem>
-                          {getCoordinatorStatus(coordinator) === "pending" && (
-                            <>
-                              <MenuItem
-                                onClick={() => resendInvite(coordinator)}
-                                disabled={resendInviteId === coordinator._id}
-                              >
-                                {resendInviteId === coordinator._id
-                                  ? "Resending..."
-                                  : "Resend Invite"}
-                              </MenuItem>
-                              <MenuItem
-                                onClick={() => handleDeleteInvite(coordinator)}
-                                disabled={deleteInviteId === coordinator._id}
-                                variant="soft"
-                                color="danger"
-                              >
-                                {deleteInviteId === coordinator._id
-                                  ? "Deleting..."
-                                  : "Delete Invite"}
-                              </MenuItem>
-                            </>
-                          )}
-                        </Menu>
-                      </Dropdown>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6}>
-                    <CenteredEmptyState description="No coordinators found" />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {/* <div className="hidden md:block bg-white p-4">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="col-span-2">
-            <div className="h-40 rounded-lg overflow-hidden">
-              <img
-                src={require("../../assets/images/db-img-1.png")}
-                alt=""
-                className="o object-cover w-full h-full"
-              />
-            </div>
-          </div>
-          <div className="">
-            <div className="h-40 rounded-lg overflow-hidden">
-              <img
-                src={require("../../assets/images/db-img-2.png")}
-                alt=""
-                className="o object-cover w-full h-full"
-              />
-            </div>
-          </div>
-          <div className="">
-            <div className="h-40 rounded-lg overflow-hidden">
-              <img
-                src={require("../../assets/images/db-img-3.png")}
-                alt=""
-                className="o object-cover w-full h-full"
-              />
-            </div>
-          </div>
-          <div className="col-span-2">
-            <div className="h-40 rounded-lg overflow-hidden">
-              <img
-                src={require("../../assets/images/db-img-4.png")}
-                alt=""
-                className="o object-cover w-full h-full"
-              />
-            </div>
-          </div>
-        </div>
-      </div> */}
-    </div>
-  );
-};
-
-const StudentsTable = ({ centerId }: { centerId?: string }) => {
-  const [searchVar, setSearchVar] = useState("");
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
-  const [initialized, setInitialized] = useState(false);
-
-  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
-    page: 1,
-    limit: 100,
-  });
-  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
-
-  useEffect(() => {
-    if (!initialized && currentWindowRes?.data?.label) {
-      setSelectedAcademicYear(currentWindowRes.data.label);
-      setInitialized(true);
-    }
-  }, [currentWindowRes, initialized]);
-
-  const academicYears = allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
-
-  const { data: students, isLoading } = useGetUsersQuery({
-    type: "user",
-    ...(centerId ? { center: centerId } : {}),
-    ...(selectedAcademicYear ? { academicYear: selectedAcademicYear } : {}),
-    ...(searchVar ? { search: searchVar } : {}),
-  });
-  const navigate = useNavigate();
-  const studentDocs = students?.data?.docs || [];
-
-  const getCenterName = (entry: User) => {
-    if (!entry?.center || typeof entry.center === "string") return "-";
-    return entry.center.name || "-";
-  };
-
-  return (
-    <div className="pb-16">
-      <div className="bg-white p-4 overflow-x-auto">
-        <Stack
-          direction={"row"}
-          justifyContent={"space-between"}
-          alignItems={"center"}
-          gap={4}
-          flexWrap="wrap"
-        >
-          <Typography level="title-lg">Students</Typography>
-
-          <Stack direction="row" gap={1.5} flexWrap="wrap" alignItems="end">
-            <FormControl size="sm" sx={{ minWidth: 220 }}>
-              <FormLabel>Academic Year</FormLabel>
-              <Select
-                size="sm"
-                value={selectedAcademicYear}
-                onChange={(_, val) =>
-                  setSelectedAcademicYear((val as string) ?? "")
-                }
-                placeholder="All Years"
-              >
-                <Option value="">All Years</Option>
-                {academicYears.map((year) => (
-                  <Option key={year} value={year}>
-                    {year}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
-            <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
-          </Stack>
-        </Stack>
-        <div className={"overflow-x-auto w-full"}>
-          <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-            <thead className="text-xs whitespace-nowrap">
-              <tr>
-                <th scope="col" className="px-6 py-3">
-                  Student Name
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Student Matric Number
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Center
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="whitespace-nowrap">
-              {isLoading && studentDocs.length === 0 ? (
-                <tr>
-                  <td colSpan={4}>
-                    <TableSkeleton columns={4} rows={5} />
-                  </td>
-                </tr>
-              ) : studentDocs.length ? (
-                studentDocs.map((student, idx) => (
-                  <tr
-                    className="border-b last:border-none font-medium"
-                    key={idx}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <AvatarText text={getUserFullName(student)} />
-                    </td>
-                    <td className="px-6 py-4">{student?.matricNumber}</td>
-                    <td className="px-6 py-4">{getCenterName(student)}</td>
-                    <td className="px-6 py-4">
-                      <AppButton
-                        onClick={() =>
-                          navigate(`/dashboard/students/${student._id}`)
-                        }
-                      >
-                        View
-                      </AppButton>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4}>
-                    <CenteredEmptyState description="No students found" />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};

@@ -5,8 +5,6 @@ import {
   Divider,
   Dropdown,
   IconButton,
-  List,
-  ListItem,
   Menu,
   MenuButton,
   MenuItem,
@@ -15,8 +13,9 @@ import {
 } from "@mui/joy";
 import Profile from "../profile/Profile";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PropsWithChildren, useState } from "react";
+import { PropsWithChildren, useEffect, useMemo, useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
@@ -33,9 +32,208 @@ import {
 import { toast } from "react-toastify";
 import moment from "moment";
 
+type NavItem = {
+  id: string;
+  name: string;
+  url: string;
+  role: Array<"admin" | "super" | "coordinator" | "user">;
+};
+
+type NavGroup = {
+  id: string;
+  label: string;
+  items: NavItem[];
+};
+
 type Props = {
   title?: string;
 };
+
+const topLevelItems: NavItem[] = [
+  {
+    id: "dashboard",
+    name: "Dashboard",
+    url: "/dashboard",
+    role: ["admin", "coordinator"],
+  },
+  {
+    id: "my-students",
+    name: "My Students",
+    url: "/dashboard/my-students",
+    role: ["coordinator"],
+  },
+  {
+    id: "my-dashboard",
+    name: "Dashboard",
+    url: "/my-dashboard",
+    role: ["user"],
+  },
+  {
+    id: "my-results",
+    name: "My Results",
+    url: "/my-dashboard/results",
+    role: ["user"],
+  },
+];
+
+const navGroups: NavGroup[] = [
+  {
+    id: "centers",
+    label: "Centers & People",
+    items: [
+      {
+        id: "centers-list",
+        name: "Manage Centers",
+        url: "/dashboard/manage-centers",
+        role: ["admin"],
+      },
+      {
+        id: "coordinators-list",
+        name: "Coordinators",
+        url: "/dashboard/coordinators",
+        role: ["admin"],
+      },
+      {
+        id: "students-list",
+        name: "Students",
+        url: "/dashboard/students",
+        role: ["admin"],
+      },
+    ],
+  },
+  {
+    id: "finance",
+    label: "Finance",
+    items: [
+      {
+        id: "payments",
+        name: "Payments",
+        url: "/dashboard/payments",
+        role: ["admin", "coordinator"],
+      },
+      {
+        id: "approvals",
+        name: "Approvals",
+        url: "/dashboard/payments/approvals",
+        role: ["admin"],
+      },
+      {
+        id: "remittances-admin",
+        name: "Remittances",
+        url: "/dashboard/payments/remittances",
+        role: ["admin"],
+      },
+      {
+        id: "remittances-coord",
+        name: "Remittances",
+        url: "/dashboard/credit-admin",
+        role: ["coordinator"],
+      },
+      {
+        id: "manual-orders",
+        name: "Manual Orders",
+        url: "/dashboard/manual-orders",
+        role: ["admin", "super"],
+      },
+    ],
+  },
+  {
+    id: "manuals",
+    label: "Manuals",
+    items: [
+      {
+        id: "my-manuals",
+        name: "My Manuals",
+        url: "/dashboard/manual-order",
+        role: ["coordinator"],
+      },
+      {
+        id: "order-new",
+        name: "Order New",
+        url: "/dashboard/manual-order/new",
+        role: ["coordinator"],
+      },
+    ],
+  },
+  {
+    id: "results",
+    label: "Results",
+    items: [
+      {
+        id: "all-results",
+        name: "All Results",
+        url: "/dashboard/results",
+        role: ["admin", "coordinator"],
+      },
+      {
+        id: "upload",
+        name: "Upload Result",
+        url: "/dashboard/results/upload",
+        role: ["coordinator"],
+      },
+      {
+        id: "bulk-upload",
+        name: "Bulk Upload",
+        url: "/dashboard/results/bulk-upload",
+        role: ["coordinator"],
+      },
+      {
+        id: "submit",
+        name: "Submit for Publication",
+        url: "/dashboard/results/submit",
+        role: ["coordinator"],
+      },
+      {
+        id: "publications",
+        name: "Publications",
+        url: "/dashboard/results/publications",
+        role: ["admin"],
+      },
+      {
+        id: "analytics",
+        name: "Analytics",
+        url: "/dashboard/results/analytics",
+        role: ["admin"],
+      },
+      {
+        id: "reports",
+        name: "Reports",
+        url: "/dashboard/results/reports",
+        role: ["admin"],
+      },
+      {
+        id: "academic-setup",
+        name: "Academic Setup",
+        url: "/dashboard/results/setup",
+        role: ["admin"],
+      },
+    ],
+  },
+  {
+    id: "configurations",
+    label: "Configurations",
+    items: [
+      {
+        id: "config-registration",
+        name: "Registration Windows",
+        url: "/dashboard/configurations/registration",
+        role: ["admin", "super"],
+      },
+      {
+        id: "config-fees",
+        name: "Fees",
+        url: "/dashboard/configurations/fees",
+        role: ["admin"],
+      },
+      {
+        id: "config-zelle",
+        name: "Zelle Details",
+        url: "/dashboard/configurations/zelle",
+        role: ["admin"],
+      },
+    ],
+  },
+];
 
 const DefaultHeader = ({
   title = "Dashboard",
@@ -48,6 +246,7 @@ const DefaultHeader = ({
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   const { data: notificationsRes } = useGetNotificationsQuery(undefined, {
     skip: !user,
@@ -107,81 +306,40 @@ const DefaultHeader = ({
     }
   };
 
-  const routes = [
-    {
-      id: 1,
-      name: "Dashboard",
-      url: "/dashboard",
-      role: ["admin", "coordinator"],
-    },
-    {
-      id: 2,
-      name: "Manage Centers",
-      url: "/dashboard/manage-centers",
-      role: ["admin"],
-    },
-    { id: 3, name: "Students", url: "/dashboard/students", role: ["admin"] },
-    {
-      id: 4,
-      name: "Payments",
-      url: "/dashboard/payments",
-      role: ["admin", "coordinator"],
-    },
-    {
-      id: 5,
-      name: "Settings",
-      url: "/dashboard/settings",
-      role: ["admin"],
-    },
-    {
-      id: 6,
-      name: "Credit Admin",
-      url: "/dashboard/credit-admin",
-      role: ["coordinator"],
-    },
-    {
-      id: 7,
-      name: "Manuals",
-      url: "/dashboard/manual-order",
-      role: ["coordinator"],
-    },
-    {
-      id: 8,
-      name: "Dashboard",
-      url: "/my-dashboard",
-      role: ["user"],
-    },
-    {
-      id: 9,
-      name: "Results",
-      url: "/dashboard/results",
-      role: ["admin", "coordinator"],
-    },
-    {
-      id: 10,
-      name: "My Results",
-      url: "/my-dashboard/results",
-      role: ["user"],
-    },
-    {
-      id: 11,
-      name: "Academic Setup",
-      url: "/dashboard/results/setup",
-      role: ["admin"],
-    },
-    {
-      id: 12,
-      name: "Manual Orders",
-      url: "/dashboard/manual-orders",
-      role: ["admin", "super"],
-    },
-  ];
+  const visibleTopLevel = useMemo<NavItem[]>(() => {
+    if (!user?.type) return [];
+    return topLevelItems.filter((item) => item.role.includes(user.type!));
+  }, [user?.type]);
 
-  const visibleRoutes = routes.filter((route) =>
-    user?.type ? route.role.includes(user.type) : false,
-  );
+  const visibleGroups = useMemo<NavGroup[]>(() => {
+    if (!user?.type) return [];
+    return navGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => item.role.includes(user.type!)),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [user?.type]);
 
   const isActive = (url: string) => location.pathname === url;
+
+  useEffect(() => {
+    const activeGroup = visibleGroups.find((group) =>
+      group.items.some((item) => isActive(item.url)),
+    );
+    if (activeGroup) {
+      setOpenGroups((prev) =>
+        prev[activeGroup.id] === undefined
+          ? { ...prev, [activeGroup.id]: true }
+          : prev,
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleGroups, location.pathname]);
+
+  const toggleGroup = (groupId: string) => {
+    setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
 
   const renderBrand = () => (
     <Link to="/">
@@ -197,28 +355,76 @@ const DefaultHeader = ({
   );
 
   const renderNavList = (onNavigate?: () => void) => (
-    <List sx={{ "--List-padding": "0.5rem", gap: 1 }}>
-      {visibleRoutes.map((route) => {
-        const active = isActive(route.url);
+    <Stack sx={{ width: "100%" }} gap={0.5} py={1}>
+      {visibleTopLevel.length > 0 && (
+        <Box sx={{ px: 1.5 }}>
+          <Stack sx={{ gap: 0.25 }} pb={1}>
+            {visibleTopLevel.map((item) => {
+              const active = isActive(item.url);
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    navigate(item.url);
+                    onNavigate?.();
+                  }}
+                  className={`w-full text-left capitalize h-9 pl-3 pr-3 flex items-center border-l-4 text-sm transition-colors ${
+                    active
+                      ? "text-[#001EC5] font-semibold border-[#001EC5]"
+                      : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:font-semibold hover:border-[#001EC5]"
+                  }`}
+                >
+                  {item.name}
+                </button>
+              );
+            })}
+          </Stack>
+        </Box>
+      )}
+      {visibleGroups.map((group) => {
+        const isOpen = openGroups[group.id] ?? false;
         return (
-          <ListItem key={route.id} sx={{ p: 0 }}>
+          <Box key={group.id} sx={{ px: 1.5 }}>
             <button
-              onClick={() => {
-                navigate(route.url);
-                onNavigate?.();
-              }}
-              className={`w-full text-left capitalize h-10 pl-4 pr-3 flex items-center border-l-4 transition-colors ${
-                active
-                  ? "text-[#001EC5] font-semibold border-[#001EC5]"
-                  : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:font-semibold hover:border-[#001EC5]"
-              }`}
+              onClick={() => toggleGroup(group.id)}
+              className="w-full flex items-center justify-between text-[11px] font-semibold tracking-wider uppercase text-[#6B7280] hover:text-[#001F54] transition-colors px-2 py-2"
             >
-              {route.name}
+              <span>{group.label}</span>
+              <KeyboardArrowDownIcon
+                sx={{
+                  fontSize: 16,
+                  transition: "transform 150ms",
+                  transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)",
+                }}
+              />
             </button>
-          </ListItem>
+            {isOpen && (
+              <Stack sx={{ gap: 0.25 }} pb={1}>
+                {group.items.map((item) => {
+                  const active = isActive(item.url);
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        navigate(item.url);
+                        onNavigate?.();
+                      }}
+                      className={`w-full text-left capitalize h-9 pl-3 pr-3 flex items-center border-l-4 text-sm transition-colors ${
+                        active
+                          ? "text-[#001EC5] font-semibold border-[#001EC5]"
+                          : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:font-semibold hover:border-[#001EC5]"
+                      }`}
+                    >
+                      {item.name}
+                    </button>
+                  );
+                })}
+              </Stack>
+            )}
+          </Box>
         );
       })}
-    </List>
+    </Stack>
   );
 
   const renderNotificationBell = () =>
@@ -500,7 +706,6 @@ const DefaultHeader = ({
   return (
     <Box bgcolor={"#F5FAFF"} minHeight={"100vh"}>
       <div className="flex min-h-screen">
-        {/* Backdrop — shown on all screen sizes when sidebar open */}
         {mobileOpen && (
           <div
             className="fixed inset-0 z-20 bg-black/40"
@@ -509,7 +714,6 @@ const DefaultHeader = ({
           />
         )}
 
-        {/* Sidebar — slide-in overlay on all screen sizes */}
         <Box
           component="aside"
           className={`fixed top-0 left-0 z-30 h-screen transition-transform duration-200 ease-in-out ${
@@ -527,15 +731,13 @@ const DefaultHeader = ({
           <Stack sx={{ width: "100%" }} gap={2} py={3}>
             <Box px={2}>{renderBrand()}</Box>
             <Divider />
-            <Box px={1.5} sx={{ flexGrow: 1 }}>
+            <Box sx={{ flexGrow: 1 }}>
               {renderNavList(() => setMobileOpen(false))}
             </Box>
           </Stack>
         </Box>
 
-        {/* Right column: topbar + content */}
         <div className="flex-1 min-w-0 flex flex-col">
-          {/* Topbar */}
           <Box
             component="header"
             sx={{
@@ -592,7 +794,6 @@ const DefaultHeader = ({
             </Stack>
           </Box>
 
-          {/* Content */}
           <Box component="main" sx={{ flexGrow: 1 }}>
             <Box className="px-4 py-6 md:px-8 md:py-8">{children}</Box>
           </Box>

@@ -325,7 +325,7 @@ const Centers = () => {
                               <MenuItem
                                 onClick={() =>
                                   navigate(
-                                    `/dashboard/manager/${getManagerId(center.manager)}`,
+                                    `/dashboard/coordinators/${getManagerId(center.manager)}`,
                                   )
                                 }
                               >

@@ -15,10 +15,6 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/login";
 import ForgotPassword from "./pages/forgot-password";
 import Dashboard from "./admin/dashboard";
-import AddCenterManager from "./admin/dashboard/invite-cordinator";
-import CenterManager from "./admin/dashboard/[id]";
-import Centers from "./admin/manage-centers/centers";
-import AddCenter from "./admin/manage-centers/add-center";
 import AcceptInvite from "./pages/accept-invite";
 import Payments from "./admin/payments";
 import PaymentUser from "./admin/payments/[id]";
@@ -28,8 +24,7 @@ import OnboardingPage from "./pages/Onboarding";
 
 import StudentsPage from "./admin/students";
 import CreditAdminPage from "./admin/credit-admin";
-import ManualOrdersPage from "./pages/manual-order";
-import ManualOrderNewPage from "./pages/manual-order-new";
+import ManualOrderNewPage from "./admin/manuals/new";
 import AdminManualOrdersPage from "./admin/manual-orders";
 
 import store from "./data/store";
@@ -48,7 +43,21 @@ import {
   SuperAdminRoute,
 } from "./utils/private-route.component";
 import { hasCompletedIntake } from "./utils/intake";
-import SettingsPage from "./admin/settings";
+
+import Centers from "./admin/manage-centers/centers";
+import AddCenter from "./admin/manage-centers/add-center";
+import Coordinators from "./admin/coordinators";
+import CoordinatorDetail from "./admin/coordinators/[id]";
+import InviteCoordinator from "./admin/coordinators/invite";
+import CoordinatorStudentsPage from "./admin/coordinator-students";
+
+import ManualOrdersPage from "./admin/manuals";
+
+// Configurations pages
+import ConfigurationsIndex from "./admin/configurations";
+import RegistrationConfigPage from "./admin/configurations/registration";
+import FeesConfigPage from "./admin/configurations/fees";
+import ZelleConfigPage from "./admin/configurations/zelle";
 
 // Academic Results pages
 import ResultsPage from "./admin/results";
@@ -63,6 +72,10 @@ import ReportsPage from "./admin/results/reports";
 import MyResultsPage from "./pages/MyResults";
 import MyResultDetailPage from "./pages/MyResultDetail";
 import AcademicSetupPage from "./admin/results/setup";
+
+// Payments sub-pages
+import PendingApprovalsPage from "./admin/payments/approvals";
+import RemittancesPage from "./admin/payments/remittances";
 
 SetDefaultHeaders();
 
@@ -148,16 +161,50 @@ const App = () => {
 
         <Route element={<AdminRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/add-manager" element={<AddCenterManager />} />
-          <Route path="/dashboard/manager/:id" element={<CenterManager />} />
+
+          {/* Coordinators */}
+          <Route
+            path="/dashboard/coordinators"
+            element={<Coordinators />}
+          />
+          <Route
+            path="/dashboard/coordinators/invite"
+            element={<InviteCoordinator />}
+          />
+          <Route
+            path="/dashboard/add-manager"
+            element={<InviteCoordinator />}
+          />
+          <Route
+            path="/dashboard/coordinators/:id"
+            element={<CoordinatorDetail />}
+          />
+
+          {/* Centers */}
           <Route path="/dashboard/manage-centers" element={<Centers />} />
           <Route
             path="/dashboard/manage-centers/add-center"
             element={<AddCenter />}
           />
+
+          {/* Students */}
           <Route path="/dashboard/students" element={<StudentsPage />} />
           <Route path="/dashboard/students/:id" element={<PaymentUser />} />
+          <Route
+            path="/dashboard/my-students"
+            element={<CoordinatorStudentsPage />}
+          />
+
+          {/* Payments */}
           <Route path="/dashboard/payments" element={<Payments />} />
+          <Route
+            path="/dashboard/payments/approvals"
+            element={<PendingApprovalsPage />}
+          />
+          <Route
+            path="/dashboard/payments/remittances"
+            element={<RemittancesPage />}
+          />
           <Route
             path="/dashboard/payments/users/:id"
             element={<PaymentUser />}
@@ -167,7 +214,13 @@ const App = () => {
             element={<PaymentUser />}
           />
 
-          <Route path="/dashboard/credit-admin" element={<CreditAdminPage />} />
+          {/* Credit Admin (coordinator's remittance view) */}
+          <Route
+            path="/dashboard/credit-admin"
+            element={<CreditAdminPage />}
+          />
+
+          {/* Manuals */}
           <Route path="/dashboard/manual-order" element={<ManualOrdersPage />} />
           <Route
             path="/dashboard/manual-order/new"
@@ -180,26 +233,70 @@ const App = () => {
 
           {/* Academic Results */}
           <Route path="/dashboard/results" element={<ResultsPage />} />
-          <Route path="/dashboard/results/upload" element={<UploadResultPage />} />
-          <Route path="/dashboard/results/bulk-upload" element={<BulkUploadPage />} />
-          <Route path="/dashboard/results/submit" element={<SubmitPublicationPage />} />
-          <Route path="/dashboard/results/analytics" element={<AnalyticsPage />} />
-          <Route path="/dashboard/results/reports" element={<ReportsPage />} />
-          <Route path="/dashboard/results/:id/edit" element={<EditResultPage />} />
-          <Route path="/dashboard/results/:id" element={<ResultDetailPage />} />
+          <Route
+            path="/dashboard/results/upload"
+            element={<UploadResultPage />}
+          />
+          <Route
+            path="/dashboard/results/bulk-upload"
+            element={<BulkUploadPage />}
+          />
+          <Route
+            path="/dashboard/results/submit"
+            element={<SubmitPublicationPage />}
+          />
+          <Route
+            path="/dashboard/results/analytics"
+            element={<AnalyticsPage />}
+          />
+          <Route
+            path="/dashboard/results/reports"
+            element={<ReportsPage />}
+          />
+          <Route
+            path="/dashboard/results/:id/edit"
+            element={<EditResultPage />}
+          />
+          <Route
+            path="/dashboard/results/:id"
+            element={<ResultDetailPage />}
+          />
+          <Route
+            path="/dashboard/results/publications"
+            element={<PublicationsPage />}
+          />
+          <Route
+            path="/dashboard/results/setup"
+            element={<AcademicSetupPage />}
+          />
 
-          <Route path="/dashboard/results/publications" element={<PublicationsPage />} />
-          <Route path="/dashboard/results/setup" element={<AcademicSetupPage />} />
-
+          <Route
+            path="/dashboard/configurations"
+            element={<ConfigurationsIndex />}
+          />
+          <Route
+            path="/dashboard/configurations/registration"
+            element={<RegistrationConfigPage />}
+          />
           <Route element={<SuperAdminRoute />}>
-            <Route path="/dashboard/settings" element={<SettingsPage />} />
+            <Route
+              path="/dashboard/configurations/fees"
+              element={<FeesConfigPage />}
+            />
+            <Route
+              path="/dashboard/configurations/zelle"
+              element={<ZelleConfigPage />}
+            />
           </Route>
         </Route>
 
         <Route element={<UserRoute />}>
           <Route path="/my-dashboard" element={<UserDashboard />} />
           <Route path="/my-dashboard/results" element={<MyResultsPage />} />
-          <Route path="/my-dashboard/results/:id" element={<MyResultDetailPage />} />
+          <Route
+            path="/my-dashboard/results/:id"
+            element={<MyResultDetailPage />}
+          />
         </Route>
 
         <Route path="*" element={<NotFound />} />

@@ -50,7 +50,7 @@ const AddCenterManager = () => {
       const res = await axios.post("/admin/invite-coordinator", normalizedData);
       console.log({ res });
       toast.success(res.data.message);
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       console.log({ error });
       toast.error(handleError(error));
