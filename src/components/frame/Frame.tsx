@@ -9,19 +9,16 @@ type Props = {
 };
 const Frame = ({
   text = "School of Disciples",
-  children,
   search = false,
+  children,
 }: PropsWithChildren<Props>) => {
   return (
-    <Box bgcolor={"#F5FAFF"} minHeight={"100vh"}>
-      <DefaultHeader />
-      <Box mt={8}>
-        <div className="container mx-auto px-4">
-          <Heading text={text} search={search} />
-          <Box>{children}</Box>
-        </div>
-      </Box>
-    </Box>
+    <DefaultHeader title="Overview">
+      <div className="container mx-auto">
+        <Heading text={text} search={search} />
+        <Box>{children}</Box>
+      </div>
+    </DefaultHeader>
   );
 };
 

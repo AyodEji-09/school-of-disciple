@@ -1,7 +1,6 @@
 import {
   Box,
   Card,
-  Container,
   Divider,
   IconButton,
   Input,
@@ -39,127 +38,122 @@ const Profile = () => {
     setIsOpen(!isOpen);
   };
   return (
-    <Box bgcolor={"#F5FAFF"} minHeight={"100vh"}>
-      <DefaultHeader />
+    <DefaultHeader title="Dashboard">
       <Box component={"header"}>
-        <Container>
-          <Box marginY={8} height={200} borderRadius={8} position={"relative"}>
-            <Box
-              marginTop={8}
-              height={200}
-              borderRadius={8}
-              overflow={"hidden"}
-            >
-              <img
-                src={require("../../assets/images/bg-home.png")}
-                alt="bg-header"
-                className="object-cover h-full w-full object-lef"
-              />
-              <Box position={"absolute"} bottom={-120} left={20}>
-                <Box
-                  height={150}
-                  width={150}
-                  borderRadius={80}
-                  overflow={"hidden"}
+        <Box marginY={4} height={200} borderRadius={8} position={"relative"}>
+          <Box
+            marginTop={8}
+            height={200}
+            borderRadius={8}
+            overflow={"hidden"}
+          >
+            <img
+              src={require("../../assets/images/bg-home.png")}
+              alt="bg-header"
+              className="object-cover h-full w-full object-lef"
+            />
+            <Box position={"absolute"} bottom={-120} left={20}>
+              <Box
+                height={150}
+                width={150}
+                borderRadius={80}
+                overflow={"hidden"}
+              >
+                <img
+                  src={require("../../assets/images/img-header.png")}
+                  alt="bg-header"
+                  className="object-cover h-full object-top"
+                />
+              </Box>
+              <Box marginTop={2}>
+                <Typography
+                  level="h4"
+                  textAlign={"center"}
+                  textColor={"#001272"}
                 >
-                  <img
-                    src={require("../../assets/images/img-header.png")}
-                    alt="bg-header"
-                    className="object-cover h-full object-top"
-                  />
-                </Box>
-                <Box marginTop={2}>
-                  <Typography
-                    level="h4"
-                    textAlign={"center"}
-                    textColor={"#001272"}
-                  >
-                    {/* {user.firstName} {user.lastName} */}
-                  </Typography>
-                  <div className="w-fit">
-                    <FiveStar />
-                  </div>
-                </Box>
+                  {/* {user.firstName} {user.lastName} */}
+                </Typography>
+                <div className="w-fit">
+                  <FiveStar />
+                </div>
               </Box>
             </Box>
           </Box>
-        </Container>
+        </Box>
       </Box>
       <Box component={"section"} marginTop={20} paddingBottom={8}>
-        <Container>
-          <Card variant="outlined">
-            <Typography level="h4">Overview</Typography>
-            <Stack gap={3}>
-              <Options title="Email Address" text="comapany@gmail.com">
-                <button
-                  className="text-white rounded-full px-4 h-8 bg-[#00A912] text-sm"
-                  onClick={() => toggleModal("verification")}
-                >
-                  Verified
-                </button>
-              </Options>
-              <Options title="Contact Information" text="0816404589272">
-                <Stack direction={"row"} gap={2} alignItems={"center"}>
-                  <IconButton onClick={() => toggleModal("edit contact")}>
-                    <EditIcon />
-                  </IconButton>
-                  <button className="text-white rounded-full px-4 h-8 bg-[#001EC5] text-sm">
-                    Verify
-                  </button>
-                </Stack>
-              </Options>
-              <Options title="Address" text="1labore et dolore magna aliqua" />
-              <Options title="Security" text="Pin Verification">
-                <Switch
-                  color={false ? "success" : "primary"}
-                  slotProps={{
-                    track: {
-                      children: (
-                        <React.Fragment>
-                          <Typography
-                            component="span"
-                            level="inherit"
-                            sx={{ ml: "10px" }}
-                          >
-                            On
-                          </Typography>
-                          <Typography
-                            component="span"
-                            level="inherit"
-                            sx={{ mr: "8px" }}
-                          >
-                            Off
-                          </Typography>
-                        </React.Fragment>
-                      ),
-                    },
-                  }}
-                  sx={{
-                    "--Switch-thumbSize": "24px",
-                    "--Switch-trackWidth": "60px",
-                    "--Switch-trackHeight": "30px",
-                  }}
-                  checked={true}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    toggleModal("security")
-                  }
-                />
-              </Options>
-              <div
-                onClick={() => {
-                  setUserRole("");
-                  dispatch(logout());
-                  navigate("/");
-                }}
-                className="flex w-fit cursor-pointer"
+        <Card variant="outlined">
+          <Typography level="h4">Overview</Typography>
+          <Stack gap={3}>
+            <Options title="Email Address" text="comapany@gmail.com">
+              <button
+                className="text-white rounded-full px-4 h-8 bg-[#00A912] text-sm"
+                onClick={() => toggleModal("verification")}
               >
-                <Typography level="title-lg" width={"fit-content"}>
-                  Logout
-                </Typography>
-              </div>
-            </Stack>
-          </Card>
-        </Container>
+                Verified
+              </button>
+            </Options>
+            <Options title="Contact Information" text="0816404589272">
+              <Stack direction={"row"} gap={2} alignItems={"center"}>
+                <IconButton onClick={() => toggleModal("edit contact")}>
+                  <EditIcon />
+                </IconButton>
+                <button className="text-white rounded-full px-4 h-8 bg-[#001EC5] text-sm">
+                  Verify
+                </button>
+              </Stack>
+            </Options>
+            <Options title="Address" text="1labore et dolore magna aliqua" />
+            <Options title="Security" text="Pin Verification">
+              <Switch
+                color={false ? "success" : "primary"}
+                slotProps={{
+                  track: {
+                    children: (
+                      <React.Fragment>
+                        <Typography
+                          component="span"
+                          level="inherit"
+                          sx={{ ml: "10px" }}
+                        >
+                          On
+                        </Typography>
+                        <Typography
+                          component="span"
+                          level="inherit"
+                          sx={{ mr: "8px" }}
+                        >
+                          Off
+                        </Typography>
+                      </React.Fragment>
+                    ),
+                  },
+                }}
+                sx={{
+                  "--Switch-thumbSize": "24px",
+                  "--Switch-trackWidth": "60px",
+                  "--Switch-trackHeight": "30px",
+                }}
+                checked={true}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  toggleModal("security")
+                }
+              />
+            </Options>
+            <div
+              onClick={() => {
+                setUserRole("");
+                dispatch(logout());
+                navigate("/");
+              }}
+              className="flex w-fit cursor-pointer"
+            >
+              <Typography level="title-lg" width={"fit-content"}>
+                Logout
+              </Typography>
+            </div>
+          </Stack>
+        </Card>
       </Box>
 
       {/* modal */}
@@ -171,7 +165,7 @@ const Profile = () => {
         {mode === "edit contact" && <EditContact setMode={setMode} />}
         {mode === "security" && <Security toggleModal={toggleModal} />}
       </AppModal>
-    </Box>
+    </DefaultHeader>
   );
 };
 
