@@ -8,17 +8,17 @@ const AppSearch = ({
   setSearchVar?: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   return (
-    <div className="max-w-fit text-[#001F54] flex items-center">
+    <div className="w-full sm:max-w-xs text-[#001F54] flex items-center">
       <label
         htmlFor="default-search"
-        className="md:mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"
+        className="text-sm font-medium text-gray-900 sr-only"
       >
         Search
       </label>
-      <div className="relative h-fit">
-        <div className="static md:absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+      <div className="relative h-fit w-full">
+        <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
           <svg
-            className="w-4 h-4 text-gray-500 dark:text-gray-400"
+            className="w-4 h-4 text-gray-500"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -41,7 +41,7 @@ const AppSearch = ({
             setSearchVar?.(e.target.value);
           }}
           value={searchVar ?? ""}
-          className="sm:block w-full px-4 h-10 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full hidden placeholder:text-[#001F54]"
+          className="block w-full px-4 h-10 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full placeholder:text-[#001F54] focus:outline-none focus:ring-1 focus:ring-[#001EC5] focus:border-[#001EC5]"
           placeholder="Search"
         />
       </div>

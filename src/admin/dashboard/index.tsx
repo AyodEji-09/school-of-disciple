@@ -90,7 +90,7 @@ const COORDINATOR_QUICK_ACTIONS: QuickAction[] = [
   },
   {
     id: "qa-manuals",
-    label: "My Manuals",
+    label: "Manuals Ordered",
     description: "Order and view manuals",
     url: "/dashboard/manual-order",
     icon: <LibraryBooksOutlinedIcon sx={{ fontSize: 22 }} />,

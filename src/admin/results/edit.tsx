@@ -1,4 +1,4 @@
-import { Typography, Stack, FormControl, FormLabel, Input, CircularProgress } from "@mui/joy";
+import { Typography, Stack, FormControl, FormLabel, Input } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -6,12 +6,21 @@ import { toast } from "react-toastify";
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
 import {
-  useGetResultByIdQuery, useUpdateResultMutation, useGetSubjectsQuery,
+  useGetResultByIdQuery,
+  useUpdateResultMutation,
+  useGetSubjectsQuery,
 } from "../../data/rtk/academic";
 import { handleError } from "../../utils";
+import PageCard from "../../components/feedback/PageCard";
+import { PageLoader } from "../../components/query-state/QueryStates";
 
-interface SubjectEntry { subjectId: string; score: number; }
-interface FormValues { subjects: SubjectEntry[]; }
+interface SubjectEntry {
+  subjectId: string;
+  score: number;
+}
+interface FormValues {
+  subjects: SubjectEntry[];
+}
 
 const EditResultPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,20 +41,27 @@ const EditResultPage = () => {
     if (result) {
       reset({
         subjects: result.subjects.map((s) => ({
-          subjectId: typeof s.subjectId === "string" ? s.subjectId : (s.subjectId as AcademicSubject)._id,
+          subjectId:
+            typeof s.subjectId === "string"
+              ? s.subjectId
+              : (s.subjectId as AcademicSubject)._id,
           score: s.score,
         })),
       });
     }
   }, [result, reset]);
 
-  const getSubjectName = (id: string) => subjects.find((s) => s._id === id)?.name ?? id;
+  const getSubjectName = (id: string) =>
+    subjects.find((s) => s._id === id)?.name ?? id;
 
   const onSubmit = async (values: FormValues) => {
     try {
       await updateResult({
         id: id!,
-        subjects: values.subjects.map((s) => ({ subjectId: s.subjectId, score: Number(s.score) })),
+        subjects: values.subjects.map((s) => ({
+          subjectId: s.subjectId,
+          score: Number(s.score),
+        })),
       }).unwrap();
       toast.success("Result updated successfully!");
       navigate("/dashboard/results");
@@ -57,7 +73,7 @@ const EditResultPage = () => {
   if (isLoading) {
     return (
       <Frame text="Edit Result">
-        <div className="flex justify-center py-24"><CircularProgress /></div>
+        <PageLoader label="Loading result…" />
       </Frame>
     );
   }
@@ -76,27 +92,32 @@ const EditResultPage = () => {
 
   return (
     <Frame text="Edit Result">
-      <div className="max-w-2xl mx-auto mt-6">
-        <div className="bg-white rounded-2xl border border-[#E6ECFF] shadow-sm p-8">
-          {/* Header info */}
+      <div className="max-w-2xl mx-auto mt-6 pb-16">
+        <PageCard>
           <div className="bg-[#F5FAFF] rounded-xl p-4 mb-6 grid grid-cols-3 gap-3 text-sm">
             <div>
-              <span className="text-[#94a3b8] text-xs block">Student</span>
+              <span className="text-[#94A3B8] text-xs block">Student</span>
               <span className="font-semibold text-[#001F54]">
                 {student?.firstName} {student?.lastName}
               </span>
             </div>
             <div>
-              <span className="text-[#94a3b8] text-xs block">Session</span>
-              <span className="font-semibold text-[#001F54]">{session?.name}</span>
+              <span className="text-[#94A3B8] text-xs block">Session</span>
+              <span className="font-semibold text-[#001F54]">
+                {session?.name}
+              </span>
             </div>
             <div>
-              <span className="text-[#94a3b8] text-xs block">Term</span>
-              <span className="font-semibold text-[#001F54]">{term?.name}</span>
+              <span className="text-[#94A3B8] text-xs block">Term</span>
+              <span className="font-semibold text-[#001F54]">
+                {term?.name}
+              </span>
             </div>
           </div>
 
-          <Typography level="title-md" mb={3}>Edit Subject Scores</Typography>
+          <Typography level="title-md" mb={3} sx={{ color: "#001F54" }}>
+            Edit Subject Scores
+          </Typography>
           <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
             {fields.map((field, idx) => {
               const subjectName = getSubjectName(field.subjectId);
@@ -110,7 +131,11 @@ const EditResultPage = () => {
                     <Input
                       type="number"
                       slotProps={{ input: { min: 0, max: 100 } }}
-                      {...register(`subjects.${idx}.score`, { required: true, min: 0, max: 100 })}
+                      {...register(`subjects.${idx}.score`, {
+                        required: true,
+                        min: 0,
+                        max: 100,
+                      })}
                     />
                   </FormControl>
                 </div>
@@ -118,11 +143,18 @@ const EditResultPage = () => {
             })}
 
             <Stack direction="row" gap={2} justifyContent="flex-end" mt={3}>
-              <AppButton variant="outlined" onClick={() => navigate("/dashboard/results")}>Cancel</AppButton>
-              <AppButton type="submit" loading={saving}>Save Changes</AppButton>
+              <AppButton
+                variant="outlined"
+                onClick={() => navigate("/dashboard/results")}
+              >
+                Cancel
+              </AppButton>
+              <AppButton type="submit" loading={saving}>
+                Save Changes
+              </AppButton>
             </Stack>
           </form>
-        </div>
+        </PageCard>
       </div>
     </Frame>
   );

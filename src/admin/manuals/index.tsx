@@ -1,11 +1,5 @@
 import { useRef, useState } from "react";
-import {
-  Box,
-  Card,
-  Chip,
-  Stack,
-  Typography,
-} from "@mui/joy";
+import { Stack, Typography } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { RiAddLine, RiCheckLine, RiUploadCloud2Line } from "react-icons/ri";
@@ -22,6 +16,20 @@ import {
   useGetManualOrdersQuery,
   useUploadManualOrderReceiptMutation,
 } from "../../data/rtk/manual-order";
+import PageCard from "../../components/feedback/PageCard";
+import StatusBadge from "../../components/feedback/StatusBadge";
+import {
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+  EmptyValue,
+} from "../../components/feedback/TableShell";
+import {
+  MANUAL_ORDER_STATUS,
+  METHOD_STATUS,
+} from "../../utils/status";
 
 const formatCurrency = (cents: number) =>
   `$${(cents / 100).toLocaleString(undefined, {
@@ -59,14 +67,12 @@ const ManualOrdersPage = () => {
 
   return (
     <Frame text="Manuals">
-      <div className="pb-16">
+      <div className="pb-16 space-y-6 mt-6">
         <Stack
           direction={{ xs: "column", sm: "row" }}
           justifyContent="space-between"
           alignItems={{ xs: "flex-start", sm: "center" }}
           gap={2}
-          mt={3}
-          mb={4}
         >
           <Typography level="body-sm" textColor="neutral.500">
             Track your manual book orders and place new ones for your centre.
@@ -79,30 +85,25 @@ const ManualOrdersPage = () => {
           </AppButton>
         </Stack>
 
-        <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
-          <Box sx={{ p: 3, pb: 2 }}>
-            <Typography level="title-lg">Manual Order History</Typography>
-            <Typography
-              level="body-sm"
-              sx={{ mt: 0.5, color: "text.tertiary" }}
-            >
-              Your recent manual book orders and their payment status.
-            </Typography>
-          </Box>
-          <Box className="overflow-x-auto w-full">
-            <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-              <thead className="text-xs whitespace-nowrap">
+        <PageCard
+          padded={false}
+          title="Manual Order History"
+          subtitle="Your recent manual book orders and their payment status."
+        >
+          <div className="overflow-x-auto min-h-[400px]">
+            <table className="w-full text-sm text-left">
+              <TableHeader>
                 <tr>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Center</th>
-                  <th className="px-4 py-3">Qty</th>
-                  <th className="px-4 py-3">Amount</th>
-                  <th className="px-4 py-3">Method</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Receipt</th>
+                  <TableHeaderCell>Date</TableHeaderCell>
+                  <TableHeaderCell>Center</TableHeaderCell>
+                  <TableHeaderCell>Qty</TableHeaderCell>
+                  <TableHeaderCell>Amount</TableHeaderCell>
+                  <TableHeaderCell>Method</TableHeaderCell>
+                  <TableHeaderCell>Status</TableHeaderCell>
+                  <TableHeaderCell>Receipt</TableHeaderCell>
                 </tr>
-              </thead>
-              <tbody className="whitespace-nowrap">
+              </TableHeader>
+              <TableBody>
                 {isLoading && !hasOrders ? (
                   <tr>
                     <td colSpan={7}>
@@ -111,29 +112,29 @@ const ManualOrdersPage = () => {
                   </tr>
                 ) : hasOrders ? (
                   orders.map((order) => (
-                    <tr
-                      key={order._id}
-                      className="border-b last:border-none font-medium"
-                    >
-                      <td className="px-4 py-3">
+                    <TableRow key={order._id}>
+                      <TableCell>
                         {order.createdAt
                           ? new Date(order.createdAt).toLocaleDateString()
                           : "-"}
-                      </td>
-                      <td className="px-4 py-3">{order.centerName}</td>
-                      <td className="px-4 py-3">{order.quantity}</td>
-                      <td className="px-4 py-3">
-                        {formatCurrency(order.amount)}
-                      </td>
-                      <td className="px-4 py-3 capitalize">
-                        {order.paymentMethod === "stripe"
-                          ? "Credit Card"
-                          : "Zelle"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusChip status={order.status} />
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell>{order.centerName}</TableCell>
+                      <TableCell>{order.quantity}</TableCell>
+                      <TableCell>{formatCurrency(order.amount)}</TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={order.paymentMethod}
+                          map={METHOD_STATUS}
+                          size="sm"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={order.status}
+                          map={MANUAL_ORDER_STATUS}
+                        />
+                      </TableCell>
+                      <TableCell>
                         <ReceiptCell
                           order={order}
                           onUpload={handleReceiptUpload}
@@ -141,8 +142,8 @@ const ManualOrdersPage = () => {
                             uploadingReceipt || uploadingId === order._id
                           }
                         />
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 ) : (
                   <tr>
@@ -151,51 +152,25 @@ const ManualOrdersPage = () => {
                     </td>
                   </tr>
                 )}
-              </tbody>
+              </TableBody>
             </table>
-          </Box>
+          </div>
           {totalPages > 1 && (
-            <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
+            <Stack justifyContent="center" sx={{ p: 3 }}>
               <AppPagination
                 currentPage={page}
                 totalPages={totalPages}
                 onPageChange={setPage}
               />
-            </Box>
+            </Stack>
           )}
-        </Card>
+        </PageCard>
       </div>
     </Frame>
   );
 };
 
 export default ManualOrdersPage;
-
-/* ─── Sub-components ─────────────────────────────────────────────────── */
-
-const StatusChip = ({ status }: { status: ManualOrder["status"] }) => {
-  const config: Record<
-    ManualOrder["status"],
-    { color: "success" | "warning" | "danger" | "neutral" | "primary"; label: string }
-  > = {
-    pending_payment: { color: "warning", label: "Pending Payment" },
-    pending_confirmation: {
-      color: "neutral",
-      label: "Pending Confirmation",
-    },
-    paid: { color: "success", label: "Paid" },
-    rejected: { color: "danger", label: "Rejected" },
-    processing: { color: "primary", label: "Processing" },
-    completed: { color: "success", label: "Completed" },
-  };
-
-  const c = config[status] ?? { color: "warning" as const, label: status };
-  return (
-    <Chip size="sm" color={c.color} variant="soft">
-      {c.label}
-    </Chip>
-  );
-};
 
 const ReceiptCell = ({
   order,
@@ -251,5 +226,5 @@ const ReceiptCell = ({
     );
   }
 
-  return <span className="text-[#9CA3AF] text-xs">—</span>;
+  return <EmptyValue />;
 };

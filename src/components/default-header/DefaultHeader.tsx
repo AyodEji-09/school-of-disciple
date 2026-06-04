@@ -143,7 +143,7 @@ const navGroups: NavGroup[] = [
     items: [
       {
         id: "my-manuals",
-        name: "My Manuals",
+        name: "Manuals Ordered",
         url: "/dashboard/manual-order",
         role: ["coordinator"],
       },

@@ -2,9 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
-  Card,
-  Chip,
-  Divider,
   FormControl,
   FormLabel,
   Option,
@@ -14,25 +11,33 @@ import {
 } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
-import {
-  RiArrowLeftLine,
-  RiBankCardLine,
-  RiCheckLine,
-  RiEyeLine,
-  RiShieldCheckLine,
-} from "react-icons/ri";
+import { RiCheckLine, RiEyeLine } from "react-icons/ri";
 
 import Frame from "../../components/frame/Frame";
 import AppModal from "../../components/modal/modal";
 import AppPagination from "../../components/pagination/Pagination";
 import {
   CenteredEmptyState,
-  MetricCardSkeleton,
+  MetricCardRow,
   TableSkeleton,
 } from "../../components/query-state/QueryStates";
 import { useGetManualOrdersQuery } from "../../data/rtk/manual-order";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import { getUserFullName } from "../../utils";
+import PageCard from "../../components/feedback/PageCard";
+import StatusBadge from "../../components/feedback/StatusBadge";
+import {
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+  EmptyValue,
+} from "../../components/feedback/TableShell";
+import {
+  MANUAL_ORDER_STATUS,
+  METHOD_STATUS,
+} from "../../utils/status";
 
 const formatCurrency = (cents: number) =>
   `$${(cents / 100).toLocaleString(undefined, {
@@ -66,11 +71,9 @@ const ManualOrdersAdminPage = () => {
   const [dateTo, setDateTo] = useState("");
   const [detailsOrder, setDetailsOrder] = useState<ManualOrder | null>(null);
 
-  // Centers for filter (admin sees all)
   const { data: centersRes } = useGetCentersQuery({ page: 1, limit: 100 });
   const centers = centersRes?.data?.docs ?? [];
 
-  // Reset page when filters change
   useEffect(() => {
     setPage(1);
   }, [status, paymentMethod, center, dateFrom, dateTo]);
@@ -85,20 +88,17 @@ const ManualOrdersAdminPage = () => {
     ...(dateTo ? { dateTo } : {}),
   });
 
-  const orders = useMemo(
-    () => ordersRes?.data?.docs ?? [],
-    [ordersRes]
-  );
+  const orders = useMemo(() => ordersRes?.data?.docs ?? [], [ordersRes]);
   const hasOrders = orders.length > 0;
   const totalPages = ordersRes?.data?.totalPages || 1;
 
-  // Summary metrics (compute from current page list — backend has no /summary endpoint yet)
   const metrics = useMemo(() => {
     const paid = orders.filter(
-      (o) => o.status === "paid" || o.status === "completed"
+      (o) => o.status === "paid" || o.status === "completed",
     );
     const pending = orders.filter(
-      (o) => o.status === "pending_payment" || o.status === "pending_confirmation"
+      (o) =>
+        o.status === "pending_payment" || o.status === "pending_confirmation",
     );
     const rejected = orders.filter((o) => o.status === "rejected");
     const totalRevenue = paid.reduce((sum, o) => sum + (o.amount || 0), 0);
@@ -128,170 +128,145 @@ const ManualOrdersAdminPage = () => {
 
   return (
     <Frame text="Manual Orders">
-      <div className="pb-16">
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          flexWrap="wrap"
-          gap={2}
-          mt={3}
-          mb={3}
-        >
-          <Typography level="body-sm" textColor="neutral.500">
-            Track every manual order placed by coordinators. Confirm or reject
-            pending Zelle orders from{" "}
-            <button
-              type="button"
-              onClick={() => navigate("/dashboard/payments")}
-              className="text-[#001EC5] hover:underline font-medium"
-            >
-              Payments → Pending Approvals
-            </button>
-            .
-          </Typography>
-        </Stack>
+      <div className="pb-16 mt-6 space-y-6">
+        <Typography level="body-sm" textColor="neutral.500">
+          Track every manual order placed by coordinators. Confirm or reject
+          pending Zelle orders from{" "}
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard/payments")}
+            className="text-[#001EC5] hover:underline font-medium"
+          >
+            Payments → Pending Approvals
+          </button>
+          .
+        </Typography>
 
-        {/* Summary Cards */}
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={2}
-          mb={3}
-          flexWrap="wrap"
-        >
-          {isLoading && !hasOrders ? (
-            <>
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-              <MetricCardSkeleton />
-            </>
-          ) : (
-            <>
-              <SummaryCard label="Total Orders" value={String(metrics.total)} />
-              <SummaryCard
-                label="Confirmed"
-                value={String(metrics.paidCount)}
-                tone="success"
-              />
-              <SummaryCard
-                label="Pending"
-                value={String(metrics.pendingCount)}
-                tone="warning"
-              />
-              <SummaryCard
-                label="Revenue"
-                value={formatCurrency(metrics.totalRevenue)}
-                tone="primary"
-              />
-            </>
-          )}
-        </Stack>
+        {isLoading && !hasOrders ? (
+          <MetricCardRow count={4} />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <SummaryCard label="Total Orders" value={String(metrics.total)} />
+            <SummaryCard
+              label="Confirmed"
+              value={String(metrics.paidCount)}
+              tone="success"
+            />
+            <SummaryCard
+              label="Pending"
+              value={String(metrics.pendingCount)}
+              tone="warning"
+            />
+            <SummaryCard
+              label="Revenue"
+              value={formatCurrency(metrics.totalRevenue)}
+              tone="primary"
+            />
+          </div>
+        )}
 
-        {/* Filters */}
-        <Card variant="outlined" sx={{ p: 3, mb: 3 }}>
-          <Stack direction="row" gap={2} flexWrap="wrap" alignItems="flex-end">
-            <FormControl size="sm" sx={{ minWidth: 180 }}>
-              <FormLabel>Status</FormLabel>
-              <Select
-                size="sm"
-                value={status}
-                onChange={(_, val) => setStatus((val as string) ?? "")}
-                placeholder="All statuses"
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <Option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
+        <PageCard padded={false}>
+          <div className="px-6 pt-6 pb-2">
+            <Stack direction="row" gap={2} flexWrap="wrap" alignItems="flex-end">
+              <FormControl size="sm" sx={{ minWidth: 180 }}>
+                <FormLabel>Status</FormLabel>
+                <Select
+                  size="sm"
+                  value={status}
+                  onChange={(_, val) => setStatus((val as string) ?? "")}
+                  placeholder="All statuses"
+                >
+                  {STATUS_OPTIONS.map((opt) => (
+                    <Option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </Option>
+                  ))}
+                </Select>
+              </FormControl>
 
-            <FormControl size="sm" sx={{ minWidth: 160 }}>
-              <FormLabel>Payment Method</FormLabel>
-              <Select
-                size="sm"
-                value={paymentMethod}
-                onChange={(_, val) => setPaymentMethod((val as string) ?? "")}
-                placeholder="All methods"
-              >
-                {PAYMENT_METHOD_OPTIONS.map((opt) => (
-                  <Option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
+              <FormControl size="sm" sx={{ minWidth: 160 }}>
+                <FormLabel>Payment Method</FormLabel>
+                <Select
+                  size="sm"
+                  value={paymentMethod}
+                  onChange={(_, val) => setPaymentMethod((val as string) ?? "")}
+                  placeholder="All methods"
+                >
+                  {PAYMENT_METHOD_OPTIONS.map((opt) => (
+                    <Option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </Option>
+                  ))}
+                </Select>
+              </FormControl>
 
-            <FormControl size="sm" sx={{ minWidth: 200 }}>
-              <FormLabel>Center</FormLabel>
-              <Select
-                size="sm"
-                value={center}
-                onChange={(_, val) => setCenter((val as string) ?? "")}
-                placeholder="All centers"
-              >
-                <Option value="">All centers</Option>
-                {centers.map((c) => (
-                  <Option key={c._id} value={c._id}>
-                    {c.name}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
+              <FormControl size="sm" sx={{ minWidth: 200 }}>
+                <FormLabel>Center</FormLabel>
+                <Select
+                  size="sm"
+                  value={center}
+                  onChange={(_, val) => setCenter((val as string) ?? "")}
+                  placeholder="All centers"
+                >
+                  <Option value="">All centers</Option>
+                  {centers.map((c) => (
+                    <Option key={c._id} value={c._id}>
+                      {c.name}
+                    </Option>
+                  ))}
+                </Select>
+              </FormControl>
 
-            <FormControl size="sm" sx={{ minWidth: 160 }}>
-              <FormLabel>From</FormLabel>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="h-8 px-2 rounded border border-[#D1D5DB] text-sm text-[#001F54] focus:outline-none focus:border-[#001EC5]"
-              />
-            </FormControl>
+              <FormControl size="sm" sx={{ minWidth: 160 }}>
+                <FormLabel>From</FormLabel>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="h-8 px-2 rounded border border-[#D1D5DB] text-sm text-[#001F54] focus:outline-none focus:border-[#001EC5]"
+                />
+              </FormControl>
 
-            <FormControl size="sm" sx={{ minWidth: 160 }}>
-              <FormLabel>To</FormLabel>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="h-8 px-2 rounded border border-[#D1D5DB] text-sm text-[#001F54] focus:outline-none focus:border-[#001EC5]"
-              />
-            </FormControl>
+              <FormControl size="sm" sx={{ minWidth: 160 }}>
+                <FormLabel>To</FormLabel>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="h-8 px-2 rounded border border-[#D1D5DB] text-sm text-[#001F54] focus:outline-none focus:border-[#001EC5]"
+                />
+              </FormControl>
 
-            {hasActiveFilters && (
-              <Button
-                size="sm"
-                variant="plain"
-                color="neutral"
-                onClick={clearFilters}
-                sx={{ alignSelf: "flex-end" }}
-              >
-                Clear filters
-              </Button>
-            )}
-          </Stack>
-        </Card>
+              {hasActiveFilters && (
+                <Button
+                  size="sm"
+                  variant="plain"
+                  color="neutral"
+                  onClick={clearFilters}
+                  sx={{ alignSelf: "flex-end" }}
+                >
+                  Clear filters
+                </Button>
+              )}
+            </Stack>
+          </div>
 
-        {/* Table */}
-        <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
-          <Box className="overflow-x-auto w-full">
-            <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-              <thead className="text-xs whitespace-nowrap">
+          <div className="overflow-x-auto min-h-[400px]">
+            <table className="w-full text-sm text-left">
+              <TableHeader>
                 <tr>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Coordinator</th>
-                  <th className="px-4 py-3">Center</th>
-                  <th className="px-4 py-3 text-center">Qty</th>
-                  <th className="px-4 py-3 text-right">Amount</th>
-                  <th className="px-4 py-3">Method</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Receipt</th>
-                  <th className="px-4 py-3 text-right">Action</th>
+                  <TableHeaderCell>Date</TableHeaderCell>
+                  <TableHeaderCell>Coordinator</TableHeaderCell>
+                  <TableHeaderCell>Center</TableHeaderCell>
+                  <TableHeaderCell className="text-center">Qty</TableHeaderCell>
+                  <TableHeaderCell className="text-right">Amount</TableHeaderCell>
+                  <TableHeaderCell>Method</TableHeaderCell>
+                  <TableHeaderCell>Status</TableHeaderCell>
+                  <TableHeaderCell>Receipt</TableHeaderCell>
+                  <TableHeaderCell className="text-right">Action</TableHeaderCell>
                 </tr>
-              </thead>
-              <tbody className="whitespace-nowrap">
+              </TableHeader>
+              <TableBody>
                 {isLoading && !hasOrders ? (
                   <tr>
                     <td colSpan={9}>
@@ -300,32 +275,36 @@ const ManualOrdersAdminPage = () => {
                   </tr>
                 ) : hasOrders ? (
                   orders.map((order) => (
-                    <tr
-                      key={order._id}
-                      className="border-b last:border-none font-medium"
-                    >
-                      <td className="px-4 py-3">
+                    <TableRow key={order._id}>
+                      <TableCell>
                         {order.createdAt
                           ? moment(order.createdAt).format("MM/DD/YYYY")
                           : "-"}
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell>
                         <CoordinatorCell order={order} />
-                      </td>
-                      <td className="px-4 py-3">{order.centerName}</td>
-                      <td className="px-4 py-3 text-center">
+                      </TableCell>
+                      <TableCell>{order.centerName}</TableCell>
+                      <TableCell className="text-center">
                         {order.quantity}
-                      </td>
-                      <td className="px-4 py-3 text-right">
+                      </TableCell>
+                      <TableCell className="text-right">
                         {formatCurrency(order.amount)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <MethodChip method={order.paymentMethod} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusChip status={order.status} />
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={order.paymentMethod}
+                          map={METHOD_STATUS}
+                          size="sm"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={order.status}
+                          map={MANUAL_ORDER_STATUS}
+                        />
+                      </TableCell>
+                      <TableCell>
                         {order.receiptUrl ? (
                           <a
                             href={order.receiptUrl}
@@ -337,10 +316,10 @@ const ManualOrdersAdminPage = () => {
                             View
                           </a>
                         ) : (
-                          <span className="text-[#9CA3AF] text-xs">—</span>
+                          <EmptyValue />
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
+                      </TableCell>
+                      <TableCell className="text-right">
                         <button
                           type="button"
                           onClick={() => setDetailsOrder(order)}
@@ -349,8 +328,8 @@ const ManualOrdersAdminPage = () => {
                           <RiEyeLine size={14} />
                           Details
                         </button>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 ) : (
                   <tr>
@@ -365,17 +344,17 @@ const ManualOrdersAdminPage = () => {
                     </td>
                   </tr>
                 )}
-              </tbody>
+              </TableBody>
             </table>
-          </Box>
+          </div>
           {totalPages > 1 && (
-            <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
+            <Stack justifyContent="center" sx={{ p: 3 }}>
               <AppPagination
                 currentPage={page}
                 totalPages={totalPages}
                 onPageChange={setPage}
               />
-            </Box>
+            </Stack>
           )}
           {(isFetching || isLoading) && hasOrders && (
             <Typography
@@ -385,10 +364,9 @@ const ManualOrdersAdminPage = () => {
               Updating…
             </Typography>
           )}
-        </Card>
+        </PageCard>
       </div>
 
-      {/* Order Details Modal */}
       <AppModal
         isOpen={Boolean(detailsOrder)}
         close={() => setDetailsOrder(null)}
@@ -403,14 +381,14 @@ const ManualOrdersAdminPage = () => {
                 <span className="font-mono text-xs">{detailsOrder._id}</span>
               }
             />
-            <Divider />
+            <Box sx={{ borderTop: "1px solid", borderColor: "divider" }} />
             <Stack direction="row" gap={4} flexWrap="wrap">
               <DetailRow
                 label="Coordinator"
                 value={
                   typeof detailsOrder.coordinatorId === "string"
                     ? detailsOrder.coordinatorName ||
-                        detailsOrder.coordinatorEmail
+                      detailsOrder.coordinatorEmail
                     : getUserFullName(detailsOrder.coordinatorId as User)
                 }
               />
@@ -421,7 +399,7 @@ const ManualOrdersAdminPage = () => {
               <DetailRow label="Phone" value={detailsOrder.phone} />
               <DetailRow label="Zone" value={detailsOrder.zone} />
             </Stack>
-            <Divider />
+            <Box sx={{ borderTop: "1px solid", borderColor: "divider" }} />
             <Stack direction="row" gap={4} flexWrap="wrap">
               <DetailRow label="Center" value={detailsOrder.centerName} />
               <DetailRow
@@ -429,7 +407,7 @@ const ManualOrdersAdminPage = () => {
                 value={detailsOrder.zonalRegionalCoordinatorName}
               />
             </Stack>
-            <Divider />
+            <Box sx={{ borderTop: "1px solid", borderColor: "divider" }} />
             <Stack direction="row" gap={4} flexWrap="wrap">
               <DetailRow label="Quantity" value={String(detailsOrder.quantity)} />
               <DetailRow
@@ -445,7 +423,7 @@ const ManualOrdersAdminPage = () => {
                 }
               />
             </Stack>
-            <Divider />
+            <Box sx={{ borderTop: "1px solid", borderColor: "divider" }} />
             <DetailRow
               label="Mailing Address"
               value={
@@ -464,10 +442,17 @@ const ManualOrdersAdminPage = () => {
                 }
               />
             )}
-            <Divider />
+            <Box sx={{ borderTop: "1px solid", borderColor: "divider" }} />
             <Stack direction="row" gap={2} flexWrap="wrap">
-              <MethodChip method={detailsOrder.paymentMethod} />
-              <StatusChip status={detailsOrder.status} />
+              <StatusBadge
+                status={detailsOrder.paymentMethod}
+                map={METHOD_STATUS}
+                size="sm"
+              />
+              <StatusBadge
+                status={detailsOrder.status}
+                map={MANUAL_ORDER_STATUS}
+              />
             </Stack>
             {detailsOrder.receiptUrl && (
               <DetailRow
@@ -501,15 +486,6 @@ const ManualOrdersAdminPage = () => {
           </div>
         )}
       </AppModal>
-
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="hidden"
-        aria-hidden
-      >
-        <RiArrowLeftLine />
-      </button>
     </Frame>
   );
 };
@@ -540,22 +516,21 @@ const SummaryCard = ({
   const valueClasses: Record<SummaryTone, string> = {
     default: "text-[#001F54]",
     primary: "text-white",
-    success: "text-[#047857]",
+    success: "text-[#15803D]",
     warning: "text-[#B45309]",
     danger: "text-[#B91C1C]",
   };
   const labelClasses: Record<SummaryTone, string> = {
     default: "text-[#475569]",
     primary: "text-white/80",
-    success: "text-[#065F46]",
+    success: "text-[#15803D]",
     warning: "text-[#92400E]",
     danger: "text-[#991B1B]",
   };
 
   return (
-    <Card
-      variant="outlined"
-      className={`flex-1 min-w-[180px] p-4 border ${toneClasses[tone]}`}
+    <div
+      className={`flex-1 min-w-[180px] p-4 border border-[#E6ECFF] rounded-2xl shadow-sm ${toneClasses[tone]}`}
     >
       <Typography
         level="body-sm"
@@ -571,7 +546,7 @@ const SummaryCard = ({
       >
         {value}
       </Typography>
-    </Card>
+    </div>
   );
 };
 
@@ -585,58 +560,6 @@ const CoordinatorCell = ({ order }: { order: ManualOrder }) => {
       <div className="text-[#001F54] font-medium">{name || "-"}</div>
       <div className="text-[#94A3B8] text-xs">{order.coordinatorEmail}</div>
     </div>
-  );
-};
-
-const MethodChip = ({ method }: { method: ManualOrder["paymentMethod"] }) => {
-  if (method === "stripe") {
-    return (
-      <Chip
-        size="sm"
-        variant="outlined"
-        sx={{ borderColor: "#635BFF", color: "#635BFF" }}
-      >
-        <span className="inline-flex items-center gap-1">
-          <RiBankCardLine size={12} />
-          Stripe
-        </span>
-      </Chip>
-    );
-  }
-  return (
-    <Chip
-      size="sm"
-      variant="outlined"
-      sx={{ borderColor: "#6D28D9", color: "#6D28D9" }}
-    >
-      <span className="inline-flex items-center gap-1">
-        <RiShieldCheckLine size={12} />
-        Zelle
-      </span>
-    </Chip>
-  );
-};
-
-const StatusChip = ({ status }: { status: ManualOrder["status"] }) => {
-  const config: Record<
-    ManualOrder["status"],
-    { color: "success" | "warning" | "danger" | "neutral" | "primary"; label: string }
-  > = {
-    pending_payment: { color: "warning", label: "Pending Payment" },
-    pending_confirmation: {
-      color: "neutral",
-      label: "Pending Confirmation",
-    },
-    paid: { color: "success", label: "Paid" },
-    rejected: { color: "danger", label: "Rejected" },
-    processing: { color: "primary", label: "Processing" },
-    completed: { color: "success", label: "Completed" },
-  };
-  const c = config[status] ?? { color: "warning" as const, label: status };
-  return (
-    <Chip size="sm" color={c.color} variant="soft">
-      {c.label}
-    </Chip>
   );
 };
 

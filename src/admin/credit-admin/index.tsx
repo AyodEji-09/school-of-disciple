@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Card,
-  Chip,
   Divider,
   FormControl,
   FormLabel,
@@ -35,6 +34,16 @@ import {
   MetricCardSkeleton,
 } from "../../components/query-state/QueryStates";
 import moment from "moment";
+import PageCard from "../../components/feedback/PageCard";
+import StatusBadge from "../../components/feedback/StatusBadge";
+import {
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "../../components/feedback/TableShell";
+import { REMITTANCE_STATUS, METHOD_STATUS } from "../../utils/status";
 
 const formatCurrency = (cents: number) =>
   `$${(cents / 100).toLocaleString(undefined, {
@@ -269,24 +278,18 @@ const CreditAdminPage = () => {
           </Box>
 
           {/* Remittance History */}
-          <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
-            <Box sx={{ p: 3, pb: 2 }}>
-              <Typography level="title-lg">Remittance History</Typography>
-              <Typography
-                level="body-sm"
-                sx={{ mt: 0.5, color: "text.tertiary" }}
-              >
-                All your payments to the admin
-              </Typography>
-            </Box>
-            <Divider />
+          <PageCard
+            padded={false}
+            title="Remittance History"
+            subtitle="All your payments to the admin"
+          >
             <RemittanceTable
               docs={docs}
               isLoading={isLoading}
               onUpload={handleReceiptUpload}
               uploading={uploadingReceipt}
             />
-          </Card>
+          </PageCard>
         </Stack>
 
         {/* Payment Method Modal */}
@@ -640,38 +643,6 @@ const ReceiptCell = ({
 
 /* ────── Remittance History Table ────── */
 
-const getStatusChip = (status: Remittance["status"]) => {
-  const config: Record<
-    Remittance["status"],
-    { color: "success" | "warning" | "danger"; label: string }
-  > = {
-    paid: { color: "success", label: "Confirmed" },
-    pending_confirmation: { color: "warning", label: "Pending" },
-    rejected: { color: "danger", label: "Rejected" },
-  };
-  const c = config[status] || { color: "warning" as const, label: status };
-  return (
-    <Chip color={c.color} variant="soft" size="sm">
-      {c.label}
-    </Chip>
-  );
-};
-
-const getMethodChip = (method: Remittance["method"]) => {
-  return (
-    <Chip
-      variant="outlined"
-      size="sm"
-      sx={{
-        borderColor: method === "stripe" ? "#635BFF" : "#6D28D9",
-        color: method === "stripe" ? "#635BFF" : "#6D28D9",
-      }}
-    >
-      {method === "stripe" ? "Stripe" : "Zelle"}
-    </Chip>
-  );
-};
-
 const RemittanceTable = ({
   docs,
   isLoading,
@@ -684,31 +655,19 @@ const RemittanceTable = ({
   uploading: boolean;
 }) => {
   return (
-    <Box className="overflow-x-auto w-full">
-      <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-        <thead className="text-xs whitespace-nowrap">
+    <div className="overflow-x-auto min-h-[400px]">
+      <table className="w-full text-sm text-left">
+        <TableHeader>
           <tr>
-            <th scope="col" className="px-6 py-3">
-              Date
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Description
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Method
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Amount
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Status
-            </th>
-            <th scope="col" className="px-6 py-3">
-              Receipt
-            </th>
+            <TableHeaderCell>Date</TableHeaderCell>
+            <TableHeaderCell>Description</TableHeaderCell>
+            <TableHeaderCell>Method</TableHeaderCell>
+            <TableHeaderCell>Amount</TableHeaderCell>
+            <TableHeaderCell>Status</TableHeaderCell>
+            <TableHeaderCell>Receipt</TableHeaderCell>
           </tr>
-        </thead>
-        <tbody className="whitespace-nowrap">
+        </TableHeader>
+        <TableBody>
           {isLoading && docs.length === 0 ? (
             <tr>
               <td colSpan={6}>
@@ -717,24 +676,28 @@ const RemittanceTable = ({
             </tr>
           ) : docs.length ? (
             docs.map((r) => (
-              <tr className="border-b last:border-none font-medium" key={r._id}>
-                <td className="px-6 py-4 whitespace-nowrap">
+              <TableRow key={r._id}>
+                <TableCell>
                   {moment(r.createdAt).format("MM/DD/YYYY")}
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell>
                   {r.description || "School fees remittance"}
-                </td>
-                <td className="px-6 py-4">{getMethodChip(r.method)}</td>
-                <td className="px-6 py-4">{formatCurrency(r.amount)}</td>
-                <td className="px-6 py-4">{getStatusChip(r.status)}</td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={r.method} map={METHOD_STATUS} size="sm" />
+                </TableCell>
+                <TableCell>{formatCurrency(r.amount)}</TableCell>
+                <TableCell>
+                  <StatusBadge status={r.status} map={REMITTANCE_STATUS} />
+                </TableCell>
+                <TableCell>
                   <ReceiptCell
                     remittance={r}
                     onUpload={onUpload}
                     uploading={uploading}
                   />
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))
           ) : (
             <tr>
@@ -743,8 +706,8 @@ const RemittanceTable = ({
               </td>
             </tr>
           )}
-        </tbody>
+        </TableBody>
       </table>
-    </Box>
+    </div>
   );
 };

@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  Box,
-  Card,
-  Chip,
-  Divider,
   FormControl,
   FormLabel,
   Option,
   Select,
   Stack,
-  Typography,
 } from "@mui/joy";
 import moment from "moment";
 import axios from "axios";
@@ -22,6 +17,16 @@ import {
   CenteredEmptyState,
   TableSkeleton,
 } from "../../components/query-state/QueryStates";
+import PageCard from "../../components/feedback/PageCard";
+import StatusBadge from "../../components/feedback/StatusBadge";
+import {
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableHeaderCell,
+  TableRow,
+  EmptyValue,
+} from "../../components/feedback/TableShell";
 import { useGetRemittancesQuery } from "../../data/rtk/remittance";
 import {
   useGetAllRegistrationWindowsQuery,
@@ -30,6 +35,7 @@ import {
 import { useGetCentersQuery } from "../../data/rtk/center";
 import { openRemittanceReportPrintPreview } from "./report-template";
 import { getUserFullName, handleError } from "../../utils";
+import { METHOD_STATUS, REMITTANCE_STATUS } from "../../utils/status";
 
 const formatCurrency = (cents: number) =>
   `$${(cents / 100).toLocaleString(undefined, {
@@ -77,30 +83,13 @@ const RemittancesPage = () => {
   const totalPages = remittances?.data?.totalPages || 1;
 
   const getCoordinatorName = (r: Remittance) => {
-    if (typeof r.coordinatorId === "string") return r.coordinatorId;
-    return getUserFullName(r.coordinatorId as User);
+    if (typeof r.coordinatorId === "string") return null;
+    return getUserFullName(r.coordinatorId as User) || null;
   };
 
-  const getCenterName = (r: Remittance) => {
-    if (typeof r.centerId === "string") return "-";
-    return (r.centerId as Center)?.name || "-";
-  };
-
-  const getStatusChip = (status: Remittance["status"]) => {
-    const config: Record<
-      Remittance["status"],
-      { color: "success" | "warning" | "danger"; label: string }
-    > = {
-      paid: { color: "success", label: "Confirmed" },
-      pending_confirmation: { color: "warning", label: "Pending" },
-      rejected: { color: "danger", label: "Rejected" },
-    };
-    const c = config[status] ?? { color: "warning" as const, label: status };
-    return (
-      <Chip color={c.color} variant="soft" size="sm">
-        {c.label}
-      </Chip>
-    );
+  const getCenterName = (r: Remittance): string | null => {
+    if (typeof r.centerId === "string") return null;
+    return (r.centerId as Center)?.name || null;
   };
 
   const generateRemittanceReport = async () => {
@@ -230,39 +219,12 @@ const RemittancesPage = () => {
 
   return (
     <Frame text="Remittances">
-      <div className="pb-16">
-        <Card variant="outlined" sx={{ p: 0, overflow: "hidden", mt: 4 }}>
-          <Box sx={{ p: 3, pb: 2 }}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="flex-start"
-              flexWrap="wrap"
-              gap={2}
-              mb={3}
-            >
-              <div>
-                <Typography level="title-lg">
-                  Coordinator Remittance History
-                </Typography>
-                <Typography
-                  level="body-sm"
-                  sx={{ mt: 0.5, color: "text.tertiary" }}
-                >
-                  All historical remittances from center coordinators.
-                </Typography>
-              </div>
-              <AppButton
-                type="button"
-                loading={isGeneratingReport}
-                disabled={isGeneratingReport}
-                onClick={generateRemittanceReport}
-              >
-                Generate Report
-              </AppButton>
-            </Stack>
-
-            <Stack direction="row" gap={2} flexWrap="wrap">
+      <div className="pb-16 mt-6">
+        <PageCard
+          title="Coordinator Remittance History"
+          subtitle="All historical remittances from center coordinators."
+          action={
+            <Stack direction="row" gap={2} alignItems="center" flexWrap="wrap">
               <FormControl size="sm">
                 <FormLabel>Academic Year</FormLabel>
                 <Select
@@ -281,12 +243,28 @@ const RemittancesPage = () => {
                 </Select>
               </FormControl>
 
+              <AppButton
+                type="button"
+                loading={isGeneratingReport}
+                disabled={isGeneratingReport}
+                onClick={generateRemittanceReport}
+              >
+                Generate Report
+              </AppButton>
+            </Stack>
+          }
+          padded={false}
+        >
+          <div className="px-6 pt-4 pb-2">
+            <Stack direction="row" gap={2} flexWrap="wrap">
               <FormControl size="sm">
                 <FormLabel>Center</FormLabel>
                 <Select
                   size="sm"
                   value={selectedCenter}
-                  onChange={(_, val) => setSelectedCenter((val as string) ?? "")}
+                  onChange={(_, val) =>
+                    setSelectedCenter((val as string) ?? "")
+                  }
                   placeholder="All Centers"
                   sx={{ minWidth: 200 }}
                 >
@@ -299,119 +277,100 @@ const RemittancesPage = () => {
                 </Select>
               </FormControl>
             </Stack>
-          </Box>
+          </div>
 
-          <Divider />
-
-          <Box sx={{ p: 3 }}>
-            <Box className="overflow-x-auto w-full">
-              <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-                <thead className="text-xs whitespace-nowrap">
+          <div className="overflow-x-auto min-h-[400px]">
+            <table className="w-full text-sm text-left">
+              <TableHeader>
+                <tr>
+                  <TableHeaderCell>Date</TableHeaderCell>
+                  <TableHeaderCell>Coordinator</TableHeaderCell>
+                  <TableHeaderCell>Center</TableHeaderCell>
+                  <TableHeaderCell>Method</TableHeaderCell>
+                  <TableHeaderCell>Amount</TableHeaderCell>
+                  <TableHeaderCell>Status</TableHeaderCell>
+                  <TableHeaderCell>Receipt</TableHeaderCell>
+                </tr>
+              </TableHeader>
+              <TableBody>
+                {isLoading && !hasDocs ? (
                   <tr>
-                    <th scope="col" className="px-6 py-3">
-                      Date
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Coordinator
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Center
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Method
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Amount
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Receipt
-                    </th>
+                    <td colSpan={7}>
+                      <TableSkeleton columns={7} rows={5} />
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="whitespace-nowrap">
-                  {isLoading && !hasDocs ? (
-                    <tr>
-                      <td colSpan={7}>
-                        <TableSkeleton columns={7} rows={5} />
-                      </td>
-                    </tr>
-                  ) : hasDocs ? (
-                    docs.map((r) => (
-                      <tr
-                        className="border-b last:border-none font-medium"
-                        key={r._id}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {moment(r.createdAt).format("MM/DD/YYYY")}
-                        </td>
-                        <td className="px-6 py-4">{getCoordinatorName(r)}</td>
-                        <td className="px-6 py-4">{getCenterName(r)}</td>
-                        <td className="px-6 py-4">
-                          <Chip
-                            variant="outlined"
-                            size="sm"
-                            sx={{
-                              borderColor:
-                                r.method === "stripe" ? "#635BFF" : "#6D28D9",
-                              color:
-                                r.method === "stripe" ? "#635BFF" : "#6D28D9",
-                            }}
+                ) : hasDocs ? (
+                  docs.map((r) => (
+                    <TableRow key={r._id}>
+                      <TableCell>
+                        {moment(r.createdAt).format("MM/DD/YYYY")}
+                      </TableCell>
+                      <TableCell>
+                        {getCoordinatorName(r) ?? <EmptyValue />}
+                      </TableCell>
+                      <TableCell>
+                        {getCenterName(r) ?? <EmptyValue />}
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={r.method}
+                          map={METHOD_STATUS}
+                          size="sm"
+                        />
+                      </TableCell>
+                      <TableCell>{formatCurrency(r.amount)}</TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={r.status}
+                          map={REMITTANCE_STATUS}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {r.receiptImageUrl ? (
+                          <a
+                            href={r.receiptImageUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[#001EC5] underline text-xs font-medium"
                           >
-                            {r.method === "stripe" ? "Stripe" : "Zelle"}
-                          </Chip>
-                        </td>
-                        <td className="px-6 py-4">{formatCurrency(r.amount)}</td>
-                        <td className="px-6 py-4">{getStatusChip(r.status)}</td>
-                        <td className="px-6 py-4">
-                          {r.receiptImageUrl ? (
-                            <a
-                              href={r.receiptImageUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[#001EC5] underline text-xs font-medium"
-                            >
-                              View Receipt
-                            </a>
-                          ) : r.receiptUrl ? (
-                            <a
-                              href={r.receiptUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[#001EC5] underline text-xs font-medium"
-                            >
-                              Stripe Receipt
-                            </a>
-                          ) : (
-                            <span className="text-[#9CA3AF] text-xs">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={7}>
-                        <CenteredEmptyState description="No remittances found for the selected filters." />
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </Box>
+                            View Receipt
+                          </a>
+                        ) : r.receiptUrl ? (
+                          <a
+                            href={r.receiptUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[#001EC5] underline text-xs font-medium"
+                          >
+                            Stripe Receipt
+                          </a>
+                        ) : (
+                          <EmptyValue />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7}>
+                      <CenteredEmptyState description="No remittances found for the selected filters." />
+                    </td>
+                  </tr>
+                )}
+              </TableBody>
+            </table>
+          </div>
 
-            {totalPages > 1 && (
-              <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-                <AppPagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  onPageChange={setPage}
-                />
-              </Box>
-            )}
-          </Box>
-        </Card>
+          {totalPages > 1 && (
+            <Stack justifyContent="center" sx={{ p: 3 }}>
+              <AppPagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </Stack>
+          )}
+        </PageCard>
       </div>
     </Frame>
   );

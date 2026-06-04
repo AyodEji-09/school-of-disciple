@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import Frame from "../../components/frame/Frame";
-import { Box, Card, Chip, Option, Select, Stack, Typography } from "@mui/joy";
+import { Box, Option, Select, Stack, Typography } from "@mui/joy";
 import AppButton from "../../components/Button/AppButton";
 import {
   useGetUserQuery,
@@ -12,9 +12,12 @@ import { useParams } from "react-router-dom";
 import { formatCenterAddress, getUserFullName, handleError } from "../../utils";
 import moment from "moment";
 import { toast } from "react-toastify";
-import { PulseLoader } from "react-spinners";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
+import PageCard from "../../components/feedback/PageCard";
+import StatusBadge from "../../components/feedback/StatusBadge";
+import { PageLoader } from "../../components/query-state/QueryStates";
+import { COORDINATOR_STATUS } from "../../utils/status";
 
 const CenterManager = () => {
   const { id } = useParams();
@@ -100,59 +103,38 @@ const CenterManager = () => {
     }
   };
 
-  const getStatusChip = () => {
-    const config = {
-      assigned: { color: "success" as const, label: "Assigned" },
-      unassigned: { color: "warning" as const, label: "Unassigned" },
-      deactivated: { color: "danger" as const, label: "Deactivated" },
-      pending: { color: "neutral" as const, label: "Pending Invite" },
-    };
-
-    const current =
-      config[coordinatorStatus as keyof typeof config] || config.pending;
-
-    return (
-      <Chip color={current.color} variant="soft" size="sm">
-        {current.label}
-      </Chip>
-    );
-  };
-
   return (
     <Frame text="Coordinator Details">
-      <div className="mt-8 pb-8">
-        <Card variant="outlined">
-          {isLoading || isFetching ? (
-            <div className="flex min-h-72 items-center justify-center">
-              <PulseLoader className="mx-auto" size="large" />
-            </div>
-          ) : manager ? (
-            <div className="grid md:grid-cols-3 gap-6 p-2">
-              <div className="md:col-span-1">
-                <div className="rounded-lg overflow-hidden bg-white border border-[#E7EAF0]">
-                  <div className="h-72 overflow-hidden">
-                    {manager?.avatar?.url ? (
-                      <img
-                        className="h-full w-full object-cover"
-                        src={manager.avatar.url}
-                        alt={getUserFullName(manager)}
-                      />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center bg-[#E9EEF6] text-[#001F54] text-6xl font-semibold">
-                        {initials || "U"}
-                      </div>
-                    )}
-                  </div>
+      <div className="mt-6 pb-16">
+        {isLoading || isFetching ? (
+          <PageLoader label="Loading coordinator…" />
+        ) : manager ? (
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+              <PageCard padded={false} className="!p-0">
+                <div className="h-72 overflow-hidden rounded-t-2xl">
+                  {manager?.avatar?.url ? (
+                    <img
+                      className="h-full w-full object-cover"
+                      src={manager.avatar.url}
+                      alt={getUserFullName(manager)}
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center bg-[#E9EEF6] text-[#001F54] text-6xl font-semibold">
+                      {initials || "U"}
+                    </div>
+                  )}
                 </div>
-              </div>
+              </PageCard>
+            </div>
 
-              <div className="md:col-span-2 rounded-lg border border-[#E7EAF0] bg-white p-5">
-                <Typography level="h3" mb={3}>
+            <div className="md:col-span-2">
+              <PageCard>
+                <Typography level="h3" mb={3} sx={{ color: "#001F54" }}>
                   {getUserFullName(manager)}
                 </Typography>
 
                 <Stack spacing={4}>
-                  {/* Personal Section */}
                   <Box>
                     <Typography level="title-md" mb={2} color="primary">
                       Personal Information
@@ -175,7 +157,6 @@ const CenterManager = () => {
                     </Stack>
                   </Box>
 
-                  {/* Assignment Section */}
                   <Box>
                     <Typography level="title-md" mb={2} color="primary">
                       Center Assignment
@@ -183,8 +164,13 @@ const CenterManager = () => {
                     <Stack spacing={1.5}>
                       <DetailRow
                         label="Status"
-                        value={getStatusChip()}
                         valueIsNode
+                        value={
+                          <StatusBadge
+                            status={coordinatorStatus}
+                            map={COORDINATOR_STATUS}
+                          />
+                        }
                       />
                       <DetailRow
                         label="Assigned Center"
@@ -298,14 +284,14 @@ const CenterManager = () => {
                     </div>
                   )}
                 </Stack>
-              </div>
+              </PageCard>
             </div>
-          ) : (
-            <div className="flex min-h-72 items-center justify-center">
-              <Typography level="body-md">Coordinator not found.</Typography>
-            </div>
-          )}
-        </Card>
+          </div>
+        ) : (
+          <div className="flex min-h-72 items-center justify-center">
+            <Typography level="body-md">Coordinator not found.</Typography>
+          </div>
+        )}
       </div>
     </Frame>
   );
@@ -323,10 +309,10 @@ const DetailRow = ({
   valueIsNode?: boolean;
 }) => {
   return (
-    <div className="flex justify-between gap-4 items-center border-b pb-2">
+    <div className="flex justify-between gap-4 items-center border-b border-[#F3F4F6] pb-2">
       <Typography
         level="body-sm"
-        textColor={"#000000"}
+        textColor="#475569"
         sx={{ fontWeight: 500 }}
       >
         {label}
@@ -334,7 +320,7 @@ const DetailRow = ({
       {valueIsNode ? (
         <div>{value}</div>
       ) : (
-        <Typography level="body-sm" textAlign={"right"} textColor="neutral">
+        <Typography level="body-sm" textAlign="right" textColor="#001F54">
           {value as string}
         </Typography>
       )}

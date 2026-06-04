@@ -1,6 +1,5 @@
 import {
   Box,
-  Chip,
   Dropdown,
   IconButton,
   Menu,
@@ -29,11 +28,24 @@ import {
   useGetCentersQuery,
   useUpdateCenterMutation,
 } from "../../data/rtk/center";
-import { CenteredEmptyState } from "../../components/query-state/QueryStates";
+import {
+  CenteredEmptyState,
+  PageLoader,
+} from "../../components/query-state/QueryStates";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
-import { PulseLoader } from "react-spinners";
 import { useGetUsersQuery } from "../../data/rtk/user";
+import PageCard from "../../components/feedback/PageCard";
+import StatusBadge from "../../components/feedback/StatusBadge";
+import {
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+  EmptyValue,
+} from "../../components/feedback/TableShell";
+import { COORDINATOR_STATUS } from "../../utils/status";
 
 interface FormType {
   name: string;
@@ -66,7 +78,6 @@ const Centers = () => {
   });
   const { data: allCenters } = useGetAllCenterQuery();
   const { data: coordinators } = useGetUsersQuery({ type: "coordinator" });
-  console.log({ centerData });
 
   const totalCenters = centerData?.data?.totalItems ?? 0;
   const unassignedCenters =
@@ -92,21 +103,6 @@ const Centers = () => {
     );
   };
 
-  const getStatusChip = (status: string) => {
-    const config = {
-      assigned: { color: "success" as const, label: "Assigned" },
-      unassigned: { color: "warning" as const, label: "Unassigned" },
-      deactivated: { color: "danger" as const, label: "Deactivated" },
-      pending: { color: "neutral" as const, label: "Pending" },
-    };
-    const current = config[status as keyof typeof config] || config.unassigned;
-    return (
-      <Chip color={current.color} variant="soft" size="sm">
-        {current.label}
-      </Chip>
-    );
-  };
-
   const sortedCenters = useMemo(() => {
     const docs = centerData?.data?.docs || [];
     return [...docs].sort((a, b) => {
@@ -125,9 +121,6 @@ const Centers = () => {
 
   const toggleModal = (mode?: string) => {
     if (mode) setMode(mode);
-    console.log({ selectedCenter });
-
-    // if (!isOpen) setSelectedCenter(null);
     setIsOpen(!isOpen);
   };
 
@@ -143,13 +136,10 @@ const Centers = () => {
         toast.error("Center not selected");
         return;
       }
-
       const res = await deleteCenterMutation(selectedCenter._id).unwrap();
-      console.log({ res });
       setMode("deleted");
       toast.success(res.message || "Center deleted successfully");
     } catch (error) {
-      console.log({ error });
       toast.error(getMutationError(error));
     } finally {
       setLoading(false);
@@ -173,25 +163,19 @@ const Centers = () => {
   });
 
   const onSubmit = async (data: FormType) => {
-    console.log({
-      ...data,
-    });
     setLoading(true);
     try {
       if (!selectedCenter?._id) {
         toast.error("Center not selected");
         return;
       }
-
       const res = await updateCenter({
         id: selectedCenter._id,
         ...data,
       }).unwrap();
-      console.log({ res });
       toast.success(res.message || "Center updated successfully");
       toggleModal();
     } catch (error) {
-      console.log({ error });
       toast.error(getMutationError(error) || handleError(error));
     } finally {
       setLoading(false);
@@ -201,12 +185,9 @@ const Centers = () => {
   const handleUnassign = async (id: string | undefined) => {
     try {
       const res = await axios.patch(`/estate/${id}/unassign-manager`);
-      console.log({ res });
       toast.success(res.data.message);
     } catch (error) {
-      console.log({ error });
       toast.error(handleError(error));
-      toggleModal();
     } finally {
       toggleModal();
     }
@@ -225,7 +206,7 @@ const Centers = () => {
 
   return (
     <Frame text="Centers">
-      <div className="grid sm:grid-cols-3 gap-4 mt-8">
+      <div className="grid sm:grid-cols-3 gap-4 mt-6">
         <ReportCard
           title="Center coordinator"
           number={coordinators?.data?.totalItems || "0"}
@@ -233,149 +214,132 @@ const Centers = () => {
         <ReportCard title="Unassigned centers" number={unassignedCenters} />
         <ReportCard title="Centers" number={totalCenters} />
       </div>
+
       {user?.type === "admin" && (
-        <Stack pt={4}>
-          <div className="w-fit ml-auto flex gap-4 flex-wrap">
-            <AppButton
-              variant="outlined"
-              onClick={() => navigate("add-center")}
-            >
-              Add Center
-            </AppButton>
-          </div>
-        </Stack>
+        <div className="mt-6 flex justify-end gap-3 flex-wrap">
+          <AppButton
+            variant="outlined"
+            onClick={() => navigate("add-center")}
+          >
+            Add Center
+          </AppButton>
+        </div>
       )}
-      <div className="mt-8 pb-16">
-        <div className="bg-white p-4">
-          <Stack
-            direction={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-            gap={4}
-          >
-            <Typography level="title-lg">Centers</Typography>
-            <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
-          </Stack>
-          <Box
-            minHeight={400}
-            position={"relative"}
-            className={"overflow-x-auto w-full"}
-          >
-            <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-              <thead className="text-xs">
-                <tr>
-                  <th scope="col" className="px-6 py-3">
-                    Name
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Address
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Center manager
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="whitespace-nowrap">
-                {isLoading || isFetching ? (
-                  <td colSpan={5}>
-                    <div className="flex min-h-96 items-center justify-center">
-                      <PulseLoader className="mx-auto" size="large" />
-                    </div>
-                  </td>
-                ) : sortedCenters.length ? (
-                  sortedCenters.map((center, idx) => (
-                    <tr
-                      key={idx}
-                      className="border-b last:border-none font-medium"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <AvatarText text={center?.name} />
-                      </td>
-                      <td className="px-6 py-4">
-                        {formatCenterAddress(center)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-center">
-                          {center?.manager && typeof center.manager !== "string"
-                            ? getUserFullName(center.manager)
-                            : "Unassigned"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {getStatusChip(getCoordinatorStatus(center?.manager))}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Dropdown>
-                          <MenuButton
-                            slots={{ root: IconButton }}
-                            slotProps={{
-                              root: { variant: "outlined", color: "neutral" },
-                            }}
-                          >
-                            <MoreVert />
-                          </MenuButton>
-                          <Menu>
-                            {getManagerId(center.manager) ? (
-                              <MenuItem
-                                onClick={() =>
-                                  navigate(
-                                    `/dashboard/coordinators/${getManagerId(center.manager)}`,
-                                  )
-                                }
-                              >
-                                View Manager
-                              </MenuItem>
-                            ) : (
-                              <MenuItem
-                                onClick={() =>
-                                  navigate(
-                                    `/dashboard/add-manager?centerId=${center._id}`,
-                                  )
-                                }
-                              >
-                                Add Manager
-                              </MenuItem>
-                            )}
-                            <MenuItem
-                              onClick={() => {
-                                setSelectedCenter(center);
-                                toggleModal("edit");
+
+      <div className="mt-6 pb-16">
+        <PageCard
+          padded={false}
+          title="Centers"
+          action={<AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />}
+        >
+          <div className="overflow-x-auto min-h-[400px]">
+            {isLoading || isFetching ? (
+              <div className="flex items-center justify-center py-24">
+                <PageLoader label="Loading centers…" />
+              </div>
+            ) : (
+              <table className="w-full text-sm text-left">
+                <TableHeader>
+                  <tr>
+                    <TableHeaderCell>Name</TableHeaderCell>
+                    <TableHeaderCell>Address</TableHeaderCell>
+                    <TableHeaderCell>Center manager</TableHeaderCell>
+                    <TableHeaderCell>Status</TableHeaderCell>
+                    <TableHeaderCell>Action</TableHeaderCell>
+                  </tr>
+                </TableHeader>
+                <TableBody>
+                  {sortedCenters.length ? (
+                    sortedCenters.map((center, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell>
+                          <AvatarText text={center?.name} />
+                        </TableCell>
+                        <TableCell>{formatCenterAddress(center)}</TableCell>
+                        <TableCell>
+                          {center?.manager &&
+                          typeof center.manager !== "string" ? (
+                            getUserFullName(center.manager)
+                          ) : (
+                            <EmptyValue />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge
+                            status={getCoordinatorStatus(center?.manager)}
+                            map={COORDINATOR_STATUS}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Dropdown>
+                            <MenuButton
+                              slots={{ root: IconButton }}
+                              slotProps={{
+                                root: { variant: "outlined", color: "neutral" },
                               }}
                             >
-                              Edit
-                            </MenuItem>
-                            <MenuItem
-                              onClick={() => {
-                                setSelectedCenter(center);
-                                toggleModal("delete");
-                              }}
-                            >
-                              Delete
-                            </MenuItem>
-                          </Menu>
-                        </Dropdown>
+                              <MoreVert />
+                            </MenuButton>
+                            <Menu>
+                              {getManagerId(center.manager) ? (
+                                <MenuItem
+                                  onClick={() =>
+                                    navigate(
+                                      `/dashboard/coordinators/${getManagerId(center.manager)}`,
+                                    )
+                                  }
+                                >
+                                  View Manager
+                                </MenuItem>
+                              ) : (
+                                <MenuItem
+                                  onClick={() =>
+                                    navigate(
+                                      `/dashboard/add-manager?centerId=${center._id}`,
+                                    )
+                                  }
+                                >
+                                  Add Manager
+                                </MenuItem>
+                              )}
+                              <MenuItem
+                                onClick={() => {
+                                  setSelectedCenter(center);
+                                  toggleModal("edit");
+                                }}
+                              >
+                                Edit
+                              </MenuItem>
+                              <MenuItem
+                                onClick={() => {
+                                  setSelectedCenter(center);
+                                  toggleModal("delete");
+                                }}
+                              >
+                                Delete
+                              </MenuItem>
+                            </Menu>
+                          </Dropdown>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5}>
+                        <div className="py-16">
+                          <CenteredEmptyState />
+                        </div>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <td colSpan={5}>
-                    <div className="flex min-h-96 items-center justify-center">
-                      <CenteredEmptyState />
-                    </div>
-                  </td>
-                )}
-              </tbody>
-            </table>
-          </Box>
-        </div>
+                  )}
+                </TableBody>
+              </table>
+            )}
+          </div>
+        </PageCard>
       </div>
-      {/* modal */}
+
       <AppModal isOpen={isOpen} close={toggleModal}>
         {mode === "unassign" && (
           <Box>
@@ -383,7 +347,7 @@ const Centers = () => {
               Unassign Manager?
             </Typography>
             <Typography level="body-md" textAlign={"center"} mb={2}>
-              You are about to unassign this estate from the manager{" "}
+              You are about to unassign this estate from the manager
             </Typography>
             <Typography level="body-md" textAlign={"center"} mb={2}>
               Do you want to proceed with this action?
@@ -435,9 +399,7 @@ const Centers = () => {
                   <Controller
                     name="name"
                     control={control}
-                    rules={{
-                      required: true,
-                    }}
+                    rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <Input
                         label="Center Name"
@@ -456,9 +418,7 @@ const Centers = () => {
                   <Controller
                     name="address"
                     control={control}
-                    rules={{
-                      required: true,
-                    }}
+                    rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <Input
                         label="Street Address"
@@ -478,11 +438,13 @@ const Centers = () => {
                     <Controller
                       name="city"
                       control={control}
-                      rules={{
-                        required: true,
-                      }}
+                      rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
-                        <Input label="City" value={value} onChange={onChange} />
+                        <Input
+                          label="City"
+                          value={value}
+                          onChange={onChange}
+                        />
                       )}
                     />
                     {errors.city && (
@@ -495,9 +457,7 @@ const Centers = () => {
                     <Controller
                       name="state"
                       control={control}
-                      rules={{
-                        required: true,
-                      }}
+                      rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <Input
                           label="State"
@@ -516,9 +476,7 @@ const Centers = () => {
                     <Controller
                       name="postalCode"
                       control={control}
-                      rules={{
-                        required: true,
-                      }}
+                      rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <Input
                           label="Postal Code"
@@ -537,9 +495,7 @@ const Centers = () => {
                     <Controller
                       name="country"
                       control={control}
-                      rules={{
-                        required: true,
-                      }}
+                      rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <Input
                           label="Country"
@@ -566,7 +522,6 @@ const Centers = () => {
         )}
         {mode === "delete" && (
           <Box maxWidth={400}>
-            <div className="flex justify-center">{/* <TrashIcon /> */}</div>
             <Typography level="h2" textAlign={"center"} mb={2}>
               Delete Center?
             </Typography>
@@ -592,7 +547,6 @@ const Centers = () => {
         )}
         {mode === "deleted" && (
           <Box maxWidth={400}>
-            <div className="flex justify-center">{/* <TrashIcon /> */}</div>
             <Typography level="h2" textAlign={"center"} mb={2}>
               Center Deleted
             </Typography>

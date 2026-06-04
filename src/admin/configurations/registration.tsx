@@ -1,7 +1,5 @@
 import {
   Box,
-  Card,
-  Chip,
   FormControl,
   FormLabel,
   Option,
@@ -12,14 +10,23 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { PulseLoader } from "react-spinners";
 import moment from "moment";
 
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
 import InputField from "../../components/input/input.component";
 import AppModal from "../../components/modal/modal";
+import PageCard from "../../components/feedback/PageCard";
+import StatusBadge from "../../components/feedback/StatusBadge";
+import {
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "../../components/feedback/TableShell";
 import { handleError } from "../../utils";
+import { WINDOW_STATUS } from "../../utils/status";
 import {
   useGetRegistrationWindowQuery,
   useGetAllRegistrationWindowsQuery,
@@ -27,7 +34,10 @@ import {
   useUpdateRegistrationWindowMutation,
 } from "../../data/rtk/registration";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
-import { CenteredEmptyState } from "../../components/query-state/QueryStates";
+import {
+  CenteredEmptyState,
+  PageLoader,
+} from "../../components/query-state/QueryStates";
 
 interface RegFormType {
   sessionId: string;
@@ -35,19 +45,14 @@ interface RegFormType {
   endDate: string;
 }
 
-type WindowStatus = {
-  label: "Open" | "Upcoming" | "Closed" | "Not Configured";
-  color: "success" | "warning" | "danger" | "neutral";
-};
-
-const getWindowStatus = (win?: RegistrationWindow | null): WindowStatus => {
-  if (!win) return { label: "Not Configured", color: "neutral" };
+const resolveWindowKey = (win?: RegistrationWindow | null) => {
+  if (!win) return "not_configured" as const;
   const now = new Date();
   const start = new Date(win.startDate);
   const end = new Date(win.endDate);
-  if (now < start) return { label: "Upcoming", color: "warning" };
-  if (now > end) return { label: "Closed", color: "danger" };
-  return { label: "Open", color: "success" };
+  if (now < start) return "upcoming" as const;
+  if (now > end) return "closed" as const;
+  return "open" as const;
 };
 
 const RegistrationPage = () => {
@@ -65,7 +70,7 @@ const RegistrationPage = () => {
   const { data: sessionsRes } = useGetSessionsQuery();
 
   const currentWindow = currentWindowRes?.data;
-  const status = getWindowStatus(currentWindow);
+  const statusKey = resolveWindowKey(currentWindow);
   const isSubmitting = creating || updating;
   const sessions = sessionsRes?.data ?? [];
 
@@ -125,292 +130,262 @@ const RegistrationPage = () => {
     }
   };
 
+  if (loadingCurrent) {
+    return (
+      <Frame text="Registration Windows">
+        <PageLoader label="Loading registration window…" />
+      </Frame>
+    );
+  }
+
   return (
     <Frame text="Registration Windows">
-      <Box sx={{ maxWidth: 960, mx: "auto", mt: 4, pb: 12 }}>
-        <Stack spacing={4}>
-          {loadingCurrent ? (
-            <div className="flex justify-center py-12">
-              <PulseLoader size={10} color="#001EC5" />
-            </div>
-          ) : (
-            <>
-              <Card variant="outlined">
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  flexWrap="wrap"
-                  gap={2}
-                >
-                  <div className="space-y-1">
-                    <Typography level="body-sm" textColor="#6B7280">
-                      {status.label === "Upcoming"
-                        ? "Upcoming Registration Window"
-                        : status.label === "Open"
-                          ? "Active Registration Window"
-                          : "Registration Window"}
-                    </Typography>
-                    <Stack direction="row" alignItems="center" gap={1.5}>
-                      <Typography level="h4">
-                        {currentWindow?.label ?? "No window configured yet"}
-                      </Typography>
-                      {currentWindow && (
-                        <Chip color={status.color} variant="soft" size="md">
-                          {status.label}
-                        </Chip>
-                      )}
-                    </Stack>
-                    {currentWindow ? (
-                      <Typography level="body-sm" textColor="#6B7280">
-                        {moment(currentWindow.startDate).format(
-                          "MM/DD/YYYY, HH:mm",
-                        )}{" "}
-                        &mdash;{" "}
-                        {moment(currentWindow.endDate).format(
-                          "MM/DD/YYYY, HH:mm",
-                        )}
-                      </Typography>
-                    ) : (
-                      <Typography level="body-sm" textColor="#9CA3AF">
-                        No registration period configured. Set one to allow
-                        students to register.
-                      </Typography>
-                    )}
-                  </div>
-
-                  <Stack direction="row" gap={2} flexShrink={0}>
-                    {(status.label === "Open" ||
-                      status.label === "Upcoming") ? (
-                      <AppButton type="button" onClick={openEditModal}>
-                        {status.label === "Upcoming"
-                          ? "Edit Upcoming Window"
-                          : "Edit Window"}
-                      </AppButton>
-                    ) : (
-                      <>
-                        {currentWindow && (
-                          <AppButton
-                            type="button"
-                            variant="outlined"
-                            onClick={openEditModal}
-                          >
-                            Edit Last Window
-                          </AppButton>
-                        )}
-                        <AppButton type="button" onClick={openCreateModal}>
-                          {currentWindow ? "New Window" : "Set Window"}
-                        </AppButton>
-                      </>
-                    )}
-                  </Stack>
-                </Stack>
-
-                {status.label === "Upcoming" && (
-                  <Box
-                    sx={{
-                      mt: 2,
-                      p: 1.5,
-                      borderRadius: "8px",
-                      bgcolor: "#FFFBEB",
-                      border: "1px solid #FDE68A",
-                    }}
-                  >
-                    <Typography level="body-sm" sx={{ color: "#92400E" }}>
-                      ⏳ This window hasn't opened yet. Edit it if you need to
-                      adjust the dates. A new window cannot be created while one
-                      is already scheduled.
-                    </Typography>
-                  </Box>
-                )}
-              </Card>
-
-              <div>
-                <Typography level="title-lg" mb={2}>
-                  History
-                </Typography>
-                <Card variant="outlined" sx={{ p: 0, overflow: "hidden" }}>
-                  {loadingAll ? (
-                    <div className="flex justify-center py-12">
-                      <PulseLoader size={8} color="#001EC5" />
-                    </div>
-                  ) : allWindowsRes?.data?.docs?.length ? (
-                    <div className="overflow-x-auto w-full">
-                      <table className="w-full text-sm text-left text-[#001F54]">
-                        <thead className="text-xs bg-[#F8FAFC] border-b border-[#E5E7EB]">
-                          <tr>
-                            <th className="px-6 py-4 font-semibold">Label</th>
-                            <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                              Start Date
-                            </th>
-                            <th className="px-6 py-4 font-semibold whitespace-nowrap">
-                              End Date
-                            </th>
-                            <th className="px-6 py-4 font-semibold">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="whitespace-nowrap">
-                          {allWindowsRes.data.docs.map((win) => {
-                            const s = getWindowStatus(win);
-                            const isCurrent =
-                              win._id === currentWindow?._id;
-                            return (
-                              <tr
-                                key={win._id}
-                                className={`border-b border-[#F3F4F6] ${
-                                  isCurrent ? "bg-[#F0F4FF]" : ""
-                                }`}
-                              >
-                                <td className="px-6 py-4 font-medium">
-                                  <Stack
-                                    direction="row"
-                                    alignItems="center"
-                                    gap={1}
-                                  >
-                                    {win.label}
-                                    {isCurrent && (
-                                      <span className="text-[10px] font-bold text-[#001EC5] bg-[#E0E7FF] px-2 py-0.5 rounded-full">
-                                        Current
-                                      </span>
-                                    )}
-                                  </Stack>
-                                </td>
-                                <td className="px-6 py-4">
-                                  {moment(win.startDate).format(
-                                    "MM/DD/YYYY, HH:mm",
-                                  )}
-                                </td>
-                                <td className="px-6 py-4">
-                                  {moment(win.endDate).format(
-                                    "MM/DD/YYYY, HH:mm",
-                                  )}
-                                </td>
-                                <td className="px-6 py-4">
-                                  <Chip
-                                    color={s.color}
-                                    variant="soft"
-                                    size="sm"
-                                  >
-                                    {s.label}
-                                  </Chip>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="py-16">
-                      <CenteredEmptyState description="No registration windows yet" />
-                    </div>
-                  )}
-                </Card>
-              </div>
-            </>
-          )}
-
-          <AppModal
-            isOpen={isModalOpen}
-            close={() => setIsModalOpen(false)}
-            title={
-              mode === "edit"
-                ? "Update Registration Window"
-                : "Set Registration Window"
-            }
-            icon
+      <div className="max-w-5xl mx-auto mt-6 pb-16 space-y-6">
+        <PageCard>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            flexWrap="wrap"
+            gap={2}
           >
-            <div className="w-[min(440px,80vw)] mt-2">
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="space-y-4">
-                  <div>
-                    <Controller
-                      name="sessionId"
-                      control={control}
-                      rules={{ required: "Academic session is required" }}
-                      render={({ field: { value, onChange } }) => (
-                        <FormControl>
-                          <FormLabel>Academic Session</FormLabel>
-                          <Select
-                            value={value}
-                            onChange={(_, val) => onChange(val)}
-                            placeholder="Select a session…"
-                          >
-                            {sessions.map((s: any) => (
-                              <Option key={s._id} value={s._id}>
-                                {s.name}
-                                {s.isCurrent ? " · Current" : ""}
-                              </Option>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      )}
-                    />
-                    {errors.sessionId && (
-                      <p className="text-[#dc2626] text-xs mt-1">
-                        {errors.sessionId.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Controller
-                      name="startDate"
-                      control={control}
-                      rules={{ required: "Start date is required" }}
-                      render={({ field: { value, onChange } }) => (
-                        <InputField
-                          label="Start Date & Time"
-                          type="datetime-local"
-                          value={value}
-                          onChange={onChange}
-                        />
-                      )}
-                    />
-                    {errors.startDate && (
-                      <p className="text-[#dc2626] text-xs mt-1">
-                        {errors.startDate.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Controller
-                      name="endDate"
-                      control={control}
-                      rules={{ required: "End date is required" }}
-                      render={({ field: { value, onChange } }) => (
-                        <InputField
-                          label="End Date & Time"
-                          type="datetime-local"
-                          value={value}
-                          onChange={onChange}
-                        />
-                      )}
-                    />
-                    {errors.endDate && (
-                      <p className="text-[#dc2626] text-xs mt-1">
-                        {errors.endDate.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <Stack direction="row" gap={2} mt={4}>
-                  <AppButton loading={isSubmitting} disabled={isSubmitting}>
-                    {mode === "edit" ? "Update Window" : "Set Window"}
-                  </AppButton>
-                  <AppButton
-                    type="button"
-                    variant="outlined"
-                    onClick={() => setIsModalOpen(false)}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </AppButton>
-                </Stack>
-              </form>
+            <div className="space-y-1">
+              <Typography level="body-sm" textColor="#6B7280">
+                {statusKey === "upcoming"
+                  ? "Upcoming Registration Window"
+                  : statusKey === "open"
+                    ? "Active Registration Window"
+                    : "Registration Window"}
+              </Typography>
+              <Stack direction="row" alignItems="center" gap={1.5}>
+                <Typography level="h4">
+                  {currentWindow?.label ?? "No window configured yet"}
+                </Typography>
+                {currentWindow && (
+                  <StatusBadge status={statusKey} map={WINDOW_STATUS} />
+                )}
+              </Stack>
+              {currentWindow ? (
+                <Typography level="body-sm" textColor="#6B7280">
+                  {moment(currentWindow.startDate).format("MM/DD/YYYY, HH:mm")}{" "}
+                  &mdash;{" "}
+                  {moment(currentWindow.endDate).format("MM/DD/YYYY, HH:mm")}
+                </Typography>
+              ) : (
+                <Typography level="body-sm" textColor="#9CA3AF">
+                  No registration period configured. Set one to allow students
+                  to register.
+                </Typography>
+              )}
             </div>
-          </AppModal>
-        </Stack>
-      </Box>
+
+            <Stack direction="row" gap={2} flexShrink={0}>
+              {statusKey === "open" || statusKey === "upcoming" ? (
+                <AppButton type="button" onClick={openEditModal}>
+                  {statusKey === "upcoming"
+                    ? "Edit Upcoming Window"
+                    : "Edit Window"}
+                </AppButton>
+              ) : (
+                <>
+                  {currentWindow && (
+                    <AppButton
+                      type="button"
+                      variant="outlined"
+                      onClick={openEditModal}
+                    >
+                      Edit Last Window
+                    </AppButton>
+                  )}
+                  <AppButton type="button" onClick={openCreateModal}>
+                    {currentWindow ? "New Window" : "Set Window"}
+                  </AppButton>
+                </>
+              )}
+            </Stack>
+          </Stack>
+
+          {statusKey === "upcoming" && (
+            <Box
+              sx={{
+                mt: 2,
+                p: 1.5,
+                borderRadius: "8px",
+                bgcolor: "#FEF3C7",
+                border: "1px solid #FDE68A",
+              }}
+            >
+              <Typography level="body-sm" sx={{ color: "#92400E" }}>
+                ⏳ This window hasn't opened yet. Edit it if you need to adjust
+                the dates. A new window cannot be created while one is already
+                scheduled.
+              </Typography>
+            </Box>
+          )}
+        </PageCard>
+
+        <div>
+          <Typography level="title-lg" mb={2} sx={{ color: "#001F54" }}>
+            History
+          </Typography>
+          <PageCard padded={false}>
+            {loadingAll ? (
+              <div className="py-10 flex justify-center">
+                <PageLoader label="Loading history…" />
+              </div>
+            ) : allWindowsRes?.data?.docs?.length ? (
+              <div className="overflow-x-auto min-h-[400px]">
+                <table className="w-full text-sm text-left">
+                  <TableHeader>
+                    <tr>
+                      <TableHeaderCell>Label</TableHeaderCell>
+                      <TableHeaderCell>Start Date</TableHeaderCell>
+                      <TableHeaderCell>End Date</TableHeaderCell>
+                      <TableHeaderCell>Status</TableHeaderCell>
+                    </tr>
+                  </TableHeader>
+                  <TableBody>
+                    {allWindowsRes.data.docs.map((win) => {
+                      const isCurrent = win._id === currentWindow?._id;
+                      return (
+                        <TableRow key={win._id} className={isCurrent ? "!bg-[#F0F4FF]" : ""}>
+                          <TableCell>
+                            <Stack direction="row" alignItems="center" gap={1}>
+                              {win.label}
+                              {isCurrent && (
+                                <span className="text-[10px] font-bold text-[#001EC5] bg-[#E0E7FF] px-2 py-0.5 rounded-full">
+                                  Current
+                                </span>
+                              )}
+                            </Stack>
+                          </TableCell>
+                          <TableCell>
+                            {moment(win.startDate).format("MM/DD/YYYY, HH:mm")}
+                          </TableCell>
+                          <TableCell>
+                            {moment(win.endDate).format("MM/DD/YYYY, HH:mm")}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge
+                              status={resolveWindowKey(win)}
+                              map={WINDOW_STATUS}
+                              size="sm"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-10">
+                <CenteredEmptyState description="No registration windows yet" />
+              </div>
+            )}
+          </PageCard>
+        </div>
+      </div>
+
+      <AppModal
+        isOpen={isModalOpen}
+        close={() => setIsModalOpen(false)}
+        title={
+          mode === "edit"
+            ? "Update Registration Window"
+            : "Set Registration Window"
+        }
+        icon
+      >
+        <div className="w-[min(440px,80vw)] mt-2">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="space-y-4">
+              <div>
+                <Controller
+                  name="sessionId"
+                  control={control}
+                  rules={{ required: "Academic session is required" }}
+                  render={({ field: { value, onChange } }) => (
+                    <FormControl>
+                      <FormLabel>Academic Session</FormLabel>
+                      <Select
+                        value={value}
+                        onChange={(_, val) => onChange(val)}
+                        placeholder="Select a session…"
+                      >
+                        {sessions.map((s: any) => (
+                          <Option key={s._id} value={s._id}>
+                            {s.name}
+                            {s.isCurrent ? " · Current" : ""}
+                          </Option>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+                {errors.sessionId && (
+                  <p className="text-[#dc2626] text-xs mt-1">
+                    {errors.sessionId.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Controller
+                  name="startDate"
+                  control={control}
+                  rules={{ required: "Start date is required" }}
+                  render={({ field: { value, onChange } }) => (
+                    <InputField
+                      label="Start Date & Time"
+                      type="datetime-local"
+                      value={value}
+                      onChange={onChange}
+                    />
+                  )}
+                />
+                {errors.startDate && (
+                  <p className="text-[#dc2626] text-xs mt-1">
+                    {errors.startDate.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Controller
+                  name="endDate"
+                  control={control}
+                  rules={{ required: "End date is required" }}
+                  render={({ field: { value, onChange } }) => (
+                    <InputField
+                      label="End Date & Time"
+                      type="datetime-local"
+                      value={value}
+                      onChange={onChange}
+                    />
+                  )}
+                />
+                {errors.endDate && (
+                  <p className="text-[#dc2626] text-xs mt-1">
+                    {errors.endDate.message}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Stack direction="row" gap={2} mt={4}>
+              <AppButton loading={isSubmitting} disabled={isSubmitting}>
+                {mode === "edit" ? "Update Window" : "Set Window"}
+              </AppButton>
+              <AppButton
+                type="button"
+                variant="outlined"
+                onClick={() => setIsModalOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </AppButton>
+            </Stack>
+          </form>
+        </div>
+      </AppModal>
     </Frame>
   );
 };

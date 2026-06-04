@@ -1,4 +1,22 @@
-import { Card, Skeleton, Typography } from "@mui/joy";
+import { Card, Skeleton, Stack, Typography } from "@mui/joy";
+import { PulseLoader } from "react-spinners";
+
+export const PageLoader = ({ label }: { label?: string }) => (
+  <div className="flex flex-col items-center justify-center py-24 gap-3 text-[#6B7280]">
+    <PulseLoader size={10} color="#001EC5" />
+    {label ? (
+      <Typography level="body-sm" textColor="neutral.500">
+        {label}
+      </Typography>
+    ) : null}
+  </div>
+);
+
+export const SectionLoader = () => (
+  <div className="flex justify-center py-12">
+    <PulseLoader size={8} color="#001EC5" />
+  </div>
+);
 
 export const MetricCardSkeleton = () => {
   return (
@@ -8,6 +26,14 @@ export const MetricCardSkeleton = () => {
     </Card>
   );
 };
+
+export const MetricCardRow = ({ count = 3 }: { count?: number }) => (
+  <div className="grid sm:grid-cols-3 gap-4">
+    {Array.from({ length: count }).map((_, idx) => (
+      <MetricCardSkeleton key={idx} />
+    ))}
+  </div>
+);
 
 export const TableSkeleton = ({
   columns = 4,
@@ -40,15 +66,27 @@ export const TableSkeleton = ({
 
 export const CenteredEmptyState = ({
   description = "No data found",
+  icon,
 }: {
   description?: string;
+  icon?: React.ReactNode;
 }) => {
   return (
-    <div className="py-16 text-center flex flex-col items-center justify-center text-[#6B7280]">
+    <Stack
+      sx={{
+        py: 12,
+        textAlign: "center",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#94A3B8",
+        gap: 1.5,
+      }}
+    >
+      {icon ? <div className="text-2xl">{icon}</div> : null}
       <Typography textColor="neutral.500" level="body-md">
         {description}
       </Typography>
-    </div>
+    </Stack>
   );
 };
 

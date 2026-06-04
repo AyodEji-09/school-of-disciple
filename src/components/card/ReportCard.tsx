@@ -8,10 +8,14 @@ const ReportCard = ({
   number?: string | number;
 }) => {
   return (
-    <div className="bg-white max-w-md p-4 rounded-md space-y-2">
-      {/* <Ellipse /> */}
-      <Typography level="h3">{number ?? ""}</Typography>
-      <Typography level="body-md" textColor={"#000000"}>
+    <div className="bg-white border border-[#E6ECFF] rounded-2xl shadow-sm p-5 space-y-1.5">
+      <Typography
+        level="h3"
+        sx={{ color: "#001F54", fontWeight: 800, lineHeight: 1 }}
+      >
+        {number ?? ""}
+      </Typography>
+      <Typography level="body-sm" sx={{ color: "#6B7280" }}>
         {title}
       </Typography>
     </div>

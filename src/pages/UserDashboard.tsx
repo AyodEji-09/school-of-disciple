@@ -268,7 +268,7 @@ const PaymentHistory = () => {
             <TableSkeleton columns={5} rows={4} />
           </div>
         ) : hasPayments ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full text-sm text-left text-[#001F54]">
               <thead className="text-xs bg-[#F8FAFC] border-b border-[#E5E7EB]">
                 <tr>

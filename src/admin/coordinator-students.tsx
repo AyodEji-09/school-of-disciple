@@ -1,17 +1,22 @@
-import {
-  FormControl,
-  FormLabel,
-  Option,
-  Select,
-  Stack,
-  Typography,
-} from "@mui/joy";
+import { FormControl, FormLabel, Option, Select, Stack } from "@mui/joy";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppButton from "../components/Button/AppButton";
 import AppSearch from "../components/search/AppSearch";
 import Frame from "../components/frame/Frame";
 import AvatarText from "../components/avatar-text/AvatarText";
+import PageCard from "../components/feedback/PageCard";
+import {
+  CenteredEmptyState,
+  TableSkeleton,
+} from "../components/query-state/QueryStates";
+import {
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableHeaderCell,
+  TableRow,
+} from "../components/feedback/TableShell";
 import { useAppSelector } from "../data/hooks";
 import { selectUser } from "../data/selectors/authSelector";
 import { useGetUsersQuery } from "../data/rtk/user";
@@ -19,10 +24,6 @@ import {
   useGetAllRegistrationWindowsQuery,
   useGetRegistrationWindowQuery,
 } from "../data/rtk/registration";
-import {
-  CenteredEmptyState,
-  TableSkeleton,
-} from "../components/query-state/QueryStates";
 import { getUserFullName } from "../utils";
 
 const CoordinatorStudentsPage = () => {
@@ -70,28 +71,25 @@ const CoordinatorStudentsPage = () => {
 
   return (
     <Frame text="My Students">
-      <div className="pb-16 mt-8">
+      <div className="mt-6">
         {isUnassigned ? (
           <UnassignedNotice />
         ) : (
-          <div className="bg-white p-4 overflow-x-auto border border-[#E6ECFF] rounded-lg">
-            <Stack
-              direction={"row"}
-              justifyContent={"space-between"}
-              alignItems={"center"}
-              gap={4}
-              flexWrap="wrap"
-              mb={2}
-            >
-              <Typography level="title-lg">Students</Typography>
-
+          <PageCard
+            title="Students"
+            subtitle={
+              studentDocs.length
+                ? `${studentDocs.length} student${studentDocs.length === 1 ? "" : "s"} at your center`
+                : undefined
+            }
+            action={
               <Stack
                 direction="row"
                 gap={1.5}
                 flexWrap="wrap"
                 alignItems="end"
               >
-                <FormControl size="sm" sx={{ minWidth: 220 }}>
+                <FormControl size="sm" sx={{ minWidth: 200 }}>
                   <FormLabel>Academic Year</FormLabel>
                   <Select
                     size="sm"
@@ -114,26 +112,20 @@ const CoordinatorStudentsPage = () => {
                   setSearchVar={setSearchVar}
                 />
               </Stack>
-            </Stack>
-            <div className={"overflow-x-auto w-full"}>
-              <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-                <thead className="text-xs whitespace-nowrap">
+            }
+            padded={false}
+          >
+            <div className="overflow-x-auto min-h-[400px]">
+              <table className="w-full text-sm text-left">
+                <TableHeader>
                   <tr>
-                    <th scope="col" className="px-6 py-3">
-                      Student Name
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Student Matric Number
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Center
-                    </th>
-                    <th scope="col" className="px-6 py-3">
-                      Action
-                    </th>
+                    <TableHeaderCell>Student Name</TableHeaderCell>
+                    <TableHeaderCell>Matric Number</TableHeaderCell>
+                    <TableHeaderCell>Center</TableHeaderCell>
+                    <TableHeaderCell>Action</TableHeaderCell>
                   </tr>
-                </thead>
-                <tbody className="whitespace-nowrap">
+                </TableHeader>
+                <TableBody>
                   {isLoading && studentDocs.length === 0 ? (
                     <tr>
                       <td colSpan={4}>
@@ -141,20 +133,17 @@ const CoordinatorStudentsPage = () => {
                       </td>
                     </tr>
                   ) : studentDocs.length ? (
-                    studentDocs.map((student, idx) => (
-                      <tr
-                        className="border-b last:border-none font-medium"
-                        key={idx}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
+                    studentDocs.map((student) => (
+                      <TableRow key={student._id}>
+                        <TableCell>
                           <AvatarText text={getUserFullName(student)} />
-                        </td>
-                        <td className="px-6 py-4">
-                          {student?.matricNumber}
-                        </td>
-                        <td className="px-6 py-4">{getCenterName(student)}</td>
-                        <td className="px-6 py-4">
+                        </TableCell>
+                        <TableCell>{student?.matricNumber}</TableCell>
+                        <TableCell>{getCenterName(student)}</TableCell>
+                        <TableCell>
                           <AppButton
+                            type="button"
+                            className="h-8 px-4 text-xs"
                             onClick={() =>
                               navigate(
                                 `/dashboard/students/${student._id}`,
@@ -163,8 +152,8 @@ const CoordinatorStudentsPage = () => {
                           >
                             View
                           </AppButton>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))
                   ) : (
                     <tr>
@@ -173,10 +162,10 @@ const CoordinatorStudentsPage = () => {
                       </td>
                     </tr>
                   )}
-                </tbody>
+                </TableBody>
               </table>
             </div>
-          </div>
+          </PageCard>
         )}
       </div>
     </Frame>
@@ -185,15 +174,17 @@ const CoordinatorStudentsPage = () => {
 
 const UnassignedNotice = () => {
   return (
-    <div className="bg-white border border-[#E6ECFF] rounded-lg p-8 text-center max-w-2xl mx-auto">
-      <Typography level="h3" textColor="#001F54" mb={1}>
-        You are not assigned to any center yet
-      </Typography>
-      <Typography level="body-md" textColor="#475569">
-        Your coordinator account is active, but no center has been assigned.
-        Please contact an admin to complete your center assignment.
-      </Typography>
-    </div>
+    <PageCard padded={false}>
+      <div className="p-8 text-center max-w-2xl mx-auto">
+        <div className="text-base font-semibold text-[#001F54] mb-1">
+          You are not assigned to any center yet
+        </div>
+        <p className="text-sm text-[#475569] leading-relaxed">
+          Your coordinator account is active, but no center has been assigned.
+          Please contact an admin to complete your center assignment.
+        </p>
+      </div>
+    </PageCard>
   );
 };
 

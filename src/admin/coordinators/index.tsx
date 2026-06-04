@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Chip,
-  Dropdown,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  Stack,
-  Typography,
-} from "@mui/joy";
+import { Dropdown, IconButton, Menu, MenuButton, MenuItem, Stack } from "@mui/joy";
 import { MoreVert } from "@mui/icons-material";
 import axios from "axios";
 
@@ -18,12 +9,23 @@ import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
 import AppSearch from "../../components/search/AppSearch";
 import AvatarText from "../../components/avatar-text/AvatarText";
+import PageCard from "../../components/feedback/PageCard";
+import StatusBadge from "../../components/feedback/StatusBadge";
 import {
   CenteredEmptyState,
   TableSkeleton,
 } from "../../components/query-state/QueryStates";
+import {
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableHeaderCell,
+  TableRow,
+  EmptyValue,
+} from "../../components/feedback/TableShell";
 import { useGetUsersQuery } from "../../data/rtk/user";
 import { getUserFullName, handleError } from "../../utils";
+import { COORDINATOR_STATUS } from "../../utils/status";
 
 const Coordinators = () => {
   const navigate = useNavigate();
@@ -42,8 +44,8 @@ const Coordinators = () => {
   const coordinatorDocs = coordinators?.data?.docs || [];
 
   const getCenterName = (entry: User) => {
-    if (!entry?.center || typeof entry.center === "string") return "-";
-    return entry.center.name || "-";
+    if (!entry?.center || typeof entry.center === "string") return null;
+    return entry.center.name || null;
   };
 
   const getCoordinatorStatus = (entry: User) => {
@@ -102,23 +104,6 @@ const Coordinators = () => {
     }
   };
 
-  const getStatusChip = (
-    status: "assigned" | "unassigned" | "deactivated" | "pending",
-  ) => {
-    const config = {
-      assigned: { color: "success" as const, label: "Assigned" },
-      unassigned: { color: "warning" as const, label: "Unassigned" },
-      deactivated: { color: "danger" as const, label: "Deactivated" },
-      pending: { color: "neutral" as const, label: "Pending Invite" },
-    };
-
-    return (
-      <Chip color={config[status].color} variant="soft" size="sm">
-        {config[status].label}
-      </Chip>
-    );
-  };
-
   const getActionLabel = (entry: User) => {
     const status = getCoordinatorStatus(entry);
     if (status === "pending") return "Pending";
@@ -129,52 +114,36 @@ const Coordinators = () => {
 
   return (
     <Frame text="Coordinators">
-      <div className="grid sm:grid-cols-3 gap-4 mt-8">
-        <AppButton
-          variant="outlined"
-          onClick={() => navigate("/dashboard/coordinators/invite")}
+      <div className="mt-6">
+        <PageCard
+          title="Center Coordinators"
+          subtitle={`${coordinatorDocs.length} coordinator${coordinatorDocs.length === 1 ? "" : "s"} on file`}
+          action={
+            <Stack direction="row" gap={1.5} alignItems="center">
+              <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
+              <AppButton
+                type="button"
+                onClick={() => navigate("/dashboard/coordinators/invite")}
+              >
+                Invite Coordinator
+              </AppButton>
+            </Stack>
+          }
+          padded={false}
         >
-          Invite Coordinator
-        </AppButton>
-      </div>
-      <div className="mt-8 pb-16">
-        <div className="bg-white p-4 overflow-x-auto">
-          <Stack
-            direction={"row"}
-            justifyContent={"space-between"}
-            alignItems={"center"}
-            gap={4}
-          >
-            <Typography level="title-lg" mb={4}>
-              Center Coordinators
-            </Typography>
-            <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
-          </Stack>
-          <div className={"overflow-x-auto w-full"}>
-            <table className="w-full text-sm text-left rtl:text-right text-[#001F54]">
-              <thead className="text-xs whitespace-nowrap">
+          <div className="overflow-x-auto min-h-[400px]">
+            <table className="w-full text-sm text-left">
+              <TableHeader>
                 <tr>
-                  <th scope="col" className="px-6 py-3">
-                    Name
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Phone Number
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Center
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Email
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3">
-                    Action
-                  </th>
+                  <TableHeaderCell>Name</TableHeaderCell>
+                  <TableHeaderCell>Phone Number</TableHeaderCell>
+                  <TableHeaderCell>Center</TableHeaderCell>
+                  <TableHeaderCell>Email</TableHeaderCell>
+                  <TableHeaderCell>Status</TableHeaderCell>
+                  <TableHeaderCell className="text-right">Action</TableHeaderCell>
                 </tr>
-              </thead>
-              <tbody className="whitespace-nowrap">
+              </TableHeader>
+              <TableBody>
                 {isLoading && coordinatorDocs.length === 0 ? (
                   <tr>
                     <td colSpan={6}>
@@ -182,26 +151,32 @@ const Coordinators = () => {
                     </td>
                   </tr>
                 ) : coordinatorDocs.length ? (
-                  coordinatorDocs.map((coordinator, idx) => (
-                    <tr
-                      className="border-b last:border-none font-medium"
-                      key={idx}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                  coordinatorDocs.map((coordinator) => (
+                    <TableRow key={coordinator._id}>
+                      <TableCell>
                         <AvatarText text={getUserFullName(coordinator)} />
-                      </td>
-                      <td className="px-6 py-4">{coordinator?.phone}</td>
-                      <td className="px-6 py-4">{getCenterName(coordinator)}</td>
-                      <td className="px-6 py-4">{coordinator?.email}</td>
-                      <td className="px-6 py-4">
-                        {getStatusChip(getCoordinatorStatus(coordinator))}
-                      </td>
-                      <td className="px-6 py-4">
+                      </TableCell>
+                      <TableCell>{coordinator?.phone}</TableCell>
+                      <TableCell>
+                        {getCenterName(coordinator) ?? <EmptyValue>Unassigned</EmptyValue>}
+                      </TableCell>
+                      <TableCell>{coordinator?.email}</TableCell>
+                      <TableCell>
+                        <StatusBadge
+                          status={getCoordinatorStatus(coordinator)}
+                          map={COORDINATOR_STATUS}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
                         <Dropdown>
                           <MenuButton
                             slots={{ root: IconButton }}
                             slotProps={{
-                              root: { variant: "outlined", color: "neutral" },
+                              root: {
+                                variant: "outlined",
+                                color: "neutral",
+                                size: "sm",
+                              },
                             }}
                           >
                             <MoreVert />
@@ -242,8 +217,8 @@ const Coordinators = () => {
                             )}
                           </Menu>
                         </Dropdown>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 ) : (
                   <tr>
@@ -252,10 +227,10 @@ const Coordinators = () => {
                     </td>
                   </tr>
                 )}
-              </tbody>
+              </TableBody>
             </table>
           </div>
-        </div>
+        </PageCard>
       </div>
     </Frame>
   );
