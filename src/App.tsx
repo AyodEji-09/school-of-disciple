@@ -28,7 +28,9 @@ import OnboardingPage from "./pages/Onboarding";
 
 import StudentsPage from "./admin/students";
 import CreditAdminPage from "./admin/credit-admin";
-import ManualOrderPage from "./pages/manual-order";
+import ManualOrdersPage from "./pages/manual-order";
+import ManualOrderNewPage from "./pages/manual-order-new";
+import AdminManualOrdersPage from "./admin/manual-orders";
 
 import store from "./data/store";
 import { loadUser } from "./data/reducers/userSlice";
@@ -166,7 +168,15 @@ const App = () => {
           />
 
           <Route path="/dashboard/credit-admin" element={<CreditAdminPage />} />
-          <Route path="/dashboard/manual-order" element={<ManualOrderPage />} />
+          <Route path="/dashboard/manual-order" element={<ManualOrdersPage />} />
+          <Route
+            path="/dashboard/manual-order/new"
+            element={<ManualOrderNewPage />}
+          />
+          <Route
+            path="/dashboard/manual-orders"
+            element={<AdminManualOrdersPage />}
+          />
 
           {/* Academic Results */}
           <Route path="/dashboard/results" element={<ResultsPage />} />

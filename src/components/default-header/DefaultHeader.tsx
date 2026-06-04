@@ -148,7 +148,7 @@ const DefaultHeader = () => {
     },
     {
       id: 7,
-      name: "Order Manuals",
+      name: "Manuals",
       url: "/dashboard/manual-order",
       role: ["coordinator"],
     },
@@ -175,6 +175,12 @@ const DefaultHeader = () => {
       name: "Academic Setup",
       url: "/dashboard/results/setup",
       role: ["admin"],
+    },
+    {
+      id: 12,
+      name: "Manual Orders",
+      url: "/dashboard/manual-orders",
+      role: ["admin", "super"],
     },
   ];
 

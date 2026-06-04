@@ -20,13 +20,32 @@ export const manualOrderApi = createApi({
         limit?: number;
         page?: number;
         status?: string;
+        paymentMethod?: string;
+        center?: string;
+        coordinator?: string;
+        dateFrom?: string;
+        dateTo?: string;
       }
     >({
-      query: ({ limit = 10, page = 1, status }) => {
+      query: ({
+        limit = 10,
+        page = 1,
+        status,
+        paymentMethod,
+        center,
+        coordinator,
+        dateFrom,
+        dateTo,
+      }) => {
         const params = new URLSearchParams();
         params.set("page", String(page));
         params.set("limit", String(limit));
         if (status) params.set("status", status);
+        if (paymentMethod) params.set("paymentMethod", paymentMethod);
+        if (center) params.set("center", center);
+        if (coordinator) params.set("coordinator", coordinator);
+        if (dateFrom) params.set("dateFrom", dateFrom);
+        if (dateTo) params.set("dateTo", dateTo);
         return `/manual-order?${params.toString()}`;
       },
       providesTags: (result) =>
