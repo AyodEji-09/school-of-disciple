@@ -201,18 +201,18 @@ const navGroups: NavGroup[] = [
         url: "/dashboard/results/reports",
         role: ["admin"],
       },
-      {
-        id: "academic-setup",
-        name: "Academic Setup",
-        url: "/dashboard/results/setup",
-        role: ["admin"],
-      },
     ],
   },
   {
     id: "configurations",
     label: "Configurations",
     items: [
+      {
+        id: "config-academic-setup",
+        name: "Academic Setup",
+        url: "/dashboard/academics/setup",
+        role: ["admin"],
+      },
       {
         id: "config-registration",
         name: "Registration Windows",
@@ -328,11 +328,7 @@ const DefaultHeader = ({
       group.items.some((item) => isActive(item.url)),
     );
     if (activeGroup) {
-      setOpenGroups((prev) =>
-        prev[activeGroup.id] === undefined
-          ? { ...prev, [activeGroup.id]: true }
-          : prev,
-      );
+      setOpenGroups((prev) => ({ ...prev, [activeGroup.id]: true }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleGroups, location.pathname]);
@@ -355,10 +351,10 @@ const DefaultHeader = ({
   );
 
   const renderNavList = (onNavigate?: () => void) => (
-    <Stack sx={{ width: "100%" }} gap={0.5} py={1}>
+    <Stack sx={{ width: "100%" }} gap={1} py={1}>
       {visibleTopLevel.length > 0 && (
         <Box sx={{ px: 1.5 }}>
-          <Stack sx={{ gap: 0.25 }} pb={1}>
+          <Stack sx={{ gap: 0.5 }}>
             {visibleTopLevel.map((item) => {
               const active = isActive(item.url);
               return (
@@ -368,10 +364,10 @@ const DefaultHeader = ({
                     navigate(item.url);
                     onNavigate?.();
                   }}
-                  className={`w-full text-left capitalize h-9 pl-3 pr-3 flex items-center border-l-4 text-sm transition-colors ${
+                  className={`w-full text-left cursor-pointer capitalize h-9 pl-3 pr-3 flex items-center border-l-4 text-sm transition-colors ${
                     active
                       ? "text-[#001EC5] font-semibold border-[#001EC5]"
-                      : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:font-semibold hover:border-[#001EC5]"
+                      : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:border-[#001EC5]"
                   }`}
                 >
                   {item.name}
@@ -387,19 +383,19 @@ const DefaultHeader = ({
           <Box key={group.id} sx={{ px: 1.5 }}>
             <button
               onClick={() => toggleGroup(group.id)}
-              className="w-full flex items-center justify-between text-[11px] font-semibold tracking-wider uppercase text-[#6B7280] hover:text-[#001F54] transition-colors px-2 py-2"
+              className="w-full flex items-center justify-between text-sm text-[#001F54] cursor-pointer transition-colors px-3 h-9"
             >
               <span>{group.label}</span>
               <KeyboardArrowDownIcon
                 sx={{
-                  fontSize: 16,
+                  fontSize: 18,
                   transition: "transform 150ms",
                   transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)",
                 }}
               />
             </button>
             {isOpen && (
-              <Stack sx={{ gap: 0.25 }} pb={1}>
+              <Stack sx={{ gap: 0.5 }} pt={0.5}>
                 {group.items.map((item) => {
                   const active = isActive(item.url);
                   return (
@@ -409,10 +405,10 @@ const DefaultHeader = ({
                         navigate(item.url);
                         onNavigate?.();
                       }}
-                      className={`w-full text-left capitalize h-9 pl-3 pr-3 flex items-center border-l-4 text-sm transition-colors ${
+                      className={`w-full text-left cursor-pointer capitalize h-9 pl-3 pr-3 ml-3 flex items-center border-l-4 text-sm transition-colors ${
                         active
                           ? "text-[#001EC5] font-semibold border-[#001EC5]"
-                          : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:font-semibold hover:border-[#001EC5]"
+                          : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:border-[#001EC5]"
                       }`}
                     >
                       {item.name}
@@ -716,7 +712,7 @@ const DefaultHeader = ({
 
         <Box
           component="aside"
-          className={`fixed top-0 left-0 z-30 h-screen transition-transform duration-200 ease-in-out ${
+          className={`fixed top-0 left-0 z-30 h-screen transition-transform duration-200 ease-in-out [&::-webkit-scrollbar]:hidden [scrollbar-width:none] ${
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           sx={{

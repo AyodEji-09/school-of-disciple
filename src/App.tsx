@@ -266,7 +266,7 @@ const App = () => {
             element={<PublicationsPage />}
           />
           <Route
-            path="/dashboard/results/setup"
+            path="/dashboard/academics/setup"
             element={<AcademicSetupPage />}
           />
 
