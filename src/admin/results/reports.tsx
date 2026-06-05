@@ -200,7 +200,7 @@ const ReportsPage = () => {
               ].map(({ label, value }) => (
                 <div
                   key={label}
-                  className="bg-white border border-[#E6ECFF] rounded-2xl p-5 shadow-sm"
+                  className="bg-white border border-[#E6ECFF] rounded-2xl p-5"
                 >
                   <Typography level="body-xs" textColor="#6B7280">
                     {label}

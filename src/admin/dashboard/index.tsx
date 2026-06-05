@@ -192,7 +192,7 @@ const Dashboard = () => {
               <button
                 key={action.id}
                 onClick={() => navigate(action.url)}
-                className="group bg-white border border-[#E6ECFF] hover:border-[#001EC5] hover:shadow-sm rounded-lg p-4 text-left flex items-start gap-3 transition-all"
+                className="group bg-white border border-[#E6ECFF] hover:border-[#001EC5] rounded-lg p-4 text-left flex items-start gap-3 transition-all"
               >
                 <span className="shrink-0 w-10 h-10 rounded-lg bg-[#F0F4FF] text-[#001EC5] flex items-center justify-center group-hover:bg-[#001EC5] group-hover:text-white transition-colors">
                   {action.icon}

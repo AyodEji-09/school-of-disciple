@@ -8,7 +8,7 @@ const ReportCard = ({
   number?: string | number;
 }) => {
   return (
-    <div className="bg-white border border-[#E6ECFF] rounded-2xl shadow-sm p-5 space-y-1.5">
+    <div className="bg-white border border-[#E6ECFF] rounded-2xl p-5 space-y-1.5">
       <Typography
         level="h3"
         sx={{ color: "#001F54", fontWeight: 800, lineHeight: 1 }}

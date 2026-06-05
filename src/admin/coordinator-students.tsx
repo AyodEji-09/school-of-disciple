@@ -86,7 +86,7 @@ const CoordinatorStudentsPage = () => {
               <Stack
                 direction="row"
                 gap={1.5}
-                flexWrap="wrap"
+                // flexWrap="wrap"
                 alignItems="end"
               >
                 <FormControl size="sm" sx={{ minWidth: 200 }}>
@@ -107,10 +107,7 @@ const CoordinatorStudentsPage = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <AppSearch
-                  searchVar={searchVar}
-                  setSearchVar={setSearchVar}
-                />
+                <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
               </Stack>
             }
             padded={false}
@@ -145,9 +142,7 @@ const CoordinatorStudentsPage = () => {
                             type="button"
                             className="h-8 px-4 text-xs"
                             onClick={() =>
-                              navigate(
-                                `/dashboard/students/${student._id}`,
-                              )
+                              navigate(`/dashboard/students/${student._id}`)
                             }
                           >
                             View

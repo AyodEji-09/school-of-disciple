@@ -165,7 +165,7 @@ const ResultsPage = () => {
               return (
                 <div
                   key={s}
-                  className="bg-white border border-[#E6ECFF] rounded-2xl shadow-sm px-5 py-4 flex items-center gap-3 min-w-[180px]"
+                  className="bg-white border border-[#E6ECFF] rounded-2xl px-5 py-4 flex items-center gap-3 min-w-[180px]"
                 >
                   <StatusBadge status={s} map={RESULT_STATUS} />
                   <Typography

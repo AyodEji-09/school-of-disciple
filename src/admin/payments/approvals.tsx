@@ -83,7 +83,7 @@ const PendingApprovalsPage = () => {
     return (
       <Frame text="Approvals">
         <div className="pb-16 mt-6">
-          <div className="bg-white border border-[#E6ECFF] rounded-2xl shadow-sm p-12 text-center max-w-xl mx-auto flex flex-col items-center justify-center gap-3">
+          <div className="bg-white border border-[#E6ECFF] rounded-2xl p-12 text-center max-w-xl mx-auto flex flex-col items-center justify-center gap-3">
             <div className="p-4 bg-[#D1FAE5] text-[#15803D] rounded-full">
               <svg
                 className="w-8 h-8"

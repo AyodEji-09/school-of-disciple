@@ -26,7 +26,7 @@ const PageCard = ({
   return (
     <Box
       className={[
-        "bg-white border border-[#E6ECFF] rounded-2xl shadow-sm overflow-hidden",
+        "bg-white border border-[#E6ECFF] rounded-2xl overflow-hidden",
         className ?? "",
       ]
         .filter(Boolean)

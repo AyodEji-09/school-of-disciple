@@ -61,7 +61,7 @@ const MyResultsPage = () => {
             return (
               <div
                 key={r._id}
-                className="bg-white border border-[#E6ECFF] rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white border border-[#E6ECFF] rounded-2xl p-5"
               >
                 <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={3}>
                   <div>

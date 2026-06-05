@@ -108,7 +108,7 @@ const MyResultDetailPage = () => {
         </div>
 
         {/* Subject table */}
-        <div className="bg-white rounded-2xl border border-[#E6ECFF] shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[#E6ECFF] overflow-hidden">
           <div className="px-6 py-4 border-b border-[#E6ECFF] flex items-center justify-between">
             <Typography level="title-md">Subject Results</Typography>
             <Typography level="body-sm" textColor="neutral.500">{result.subjects.length} subjects</Typography>
