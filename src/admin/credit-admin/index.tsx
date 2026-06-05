@@ -13,10 +13,7 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
-import {
-  RiCheckLine,
-  RiUploadCloud2Line,
-} from "react-icons/ri";
+import { RiCheckLine, RiUploadCloud2Line } from "react-icons/ri";
 import Frame from "../../components/frame/Frame";
 import AppModal from "../../components/modal/modal";
 import AppButton from "../../components/Button/AppButton";
@@ -205,7 +202,7 @@ const CreditAdminPage = () => {
   };
 
   return (
-    <Frame text="Credit Admin">
+    <Frame text="My Remittances">
       <Box sx={{ maxWidth: 1100, mx: "auto", mt: 4, pb: 10 }}>
         <Stack spacing={3}>
           {/* Summary Cards */}
@@ -684,7 +681,11 @@ const RemittanceTable = ({
                   {r.description || "School fees remittance"}
                 </TableCell>
                 <TableCell>
-                  <StatusBadge status={r.method} map={METHOD_STATUS} size="sm" />
+                  <StatusBadge
+                    status={r.method}
+                    map={METHOD_STATUS}
+                    size="sm"
+                  />
                 </TableCell>
                 <TableCell>{formatCurrency(r.amount)}</TableCell>
                 <TableCell>

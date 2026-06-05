@@ -43,7 +43,7 @@ export const TableSkeleton = ({
   rows?: number;
 }) => {
   return (
-    <div className="space-y-3 py-3">
+    <div className="px-6 space-y-3 py-3">
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div
           key={rowIndex}

@@ -248,7 +248,10 @@ const RegistrationPage = () => {
                     {allWindowsRes.data.docs.map((win) => {
                       const isCurrent = win._id === currentWindow?._id;
                       return (
-                        <TableRow key={win._id} className={isCurrent ? "!bg-[#F0F4FF]" : ""}>
+                        <TableRow
+                          key={win._id}
+                          className={isCurrent ? "!bg-[#F0F4FF]" : ""}
+                        >
                           <TableCell>
                             <Stack direction="row" alignItems="center" gap={1}>
                               {win.label}

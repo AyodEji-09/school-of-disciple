@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
+  Card,
   FormControl,
   FormLabel,
   Option,
@@ -18,11 +19,15 @@ import AppModal from "../../components/modal/modal";
 import AppPagination from "../../components/pagination/Pagination";
 import {
   CenteredEmptyState,
-  MetricCardRow,
+  MetricCardSkeleton,
   TableSkeleton,
 } from "../../components/query-state/QueryStates";
 import { useGetManualOrdersQuery } from "../../data/rtk/manual-order";
 import { useGetCentersQuery } from "../../data/rtk/center";
+import {
+  useGetAllRegistrationWindowsQuery,
+  useGetRegistrationWindowQuery,
+} from "../../data/rtk/registration";
 import { getUserFullName } from "../../utils";
 import PageCard from "../../components/feedback/PageCard";
 import StatusBadge from "../../components/feedback/StatusBadge";
@@ -34,10 +39,7 @@ import {
   TableCell,
   EmptyValue,
 } from "../../components/feedback/TableShell";
-import {
-  MANUAL_ORDER_STATUS,
-  METHOD_STATUS,
-} from "../../utils/status";
+import { MANUAL_ORDER_STATUS, METHOD_STATUS } from "../../utils/status";
 
 const formatCurrency = (cents: number) =>
   `$${(cents / 100).toLocaleString(undefined, {
@@ -67,25 +69,40 @@ const ManualOrdersAdminPage = () => {
   const [status, setStatus] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [center, setCenter] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [academicYear, setAcademicYear] = useState<string>("");
   const [detailsOrder, setDetailsOrder] = useState<ManualOrder | null>(null);
 
   const { data: centersRes } = useGetCentersQuery({ page: 1, limit: 100 });
   const centers = centersRes?.data?.docs ?? [];
 
+  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
+    page: 1,
+    limit: 100,
+  });
+  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
+  const academicYears =
+    allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+
+  useEffect(() => {
+    if (academicYear || !currentWindowRes?.data?.label) return;
+    setAcademicYear(currentWindowRes.data.label);
+  }, [currentWindowRes, academicYear]);
+
   useEffect(() => {
     setPage(1);
-  }, [status, paymentMethod, center, dateFrom, dateTo]);
+  }, [status, paymentMethod, center, academicYear]);
 
-  const { data: ordersRes, isLoading, isFetching } = useGetManualOrdersQuery({
+  const {
+    data: ordersRes,
+    isLoading,
+    isFetching,
+  } = useGetManualOrdersQuery({
     page,
     limit: 10,
     ...(status ? { status } : {}),
     ...(paymentMethod ? { paymentMethod } : {}),
     ...(center ? { center } : {}),
-    ...(dateFrom ? { dateFrom } : {}),
-    ...(dateTo ? { dateTo } : {}),
+    ...(academicYear ? { academicYear } : {}),
   });
 
   const orders = useMemo(() => ordersRes?.data?.docs ?? [], [ordersRes]);
@@ -100,13 +117,15 @@ const ManualOrdersAdminPage = () => {
       (o) =>
         o.status === "pending_payment" || o.status === "pending_confirmation",
     );
-    const rejected = orders.filter((o) => o.status === "rejected");
+    const inFlight = orders.filter(
+      (o) => o.status === "processing" || o.status === "shipped",
+    );
     const totalRevenue = paid.reduce((sum, o) => sum + (o.amount || 0), 0);
     return {
       total: orders.length,
       paidCount: paid.length,
       pendingCount: pending.length,
-      rejectedCount: rejected.length,
+      inFlightCount: inFlight.length,
       totalRevenue,
     };
   }, [orders]);
@@ -115,26 +134,24 @@ const ManualOrdersAdminPage = () => {
     setStatus("");
     setPaymentMethod("");
     setCenter("");
-    setDateFrom("");
-    setDateTo("");
+    setAcademicYear("");
   };
 
   const hasActiveFilters =
     Boolean(status) ||
     Boolean(paymentMethod) ||
     Boolean(center) ||
-    Boolean(dateFrom) ||
-    Boolean(dateTo);
+    Boolean(academicYear);
 
   return (
     <Frame text="Manual Orders">
-      <div className="pb-16 mt-6 space-y-6">
+      <div className="pb-16 mt-6 space-y-6!">
         <Typography level="body-sm" textColor="neutral.500">
           Track every manual order placed by coordinators. Confirm or reject
           pending Zelle orders from{" "}
           <button
             type="button"
-            onClick={() => navigate("/dashboard/payments")}
+            onClick={() => navigate("/dashboard/payments/approvals")}
             className="text-[#001EC5] hover:underline font-medium"
           >
             Payments → Pending Approvals
@@ -142,100 +159,180 @@ const ManualOrdersAdminPage = () => {
           .
         </Typography>
 
-        {isLoading && !hasOrders ? (
-          <MetricCardRow count={4} />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <SummaryCard label="Total Orders" value={String(metrics.total)} />
-            <SummaryCard
-              label="Confirmed"
-              value={String(metrics.paidCount)}
-              tone="success"
-            />
-            <SummaryCard
-              label="Pending"
-              value={String(metrics.pendingCount)}
-              tone="warning"
-            />
-            <SummaryCard
-              label="Revenue"
-              value={formatCurrency(metrics.totalRevenue)}
-              tone="primary"
-            />
-          </div>
-        )}
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          sx={{ width: "100%" }}
+        >
+          {isLoading && !hasOrders ? (
+            <>
+              <MetricCardSkeleton />
+              <MetricCardSkeleton />
+              <MetricCardSkeleton />
+              <MetricCardSkeleton />
+            </>
+          ) : (
+            <>
+              <Card
+                sx={{
+                  flex: 1,
+                  p: 3,
+                  background:
+                    "linear-gradient(135deg, #001F54 0%, #001EC5 100%)",
+                  color: "white",
+                }}
+              >
+                <Typography
+                  level="body-sm"
+                  sx={{ color: "rgba(255,255,255,0.7)" }}
+                >
+                  Total Revenue
+                </Typography>
+                <Typography
+                  level="h2"
+                  sx={{ color: "white", mt: 0.5, fontWeight: 700 }}
+                >
+                  {formatCurrency(metrics.totalRevenue)}
+                </Typography>
+                <Typography
+                  level="body-xs"
+                  sx={{ color: "rgba(255,255,255,0.7)", mt: 0.5 }}
+                >
+                  From {metrics.paidCount} confirmed order
+                  {metrics.paidCount !== 1 ? "s" : ""}
+                </Typography>
+              </Card>
+              <Card sx={{ flex: 1, p: 3 }}>
+                <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
+                  Total Orders
+                </Typography>
+                <Typography
+                  level="h2"
+                  sx={{ mt: 0.5, fontWeight: 700, color: "#001F54" }}
+                >
+                  {metrics.total}
+                </Typography>
+                <Typography level="body-xs" sx={{ color: "text.tertiary" }}>
+                  All time, current view
+                </Typography>
+              </Card>
+              <Card sx={{ flex: 1, p: 3 }}>
+                <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
+                  Pending
+                </Typography>
+                <Typography
+                  level="h2"
+                  sx={{ mt: 0.5, fontWeight: 700, color: "#B45309" }}
+                >
+                  {metrics.pendingCount}
+                </Typography>
+                <Typography level="body-xs" sx={{ color: "text.tertiary" }}>
+                  Awaiting payment confirmation
+                </Typography>
+              </Card>
+              <Card sx={{ flex: 1, p: 3 }}>
+                <Typography level="body-sm" sx={{ color: "text.tertiary" }}>
+                  In Fulfillment
+                </Typography>
+                <Typography
+                  level="h2"
+                  sx={{ mt: 0.5, fontWeight: 700, color: "#1D4ED8" }}
+                >
+                  {metrics.inFlightCount}
+                </Typography>
+                <Typography level="body-xs" sx={{ color: "text.tertiary" }}>
+                  Processing or shipped
+                </Typography>
+              </Card>
+            </>
+          )}
+        </Stack>
 
         <PageCard padded={false}>
-          <div className="px-6 pt-6 pb-2">
-            <Stack direction="row" gap={2} flexWrap="wrap" alignItems="flex-end">
-              <FormControl size="sm" sx={{ minWidth: 180 }}>
-                <FormLabel>Status</FormLabel>
-                <Select
-                  size="sm"
-                  value={status}
-                  onChange={(_, val) => setStatus((val as string) ?? "")}
-                  placeholder="All statuses"
-                >
-                  {STATUS_OPTIONS.map((opt) => (
-                    <Option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </Option>
-                  ))}
-                </Select>
-              </FormControl>
+          <div className="px-6 py-5">
+            <Stack
+              direction="row"
+              gap={2}
+              flexWrap="wrap"
+              alignItems="flex-end"
+              justifyContent="space-between"
+            >
+              <Stack
+                direction="row"
+                gap={2}
+                flexWrap="wrap"
+                alignItems="flex-end"
+              >
+                <FormControl size="sm" sx={{ minWidth: 180 }}>
+                  <FormLabel>Status</FormLabel>
+                  <Select
+                    size="sm"
+                    value={status}
+                    onChange={(_, val) => setStatus((val as string) ?? "")}
+                    placeholder="All statuses"
+                  >
+                    {STATUS_OPTIONS.map((opt) => (
+                      <Option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </Option>
+                    ))}
+                  </Select>
+                </FormControl>
 
-              <FormControl size="sm" sx={{ minWidth: 160 }}>
-                <FormLabel>Payment Method</FormLabel>
-                <Select
-                  size="sm"
-                  value={paymentMethod}
-                  onChange={(_, val) => setPaymentMethod((val as string) ?? "")}
-                  placeholder="All methods"
-                >
-                  {PAYMENT_METHOD_OPTIONS.map((opt) => (
-                    <Option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </Option>
-                  ))}
-                </Select>
-              </FormControl>
+                <FormControl size="sm" sx={{ minWidth: 160 }}>
+                  <FormLabel>Payment Method</FormLabel>
+                  <Select
+                    size="sm"
+                    value={paymentMethod}
+                    onChange={(_, val) =>
+                      setPaymentMethod((val as string) ?? "")
+                    }
+                    placeholder="All methods"
+                  >
+                    {PAYMENT_METHOD_OPTIONS.map((opt) => (
+                      <Option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </Option>
+                    ))}
+                  </Select>
+                </FormControl>
 
-              <FormControl size="sm" sx={{ minWidth: 200 }}>
-                <FormLabel>Center</FormLabel>
-                <Select
-                  size="sm"
-                  value={center}
-                  onChange={(_, val) => setCenter((val as string) ?? "")}
-                  placeholder="All centers"
-                >
-                  <Option value="">All centers</Option>
-                  {centers.map((c) => (
-                    <Option key={c._id} value={c._id}>
-                      {c.name}
-                    </Option>
-                  ))}
-                </Select>
-              </FormControl>
+                <FormControl size="sm" sx={{ minWidth: 200 }}>
+                  <FormLabel>Center</FormLabel>
+                  <Select
+                    size="sm"
+                    value={center}
+                    onChange={(_, val) => setCenter((val as string) ?? "")}
+                    placeholder="All centers"
+                  >
+                    <Option value="">All centers</Option>
+                    {centers.map((c) => (
+                      <Option key={c._id} value={c._id}>
+                        {c.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </FormControl>
 
-              <FormControl size="sm" sx={{ minWidth: 160 }}>
-                <FormLabel>From</FormLabel>
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="h-8 px-2 rounded border border-[#D1D5DB] text-sm text-[#001F54] focus:outline-none focus:border-[#001EC5]"
-                />
-              </FormControl>
-
-              <FormControl size="sm" sx={{ minWidth: 160 }}>
-                <FormLabel>To</FormLabel>
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="h-8 px-2 rounded border border-[#D1D5DB] text-sm text-[#001F54] focus:outline-none focus:border-[#001EC5]"
-                />
-              </FormControl>
+                <FormControl size="sm" sx={{ minWidth: 200 }}>
+                  <FormLabel>Academic Session</FormLabel>
+                  <Select
+                    size="sm"
+                    value={academicYear}
+                    onChange={(_, val) =>
+                      setAcademicYear((val as string) ?? "")
+                    }
+                    placeholder="All sessions"
+                  >
+                    <Option value="">All sessions</Option>
+                    {academicYears.map((year) => (
+                      <Option key={year} value={year}>
+                        {year}
+                      </Option>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
 
               {hasActiveFilters && (
                 <Button
@@ -250,7 +347,9 @@ const ManualOrdersAdminPage = () => {
               )}
             </Stack>
           </div>
+        </PageCard>
 
+        <PageCard padded={false}>
           <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full text-sm text-left">
               <TableHeader>
@@ -259,11 +358,15 @@ const ManualOrdersAdminPage = () => {
                   <TableHeaderCell>Coordinator</TableHeaderCell>
                   <TableHeaderCell>Center</TableHeaderCell>
                   <TableHeaderCell className="text-center">Qty</TableHeaderCell>
-                  <TableHeaderCell className="text-right">Amount</TableHeaderCell>
+                  <TableHeaderCell className="text-right">
+                    Amount
+                  </TableHeaderCell>
                   <TableHeaderCell>Method</TableHeaderCell>
                   <TableHeaderCell>Status</TableHeaderCell>
                   <TableHeaderCell>Receipt</TableHeaderCell>
-                  <TableHeaderCell className="text-right">Action</TableHeaderCell>
+                  <TableHeaderCell className="text-right">
+                    Action
+                  </TableHeaderCell>
                 </tr>
               </TableHeader>
               <TableBody>
@@ -409,7 +512,10 @@ const ManualOrdersAdminPage = () => {
             </Stack>
             <Box sx={{ borderTop: "1px solid", borderColor: "divider" }} />
             <Stack direction="row" gap={4} flexWrap="wrap">
-              <DetailRow label="Quantity" value={String(detailsOrder.quantity)} />
+              <DetailRow
+                label="Quantity"
+                value={String(detailsOrder.quantity)}
+              />
               <DetailRow
                 label="Unit Price"
                 value={formatCurrency(detailsOrder.unitPrice)}
@@ -481,7 +587,9 @@ const ManualOrdersAdminPage = () => {
             )}
             <DetailRow
               label="Created"
-              value={moment(detailsOrder.createdAt).format("MMM D, YYYY h:mm A")}
+              value={moment(detailsOrder.createdAt).format(
+                "MMM D, YYYY h:mm A",
+              )}
             />
           </div>
         )}
@@ -493,62 +601,6 @@ const ManualOrdersAdminPage = () => {
 export default ManualOrdersAdminPage;
 
 /* ─── Sub-components ─────────────────────────────────────────────────── */
-
-type SummaryTone = "default" | "primary" | "success" | "warning" | "danger";
-
-const SummaryCard = ({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: SummaryTone;
-}) => {
-  const toneClasses: Record<SummaryTone, string> = {
-    default: "bg-white",
-    primary:
-      "bg-gradient-to-br from-[#001F54] to-[#001EC5] text-white border-transparent",
-    success: "bg-white border-[#A7F3D0]",
-    warning: "bg-white border-[#FDE68A]",
-    danger: "bg-white border-[#FECACA]",
-  };
-  const valueClasses: Record<SummaryTone, string> = {
-    default: "text-[#001F54]",
-    primary: "text-white",
-    success: "text-[#15803D]",
-    warning: "text-[#B45309]",
-    danger: "text-[#B91C1C]",
-  };
-  const labelClasses: Record<SummaryTone, string> = {
-    default: "text-[#475569]",
-    primary: "text-white/80",
-    success: "text-[#15803D]",
-    warning: "text-[#92400E]",
-    danger: "text-[#991B1B]",
-  };
-
-  return (
-    <div
-      className={`flex-1 min-w-[180px] p-4 border border-[#E6ECFF] rounded-2xl shadow-sm ${toneClasses[tone]}`}
-    >
-      <Typography
-        level="body-sm"
-        className={labelClasses[tone]}
-        sx={{ fontWeight: 500 }}
-      >
-        {label}
-      </Typography>
-      <Typography
-        level="h3"
-        className={valueClasses[tone]}
-        sx={{ fontWeight: 700, mt: 0.5 }}
-      >
-        {value}
-      </Typography>
-    </div>
-  );
-};
 
 const CoordinatorCell = ({ order }: { order: ManualOrder }) => {
   const name =

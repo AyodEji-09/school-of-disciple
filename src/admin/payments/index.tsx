@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  FormControl,
-  FormLabel,
-  Option,
-  Select,
-  Stack,
-} from "@mui/joy";
+import { FormControl, FormLabel, Option, Select, Stack } from "@mui/joy";
 import moment from "moment";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../data/selectors/authSelector";
@@ -314,7 +308,7 @@ const Payments = () => {
           }
           padded={false}
         >
-          <div className="px-6 pt-4 pb-2">
+          <div className="px-6 py-4.5">
             <Stack direction="row" gap={2} flexWrap="wrap">
               <FormControl size="sm">
                 <FormLabel>Academic Year</FormLabel>
@@ -368,17 +362,16 @@ const Payments = () => {
                   {!isCoordinator && <TableHeaderCell>Center</TableHeaderCell>}
                   <TableHeaderCell>Amount</TableHeaderCell>
                   <TableHeaderCell>Status</TableHeaderCell>
-                  <TableHeaderCell className="text-right">Action</TableHeaderCell>
+                  <TableHeaderCell className="text-right">
+                    Action
+                  </TableHeaderCell>
                 </tr>
               </TableHeader>
               <TableBody>
                 {isLoading && !hasPayments ? (
                   <tr>
                     <td colSpan={isCoordinator ? 6 : 7}>
-                      <TableSkeleton
-                        columns={isCoordinator ? 6 : 7}
-                        rows={6}
-                      />
+                      <TableSkeleton columns={isCoordinator ? 6 : 7} rows={6} />
                     </td>
                   </tr>
                 ) : hasPayments ? (
@@ -399,7 +392,9 @@ const Payments = () => {
                         </TableCell>
                         {!isCoordinator && (
                           <TableCell>
-                            {getCenterNameFromPayment(payment) ?? <EmptyValue />}
+                            {getCenterNameFromPayment(payment) ?? (
+                              <EmptyValue />
+                            )}
                           </TableCell>
                         )}
                         <TableCell>
@@ -417,9 +412,7 @@ const Payments = () => {
                             className="h-8 px-4 text-xs"
                             disabled={!payerId}
                             onClick={() =>
-                              navigate(
-                                `/dashboard/payments/users/${payerId}`,
-                              )
+                              navigate(`/dashboard/payments/users/${payerId}`)
                             }
                           >
                             View

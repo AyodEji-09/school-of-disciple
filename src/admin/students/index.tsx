@@ -91,7 +91,7 @@ const StudentsPage = () => {
           }${selectedCenter ? ` at ${selectedCenterLabel}` : ""}`}
           padded={false}
         >
-          <div className="px-6 pt-4 pb-2 flex flex-wrap gap-3 items-end">
+          <div className="px-6 py-4.5 flex flex-wrap gap-3 items-end">
             <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
             <FormControl size="sm" sx={{ minWidth: 180 }}>
               <FormLabel>Academic Year</FormLabel>
@@ -138,7 +138,9 @@ const StudentsPage = () => {
                   <TableHeaderCell>Admission Year</TableHeaderCell>
                   <TableHeaderCell>Center</TableHeaderCell>
                   <TableHeaderCell>Payment</TableHeaderCell>
-                  <TableHeaderCell className="text-right">Action</TableHeaderCell>
+                  <TableHeaderCell className="text-right">
+                    Action
+                  </TableHeaderCell>
                 </tr>
               </TableHeader>
               <TableBody>
@@ -196,11 +198,7 @@ const StudentsPage = () => {
           </div>
 
           {totalPages > 1 && (
-            <Stack
-              direction="row"
-              justifyContent="center"
-              sx={{ p: 3 }}
-            >
+            <Stack direction="row" justifyContent="center" sx={{ p: 3 }}>
               <AppPagination
                 currentPage={page}
                 totalPages={totalPages}

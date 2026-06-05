@@ -55,8 +55,7 @@ const PublicationsPage = () => {
   const { data: pubRes, isLoading } = useGetPublicationsQuery(
     statusFilter ? { status: statusFilter } : {},
   );
-  const publications =
-    (pubRes?.data as unknown as ResultPublication[]) ?? [];
+  const publications = (pubRes?.data as unknown as ResultPublication[]) ?? [];
 
   const [approve] = useApprovePublicationMutation();
   const [reject] = useRejectPublicationMutation();
@@ -176,13 +175,8 @@ const PublicationsPage = () => {
         </div>
 
         <PageCard padded={false}>
-          <div className="px-6 pt-6 pb-2">
-            <Stack
-              direction="row"
-              gap={2}
-              alignItems="flex-end"
-              flexWrap="wrap"
-            >
+          <div className="px-6 py-4">
+            <Stack direction="row" gap={2} alignItems="center" flexWrap="wrap">
               <Typography
                 level="title-lg"
                 sx={{ mr: "auto", color: "#001F54" }}
@@ -237,12 +231,8 @@ const PublicationsPage = () => {
                     const sub = p.submittedBy as any;
                     return (
                       <TableRow key={p._id}>
-                        <TableCell>
-                          {resolveName(p.centerId as any)}
-                        </TableCell>
-                        <TableCell>
-                          {resolveName(p.sessionId as any)}
-                        </TableCell>
+                        <TableCell>{resolveName(p.centerId as any)}</TableCell>
+                        <TableCell>{resolveName(p.sessionId as any)}</TableCell>
                         <TableCell>{resolveName(p.termId as any)}</TableCell>
                         <TableCell>
                           {sub?.firstName ? (
@@ -318,10 +308,7 @@ const PublicationsPage = () => {
               onChange={(e) => setRejectReason(e.target.value)}
             />
             <Stack direction="row" gap={2} justifyContent="flex-end">
-              <AppButton
-                variant="outlined"
-                onClick={() => setRejectId(null)}
-              >
+              <AppButton variant="outlined" onClick={() => setRejectId(null)}>
                 Cancel
               </AppButton>
               <AppButton

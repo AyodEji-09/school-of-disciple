@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  FormControl,
-  FormLabel,
-  Option,
-  Select,
-  Stack,
-} from "@mui/joy";
+import { FormControl, FormLabel, Option, Select, Stack } from "@mui/joy";
 import moment from "moment";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -224,7 +218,19 @@ const RemittancesPage = () => {
           title="Coordinator Remittance History"
           subtitle="All historical remittances from center coordinators."
           action={
-            <Stack direction="row" gap={2} alignItems="center" flexWrap="wrap">
+            <AppButton
+              type="button"
+              loading={isGeneratingReport}
+              disabled={isGeneratingReport}
+              onClick={generateRemittanceReport}
+            >
+              Generate Report
+            </AppButton>
+          }
+          padded={false}
+        >
+          <div className="px-6 py-4.5">
+            <Stack direction="row" gap={2} flexWrap="wrap">
               <FormControl size="sm">
                 <FormLabel>Academic Year</FormLabel>
                 <Select
@@ -242,21 +248,6 @@ const RemittancesPage = () => {
                   ))}
                 </Select>
               </FormControl>
-
-              <AppButton
-                type="button"
-                loading={isGeneratingReport}
-                disabled={isGeneratingReport}
-                onClick={generateRemittanceReport}
-              >
-                Generate Report
-              </AppButton>
-            </Stack>
-          }
-          padded={false}
-        >
-          <div className="px-6 pt-4 pb-2">
-            <Stack direction="row" gap={2} flexWrap="wrap">
               <FormControl size="sm">
                 <FormLabel>Center</FormLabel>
                 <Select

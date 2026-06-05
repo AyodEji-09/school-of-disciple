@@ -102,30 +102,30 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    id: "finance",
-    label: "Finance",
+    id: "payments",
+    label: "Payments",
     items: [
       {
-        id: "payments",
-        name: "Payments",
+        id: "student-payments",
+        name: "Student Payments",
         url: "/dashboard/payments",
         role: ["admin", "coordinator"],
       },
       {
-        id: "approvals",
-        name: "Approvals",
-        url: "/dashboard/payments/approvals",
-        role: ["admin"],
-      },
-      {
         id: "remittances-admin",
-        name: "Remittances",
+        name: "Coordinator Remittances",
         url: "/dashboard/payments/remittances",
         role: ["admin"],
       },
       {
+        id: "approvals",
+        name: "Pending Approvals",
+        url: "/dashboard/payments/approvals",
+        role: ["admin"],
+      },
+      {
         id: "remittances-coord",
-        name: "Remittances",
+        name: "My Remittances",
         url: "/dashboard/credit-admin",
         role: ["coordinator"],
       },
@@ -143,7 +143,7 @@ const navGroups: NavGroup[] = [
     items: [
       {
         id: "my-manuals",
-        name: "Manuals Ordered",
+        name: "Order History",
         url: "/dashboard/manual-order",
         role: ["coordinator"],
       },
