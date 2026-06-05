@@ -24,7 +24,7 @@ const UserDashboard = () => {
   const user = useAppSelector(selectUser);
 
   return (
-    <Frame text={`Welcome, ${capitalizeWords(user?.firstName ?? "")}`}>
+    <Frame text={`Welcome, ${capitalizeWords(user?.firstName ?? "")}!`}>
       <div className="space-y-6 mt-6 pb-16">
         <ProfileCard />
         <PendingPayments />

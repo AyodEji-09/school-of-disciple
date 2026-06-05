@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Dropdown, IconButton, Menu, MenuButton, MenuItem, Stack } from "@mui/joy";
+import {
+  Dropdown,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  Stack,
+} from "@mui/joy";
 import { MoreVert } from "@mui/icons-material";
 import axios from "axios";
 
@@ -140,7 +147,9 @@ const Coordinators = () => {
                   <TableHeaderCell>Center</TableHeaderCell>
                   <TableHeaderCell>Email</TableHeaderCell>
                   <TableHeaderCell>Status</TableHeaderCell>
-                  <TableHeaderCell className="text-right">Action</TableHeaderCell>
+                  <TableHeaderCell className="text-right">
+                    Action
+                  </TableHeaderCell>
                 </tr>
               </TableHeader>
               <TableBody>
@@ -158,7 +167,9 @@ const Coordinators = () => {
                       </TableCell>
                       <TableCell>{coordinator?.phone}</TableCell>
                       <TableCell>
-                        {getCenterName(coordinator) ?? <EmptyValue>Unassigned</EmptyValue>}
+                        {getCenterName(coordinator) ?? (
+                          <EmptyValue>Unassigned</EmptyValue>
+                        )}
                       </TableCell>
                       <TableCell>{coordinator?.email}</TableCell>
                       <TableCell>
@@ -189,9 +200,11 @@ const Coordinators = () => {
                                 )
                               }
                             >
-                              {getActionLabel(coordinator)}
+                              {/* {getActionLabel(coordinator)} */}
+                              View
                             </MenuItem>
-                            {getCoordinatorStatus(coordinator) === "pending" && (
+                            {getCoordinatorStatus(coordinator) ===
+                              "pending" && (
                               <>
                                 <MenuItem
                                   onClick={() => resendInvite(coordinator)}

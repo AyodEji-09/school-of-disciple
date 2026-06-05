@@ -45,7 +45,7 @@ const AddCenter = () => {
       const res = await createCenter(data).unwrap();
       console.log({ res });
       toast.success(res.message || "Center created successfully");
-      navigate("/dashboard");
+      navigate("/dashboard/manage-centers");
     } catch (error) {
       console.log({ error });
       const rtkError = error as {

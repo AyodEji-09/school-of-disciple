@@ -6,6 +6,8 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Option,
+  Select,
   Stack,
   Textarea,
   Typography,
@@ -25,6 +27,10 @@ import {
   useGetZelleDetailsQuery,
   useUploadRemittanceReceiptMutation,
 } from "../../data/rtk/remittance";
+import {
+  useGetAllRegistrationWindowsQuery,
+  useGetRegistrationWindowQuery,
+} from "../../data/rtk/registration";
 import {
   CenteredEmptyState,
   TableSkeleton,
@@ -54,9 +60,23 @@ const CreditAdminPage = () => {
   const [isZelleModalOpen, setIsZelleModalOpen] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [description, setDescription] = useState("");
+  const [academicYear, setAcademicYear] = useState<string>("");
+
+  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
+    page: 1,
+    limit: 100,
+  });
+  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
+  const academicYears = allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+
+  useEffect(() => {
+    if (academicYear || !currentWindowRes?.data?.label) return;
+    setAcademicYear(currentWindowRes.data.label);
+  }, [currentWindowRes, academicYear]);
 
   const { data: remittances, isLoading } = useGetRemittancesQuery({
     limit: 50,
+    ...(academicYear ? { academicYear } : {}),
   });
   const { data: zelleDetailsRes } = useGetZelleDetailsQuery(undefined, {
     // Skip if the modal isn't open to avoid unnecessary requests
@@ -279,6 +299,26 @@ const CreditAdminPage = () => {
             padded={false}
             title="Remittance History"
             subtitle="All your payments to the admin"
+            action={
+              <FormControl size="sm" sx={{ minWidth: 180 }}>
+                <FormLabel>Academic Session</FormLabel>
+                <Select
+                  size="sm"
+                  value={academicYear}
+                  onChange={(_, val) =>
+                    setAcademicYear((val as string) ?? "")
+                  }
+                  placeholder="All sessions"
+                >
+                  <Option value="">All sessions</Option>
+                  {academicYears.map((year) => (
+                    <Option key={year} value={year}>
+                      {year}
+                    </Option>
+                  ))}
+                </Select>
+              </FormControl>
+            }
           >
             <RemittanceTable
               docs={docs}

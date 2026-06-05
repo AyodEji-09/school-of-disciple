@@ -1,7 +1,7 @@
 import { Stack, Typography } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
 import ReportCard from "../../components/card/ReportCard";
-import { getUserFullName } from "../../utils";
+// import { getUserFullName } from "../../utils";
 import Frame from "../../components/frame/Frame";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
@@ -19,6 +19,7 @@ import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
 import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
+import { capitalizeWords } from "../../utils";
 
 type QuickAction = {
   id: string;
@@ -152,7 +153,9 @@ const Dashboard = () => {
   const hasUnassignedView = isUnassignedCoordinator;
 
   return (
-    <Frame text={`Welcome ${user ? getUserFullName(user) : ""}`}>
+    <Frame
+      text={`Welcome, ${user ? capitalizeWords(user?.firstName ?? "") : ""}!`}
+    >
       <div className="grid sm:grid-cols-3 gap-4 mt-8">
         {isStatsLoading ? (
           Array.from({ length: statsSkeletonCount }).map((_, idx) => (

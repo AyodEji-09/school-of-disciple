@@ -1,13 +1,26 @@
-import { Input, Typography, Stack, FormControl, FormLabel, Select, Option } from "@mui/joy";
+import {
+  Input,
+  Typography,
+  Stack,
+  FormControl,
+  FormLabel,
+  Select,
+  Option,
+} from "@mui/joy";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
 import {
-  useGetSessionsQuery, useGetTermsQuery, useGetSubjectsQuery,
-  useCreateSessionMutation, useDeleteSessionMutation,
-  useCreateTermMutation, useDeleteTermMutation,
-  useCreateSubjectMutation, useDeleteSubjectMutation,
+  useGetSessionsQuery,
+  useGetTermsQuery,
+  useGetSubjectsQuery,
+  useCreateSessionMutation,
+  useDeleteSessionMutation,
+  useCreateTermMutation,
+  useDeleteTermMutation,
+  useCreateSubjectMutation,
+  useDeleteSubjectMutation,
 } from "../../data/rtk/academic";
 import { CenteredEmptyState } from "../../components/query-state/QueryStates";
 import { handleError } from "../../utils";
@@ -45,7 +58,9 @@ const SessionsSection = () => {
   };
 
   const handleDelete = async (id: string, sessionName: string) => {
-    if (!window.confirm(`Delete session "${sessionName}"? This cannot be undone.`))
+    if (
+      !window.confirm(`Delete session "${sessionName}"? This cannot be undone.`)
+    )
       return;
     try {
       await deleteSession(id).unwrap();
@@ -56,10 +71,7 @@ const SessionsSection = () => {
   };
 
   return (
-    <PageCard
-      title="Academic Sessions"
-      subtitle="e.g. 2024/2025, 2025/2026"
-    >
+    <PageCard title="Academic Sessions" subtitle="e.g. 2024/2025, 2025/2026">
       <div className="bg-[#F5FAFF] rounded-xl p-4 mb-5 grid gap-3">
         <Typography level="title-sm" sx={{ color: "#001F54" }}>
           Add New Session
@@ -68,7 +80,7 @@ const SessionsSection = () => {
           <FormControl required>
             <FormLabel>Name</FormLabel>
             <Input
-              placeholder="e.g. 2025/2026"
+              placeholder="e.g. 2025/2026 Academic Session"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -259,10 +271,7 @@ const TermsSection = () => {
                   onChange={(e) => setIsCurrent(e.target.checked)}
                   className="accent-[#001EC5]"
                 />
-                <label
-                  htmlFor="termCurrent"
-                  className="text-sm text-[#475569]"
-                >
+                <label htmlFor="termCurrent" className="text-sm text-[#475569]">
                   Current semester
                 </label>
               </div>
@@ -294,7 +303,9 @@ const TermsSection = () => {
                       {t.name}
                     </span>
                     {(t as any).isCurrent && (
-                      <StatusBadge status="open" size="sm" />
+                      <span className="text-[11px] font-bold text-[#15803D] bg-[#D1FAE5] border border-[#6EE7B7] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                        Current
+                      </span>
                     )}
                   </div>
                   <button
@@ -431,9 +442,9 @@ const SubjectsSection = () => {
 const AcademicSetupPage = () => (
   <Frame text="Academic Setup">
     <Typography level="body-sm" textColor="neutral.500" sx={{ mt: 2, mb: 3 }}>
-      Configure sessions, terms, and subjects before uploading results.
-      Subjects you create here will automatically appear as columns in the
-      Excel template.
+      Configure sessions, terms, and subjects before uploading results. Subjects
+      you create here will automatically appear as columns in the Excel
+      template.
     </Typography>
     <div className="grid gap-6 pb-16">
       <SessionsSection />

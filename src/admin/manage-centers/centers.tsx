@@ -392,7 +392,7 @@ const Centers = () => {
             <Typography level="h2">Edit Center</Typography>
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className="mt-8 max-h-[72vh] overflow-y-auto pr-1"
+              className="mt-8 pr-1"
             >
               <div className="space-y-4 mt-8">
                 <div className="md:col-span-2">

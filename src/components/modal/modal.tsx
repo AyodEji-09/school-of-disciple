@@ -54,7 +54,10 @@ const AppModal = ({
           >
             {title}
           </Typography>
-          <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+          <div
+            className="scrollbar-hide"
+            style={{ flex: 1, minHeight: 0, overflowY: "auto" }}
+          >
             {children}
           </div>
         </ModalDialog>
