@@ -1,24 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
 import {
-  Box,
-  Button,
-  Card,
-  Divider,
-  FormControl,
-  FormLabel,
-  Input,
-  Stack,
-  Textarea,
-  Typography,
-} from "@mui/joy";
+  useEffect,
+  useMemo,
+  useState,
+  type TextareaHTMLAttributes,
+} from "react";
+import { Box, Button, Card, Divider, Stack, Typography } from "@mui/joy";
 import { toast } from "react-toastify";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { RiArrowLeftLine, RiBankCardLine, RiShieldCheckLine } from "react-icons/ri";
+import { RiBankCardLine, RiShieldCheckLine } from "react-icons/ri";
 
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
 import AppModal from "../../components/modal/modal";
-import { handleError } from "../../utils";
+import Input from "../../components/input/input.component";
+import PageCard from "../../components/feedback/PageCard";
+import { handleError, getUserFullName } from "../../utils";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import {
@@ -45,6 +41,19 @@ const formatCurrency = (value: number) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+
+const TextareaField = ({
+  label,
+  ...props
+}: { label: string } & TextareaHTMLAttributes<HTMLTextAreaElement>) => (
+  <label className="flex flex-col gap-1 text-sm font-medium text-[#001F54]">
+    {label}
+    <textarea
+      {...props}
+      className="normal-case w-full rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none placeholder:text-sm placeholder:text-[#C9C9C9] resize-none focus:border-[#001EC5]"
+    />
+  </label>
+);
 
 const ManualOrderNewPage = () => {
   const navigate = useNavigate();
@@ -102,7 +111,7 @@ const ManualOrderNewPage = () => {
 
   const updateField = <K extends keyof ManualOrderForm>(
     key: K,
-    value: ManualOrderForm[K]
+    value: ManualOrderForm[K],
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -186,146 +195,140 @@ const ManualOrderNewPage = () => {
     setReceiptFile(null);
   };
 
+  const coordinatorName = getUserFullName(user) || "—";
+
   return (
     <Frame text="Order New Manuals">
       <div className="mt-3 pb-16">
-        <button
-          type="button"
-          onClick={() => navigate("/dashboard/manual-order")}
-          className="inline-flex items-center gap-1 text-sm text-[#001EC5] hover:underline font-medium mb-4"
-        >
-          <RiArrowLeftLine size={16} />
-          Back to Manuals
-        </button>
-
-        <div className="grid gap-8 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-6">
-            <Box>
-              <Typography level="h3" textColor="#001F54">
-                Manuals Order Details
-              </Typography>
-              <Typography level="body-sm" textColor="#475569">
-                Each manual costs {formatCurrency(unitPrice)} per student.
-                Enter the coordinator and delivery details below.
-              </Typography>
-            </Box>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormControl>
-                <FormLabel>Coordinator Name</FormLabel>
-                <Input
-                  value={`${user?.firstName || ""} ${user?.lastName || ""}`.trim()}
-                  readOnly
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Coordinator Email</FormLabel>
-                <Input value={user?.email || ""} readOnly />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Center Name</FormLabel>
-                <Input
-                  placeholder="e.g. RCCG The King's Court"
-                  value={form.centerName}
-                  onChange={(e) => updateField("centerName", e.target.value)}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Zone</FormLabel>
-                <Input
-                  placeholder="e.g. North America Zone 1"
-                  value={form.zone}
-                  onChange={(e) => updateField("zone", e.target.value)}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Phone Number</FormLabel>
-                <Input
-                  placeholder="+1 (555) 000-0000"
-                  value={form.phone}
-                  onChange={(e) => updateField("phone", e.target.value)}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Name of SOD Zonal/Regional Coordinator</FormLabel>
-                <Input
-                  placeholder="Full name"
-                  value={form.zonalRegionalCoordinatorName}
-                  onChange={(e) =>
-                    updateField(
-                      "zonalRegionalCoordinatorName",
-                      e.target.value
-                    )
-                  }
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Quantity Needed</FormLabel>
-                <Input
-                  type="number"
-                  slotProps={{ input: { min: 1 } }}
-                  placeholder="Number of students"
-                  value={form.quantity}
-                  onChange={(e) => updateField("quantity", e.target.value)}
-                />
-              </FormControl>
-              <FormControl className="md:col-span-2">
-                <FormLabel>
-                  Mailing Address (Preferably a residential address)
-                </FormLabel>
-                <Textarea
-                  minRows={3}
-                  placeholder="Where you want the books delivered"
-                  value={form.mailingAddress}
-                  onChange={(e) =>
-                    updateField("mailingAddress", e.target.value)
-                  }
-                />
-              </FormControl>
-              <FormControl className="md:col-span-2">
-                <FormLabel>Other Concerns</FormLabel>
-                <Textarea
-                  minRows={3}
-                  placeholder="Any special instructions or concerns..."
-                  value={form.concerns}
-                  onChange={(e) => updateField("concerns", e.target.value)}
-                />
-              </FormControl>
-
-              <FormControl className="md:col-span-2">
-                <FormLabel>Payment Method</FormLabel>
-                <div className="grid grid-cols-2 gap-3">
-                  <PaymentMethodBtn
-                    label="Credit Card"
-                    icon={<RiBankCardLine size={20} />}
-                    active={form.paymentMethod === "stripe"}
-                    onClick={() => updateField("paymentMethod", "stripe")}
-                  />
-                  <PaymentMethodBtn
-                    label="Zelle"
-                    icon={<RiShieldCheckLine size={20} />}
-                    active={form.paymentMethod === "zelle"}
-                    onClick={() => updateField("paymentMethod", "zelle")}
-                  />
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* LEFT: form */}
+          <div className="lg:col-span-2 space-y-6">
+            <PageCard
+              title="Manuals Order Details"
+              subtitle={`Each manual costs ${formatCurrency(unitPrice)} per student. Enter the coordinator and delivery details below.`}
+            >
+              <Stack spacing={3}>
+                {/* Read-only coordinator info */}
+                <div className="rounded-xl border border-[#E6ECFF] bg-[#F8FAFC] p-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-[#6B7280]">
+                        Coordinator Name
+                      </div>
+                      <div className="mt-0.5 text-sm font-semibold text-[#001F54]">
+                        {coordinatorName}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-[#6B7280]">
+                        Coordinator Email
+                      </div>
+                      <div className="mt-0.5 text-sm font-semibold text-[#001F54] break-all">
+                        {user?.email || "—"}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </FormControl>
-            </div>
+
+                <Divider />
+
+                {/* Editable fields */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Input
+                    label="Center Name"
+                    placeholder="e.g. RCCG The King's Court"
+                    value={form.centerName}
+                    onChange={(e) => updateField("centerName", e.target.value)}
+                  />
+                  <Input
+                    label="Zone"
+                    placeholder="e.g. North America Zone 1"
+                    value={form.zone}
+                    onChange={(e) => updateField("zone", e.target.value)}
+                  />
+                  <Input
+                    label="Phone Number"
+                    placeholder="+1 (555) 000-0000"
+                    value={form.phone}
+                    onChange={(e) => updateField("phone", e.target.value)}
+                  />
+                  <Input
+                    label="Name of SOD Zonal/Regional Coordinator"
+                    placeholder="Full name"
+                    value={form.zonalRegionalCoordinatorName}
+                    onChange={(e) =>
+                      updateField(
+                        "zonalRegionalCoordinatorName",
+                        e.target.value,
+                      )
+                    }
+                  />
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Quantity Needed"
+                      type="number"
+                      placeholder="Number of students"
+                      value={form.quantity}
+                      onChange={(e) => updateField("quantity", e.target.value)}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <TextareaField
+                      label="Mailing Address (Preferably a residential address)"
+                      placeholder="Where you want the books delivered"
+                      rows={3}
+                      value={form.mailingAddress}
+                      onChange={(e) =>
+                        updateField("mailingAddress", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <TextareaField
+                      label="Other Concerns"
+                      placeholder="Any special instructions or concerns..."
+                      rows={3}
+                      value={form.concerns}
+                      onChange={(e) => updateField("concerns", e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <Divider />
+
+                {/* Payment method */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#001F54]">
+                    Payment Method
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <PaymentMethodBtn
+                      label="Credit Card"
+                      icon={<RiBankCardLine size={20} />}
+                      active={form.paymentMethod === "stripe"}
+                      onClick={() => updateField("paymentMethod", "stripe")}
+                    />
+                    <PaymentMethodBtn
+                      label="Zelle"
+                      icon={<RiShieldCheckLine size={20} />}
+                      active={form.paymentMethod === "zelle"}
+                      onClick={() => updateField("paymentMethod", "zelle")}
+                    />
+                  </div>
+                </div>
+              </Stack>
+            </PageCard>
           </div>
 
-          <div className="space-y-4">
-            <Card variant="soft" className="p-5 bg-[#F5FAFF]">
-              <Typography level="title-md" textColor="#001F54" mb={1}>
-                Order Summary
-              </Typography>
+          {/* RIGHT: summary */}
+          <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+            <PageCard title="Order Summary">
               <Stack spacing={1.2}>
                 <SummaryLine
                   label="Price per student"
                   value={formatCurrency(unitPrice)}
                 />
-                <SummaryLine
-                  label="Quantity"
-                  value={String(quantity || 0)}
-                />
+                <SummaryLine label="Quantity" value={String(quantity || 0)} />
                 <Divider sx={{ my: 0.5 }} />
                 <SummaryLine
                   label="Total"
@@ -333,13 +336,14 @@ const ManualOrderNewPage = () => {
                   strong
                 />
               </Stack>
-            </Card>
+            </PageCard>
 
             <AppButton
               type="button"
               loading={stripeLoading || zelleLoading}
               disabled={stripeLoading || zelleLoading}
               onClick={handleSubmit}
+              className="w-full"
             >
               Place Order
             </AppButton>
@@ -363,10 +367,7 @@ const ManualOrderNewPage = () => {
               border: "1px solid #D4CAFE",
             }}
           >
-            <Typography
-              level="body-sm"
-              sx={{ color: "text.tertiary", mb: 2 }}
-            >
+            <Typography level="body-sm" sx={{ color: "text.tertiary", mb: 2 }}>
               Send the payment to the admin using Zelle with the details below:
             </Typography>
 
@@ -575,23 +576,13 @@ const PaymentMethodBtn = ({
   <button
     type="button"
     onClick={onClick}
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      gap: 6,
-      padding: "14px 8px",
-      borderRadius: 12,
-      border: active ? "2px solid #001EC5" : "1.5px solid #E2E8F0",
-      background: active ? "#EEF2FF" : "#fff",
-      color: active ? "#001EC5" : "#64748B",
-      cursor: "pointer",
-      transition: "all 0.15s ease",
-      fontWeight: active ? 600 : 500,
-      fontSize: 13,
-    }}
+    className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 px-3 py-4 text-sm transition-all ${
+      active
+        ? "border-[#001EC5] bg-[#EEF2FF] font-semibold text-[#001EC5]"
+        : "border-[#E6ECFF] bg-white font-medium text-[#475569] hover:border-[#001EC5]/40"
+    }`}
   >
     {icon}
-    {label}
+    <span>{label}</span>
   </button>
 );

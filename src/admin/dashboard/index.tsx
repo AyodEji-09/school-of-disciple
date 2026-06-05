@@ -19,7 +19,7 @@ import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
 import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
-import { capitalizeWords } from "../../utils";
+import { capitalizeWords, getUserFullName } from "../../utils";
 
 type QuickAction = {
   id: string;
@@ -105,6 +105,8 @@ const Dashboard = () => {
   const isCoordinator = user?.type === "coordinator";
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : user?.center?._id;
+  const coordinatorCenterName =
+    typeof user?.center === "string" ? "" : user?.center?.name;
   const isUnassignedCoordinator = isCoordinator && !coordinatorCenterId;
 
   const { data: coordinators, isLoading: coordinatorsLoading } =
@@ -152,11 +154,23 @@ const Dashboard = () => {
 
   const hasUnassignedView = isUnassignedCoordinator;
 
+  const welcomeName =
+    getUserFullName(user) ||
+    (user ? capitalizeWords(user?.firstName ?? "") : "");
+
   return (
-    <Frame
-      text={`Welcome, ${user ? capitalizeWords(user?.firstName ?? "") : ""}!`}
-    >
-      <div className="grid sm:grid-cols-3 gap-4 mt-8">
+    <Frame text={`Welcome, ${welcomeName}!`}>
+      {isCoordinator && coordinatorCenterName && (
+        <div className="mt-4 inline-flex items-center gap-2 bg-[#EEF2FF] border border-[#001EC5]/30 rounded-full px-4 py-1.5 text-sm">
+          <SchoolOutlinedIcon sx={{ fontSize: 16, color: "#001EC5" }} />
+          <span className="text-[#6B7280]">Your Center:</span>
+          <span className="font-semibold text-[#001F54]">
+            {coordinatorCenterName}
+          </span>
+        </div>
+      )}
+
+      <div className="grid sm:grid-cols-3 gap-4 mt-6">
         {isStatsLoading ? (
           Array.from({ length: statsSkeletonCount }).map((_, idx) => (
             <MetricCardSkeleton key={idx} />
