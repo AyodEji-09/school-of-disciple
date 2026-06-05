@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Avatar, Card } from "@mui/joy";
+import { Avatar, Card, Typography } from "@mui/joy";
+import { Controller, useForm } from "react-hook-form";
+import { RiCheckLine } from "react-icons/ri";
+import axios from "axios";
 import { toast } from "react-toastify";
 
 import Frame from "../components/frame/Frame";
 import AppButton from "../components/Button/AppButton";
 import Input from "../components/input/input.component";
+import OtpComponent from "../components/otp-component/OtpComponent";
 import { handleError } from "../utils";
 import { useAppDispatch, useAppSelector } from "../data/hooks";
 import { login } from "../data/reducers/userSlice";
@@ -13,6 +17,14 @@ import {
   useUpdateUserMutation,
   useUploadProfileImageMutation,
 } from "../data/rtk/user";
+
+type PasswordChangeForm = {
+  oldPassword: string;
+  password: string;
+  confirmPassword: string;
+};
+
+type PasswordStep = "form" | "token" | "success";
 
 type ProfileForm = {
   firstName: string;
@@ -209,6 +221,113 @@ const ProfilePage = () => {
   };
 
   // const isStudent = user?.type === "user";
+
+  // ─── Change Password flow ────────────────────────────────────────
+  const [pwStep, setPwStep] = useState<PasswordStep>("form");
+  const [token, setToken] = useState("");
+  const [pendingPassword, setPendingPassword] = useState("");
+  const [resendingCode, setResendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  const {
+    control: pwControl,
+    handleSubmit: handlePwSubmit,
+    reset: resetPwForm,
+    watch: watchPw,
+    formState: { errors: pwErrors },
+  } = useForm<PasswordChangeForm>({
+    defaultValues: {
+      oldPassword: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
+
+  const resetPasswordFlow = () => {
+    setPwStep("form");
+    setToken("");
+    setPendingPassword("");
+    setCountdown(0);
+    resetPwForm();
+  };
+
+  const sendChangeCode = async (
+    oldPassword: string,
+    newPassword: string,
+  ) => {
+    await axios.post("/auth/request-password-change", {
+      oldPassword,
+      password: newPassword,
+      confirmPassword: newPassword,
+    });
+  };
+
+  const onRequestChange = async (data: PasswordChangeForm) => {
+    setVerifyingCode(true);
+    try {
+      await sendChangeCode(data.oldPassword, data.password);
+      setPendingPassword(data.password);
+      setPwStep("token");
+      setToken("");
+      setCountdown(60);
+      toast.success("A 6-digit code has been sent to your email");
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setVerifyingCode(false);
+    }
+  };
+
+  const onResendCode = async () => {
+    const current = watchPw();
+    if (!current.oldPassword || !current.password) {
+      toast.error("Go back and re-enter your passwords to resend");
+      return;
+    }
+    setResendingCode(true);
+    try {
+      await sendChangeCode(current.oldPassword, current.password);
+      toast.success("Reset code resent");
+      setCountdown(60);
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setResendingCode(false);
+    }
+  };
+
+  const onVerifyCode = async () => {
+    if (token.length < 6) {
+      toast.error("Please enter the complete 6-digit code");
+      return;
+    }
+    if (!user?.email) {
+      toast.error("No email associated with your account");
+      return;
+    }
+    setVerifyingCode(true);
+    try {
+      await axios.post("/auth/reset-password", {
+        email: user.email,
+        token,
+        password: pendingPassword,
+      });
+      setPwStep("success");
+      toast.success("Password updated successfully");
+    } catch (error) {
+      toast.error(handleError(error));
+    } finally {
+      setVerifyingCode(false);
+    }
+  };
 
   return (
     <Frame text="Profile">
@@ -447,6 +566,186 @@ const ProfilePage = () => {
               </div>
             </div>
           </div>
+        </Card>
+
+        {/* Change Password Section */}
+        <Card variant="outlined" sx={{ mt: 3 }}>
+          <Typography
+            level="title-lg"
+            sx={{ color: "#001F54", fontWeight: 700, mb: 1 }}
+          >
+            Change Password
+          </Typography>
+          <Typography level="body-sm" sx={{ color: "text.tertiary", mb: 3 }}>
+            {pwStep === "form" &&
+              "Enter your current password and a new one. We'll send a verification code to your email."}
+            {pwStep === "token" &&
+              `Enter the 6-digit code we sent to ${user?.email} to confirm the change.`}
+            {pwStep === "success" && "Your password has been updated."}
+          </Typography>
+
+          {pwStep === "form" && (
+            <form
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              onSubmit={handlePwSubmit(onRequestChange)}
+            >
+              <div className="md:col-span-2">
+                <Controller
+                  name="oldPassword"
+                  control={pwControl}
+                  rules={{ required: "Current password is required" }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input
+                      label="Current Password"
+                      type="password"
+                      value={value}
+                      onChange={onChange}
+                      autoComplete="current-password"
+                    />
+                  )}
+                />
+                {pwErrors.oldPassword && (
+                  <p className="text-[#dc2626] text-xs mt-1">
+                    {pwErrors.oldPassword.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Controller
+                  name="password"
+                  control={pwControl}
+                  rules={{
+                    required: "New password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Password must be at least 6 characters",
+                    },
+                  }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input
+                      label="New Password"
+                      type="password"
+                      value={value}
+                      onChange={onChange}
+                      autoComplete="new-password"
+                    />
+                  )}
+                />
+                {pwErrors.password && (
+                  <p className="text-[#dc2626] text-xs mt-1">
+                    {pwErrors.password.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Controller
+                  name="confirmPassword"
+                  control={pwControl}
+                  rules={{
+                    required: "Please confirm your new password",
+                    validate: (val) =>
+                      val === watchPw("password") ||
+                      "Passwords do not match",
+                  }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input
+                      label="Confirm New Password"
+                      type="password"
+                      value={value}
+                      onChange={onChange}
+                      autoComplete="new-password"
+                    />
+                  )}
+                />
+                {pwErrors.confirmPassword && (
+                  <p className="text-[#dc2626] text-xs mt-1">
+                    {pwErrors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="md:col-span-2 flex justify-end mt-2">
+                <AppButton
+                  type="submit"
+                  loading={verifyingCode}
+                  disabled={verifyingCode}
+                >
+                  Send Verification Code
+                </AppButton>
+              </div>
+            </form>
+          )}
+
+          {pwStep === "token" && (
+            <div className="space-y-5 max-w-md">
+              <div className="flex justify-center py-1">
+                <OtpComponent
+                  onChange={setToken}
+                  loading={verifyingCode || resendingCode}
+                />
+              </div>
+
+              <p className="text-xs text-center text-[#6B7280]">
+                Didn't get the code?{" "}
+                <button
+                  type="button"
+                  onClick={onResendCode}
+                  disabled={
+                    resendingCode || verifyingCode || countdown > 0
+                  }
+                  className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resendingCode
+                    ? "Sending..."
+                    : countdown > 0
+                      ? `Resend in ${countdown}s`
+                      : "Resend"}
+                </button>
+              </p>
+
+              <div className="flex justify-end gap-2">
+                <AppButton
+                  type="button"
+                  variant="outlined"
+                  onClick={() => setPwStep("form")}
+                  disabled={verifyingCode}
+                >
+                  Back
+                </AppButton>
+                <AppButton
+                  type="button"
+                  loading={verifyingCode}
+                  disabled={verifyingCode || token.length < 6}
+                  onClick={onVerifyCode}
+                >
+                  Verify & Update Password
+                </AppButton>
+              </div>
+            </div>
+          )}
+
+          {pwStep === "success" && (
+            <div className="flex flex-col items-center text-center py-6 gap-4">
+              <div className="w-14 h-14 rounded-full bg-[#D1FAE5] border-2 border-[#6EE7B7] flex items-center justify-center">
+                <RiCheckLine size={28} className="text-[#15803D]" />
+              </div>
+              <Typography level="title-md" sx={{ color: "#001F54" }}>
+                Password Changed
+              </Typography>
+              <Typography
+                level="body-sm"
+                sx={{ color: "text.tertiary", maxWidth: 380 }}
+              >
+                Your password has been updated. Use your new password the next
+                time you sign in.
+              </Typography>
+              <AppButton type="button" onClick={resetPasswordFlow}>
+                Change Another Password
+              </AppButton>
+            </div>
+          )}
         </Card>
       </div>
     </Frame>

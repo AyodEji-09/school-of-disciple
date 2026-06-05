@@ -6,6 +6,7 @@ import { useGetResultByIdQuery } from "../../data/rtk/academic";
 import { gradeColor, resolveName } from "../../utils/academic";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
+import { TOKEN, useURL } from "../../data/config";
 import moment from "moment";
 import { Print } from "@mui/icons-material";
 import PageCard from "../../components/feedback/PageCard";
@@ -30,8 +31,9 @@ const ResultDetailPage = () => {
   const result = res?.data as unknown as StudentResult | undefined;
 
   const handlePrintOrDownload = () => {
+    const token = localStorage.getItem(TOKEN);
     window.open(
-      `${import.meta.env.VITE_API_URL ?? ""}/academic/results/${id}/pdf`,
+      `${useURL}/academic/results/${id}/pdf?token=${token ?? ""}`,
       "_blank",
     );
   };
