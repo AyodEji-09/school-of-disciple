@@ -65,10 +65,9 @@ import UploadResultPage from "./admin/results/upload";
 import BulkUploadPage from "./admin/results/bulk-upload";
 import EditResultPage from "./admin/results/edit";
 import ResultDetailPage from "./admin/results/[id]";
-import SubmitPublicationPage from "./admin/results/submit";
-import PublicationsPage from "./admin/results/publications";
 import AnalyticsPage from "./admin/results/analytics";
 import ReportsPage from "./admin/results/reports";
+import CoordinatorReportsPage from "./coordinator/reports";
 import MyResultsPage from "./pages/MyResults";
 import MyResultDetailPage from "./pages/MyResultDetail";
 import AcademicSetupPage from "./admin/results/setup";
@@ -242,10 +241,6 @@ const App = () => {
             element={<BulkUploadPage />}
           />
           <Route
-            path="/dashboard/results/submit"
-            element={<SubmitPublicationPage />}
-          />
-          <Route
             path="/dashboard/results/analytics"
             element={<AnalyticsPage />}
           />
@@ -254,16 +249,16 @@ const App = () => {
             element={<ReportsPage />}
           />
           <Route
+            path="/coordinator/reports"
+            element={<CoordinatorReportsPage />}
+          />
+          <Route
             path="/dashboard/results/:id/edit"
             element={<EditResultPage />}
           />
           <Route
             path="/dashboard/results/:id"
             element={<ResultDetailPage />}
-          />
-          <Route
-            path="/dashboard/results/publications"
-            element={<PublicationsPage />}
           />
           <Route
             path="/dashboard/academics/setup"

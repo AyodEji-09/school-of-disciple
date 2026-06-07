@@ -13,11 +13,10 @@ import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import {
   useGetSessionsQuery,
-  useGetTermsQuery,
-  useGetSubjectAnalyticsQuery,
+  useGetYearAnalyticsQuery,
   useGetSystemAnalyticsQuery,
 } from "../../data/rtk/academic";
-import { gradeColor } from "../../utils/academic";
+import { useGetCentersQuery } from "../../data/rtk/center";
 import PageCard from "../../components/feedback/PageCard";
 import {
   TableHeader,
@@ -51,75 +50,53 @@ const MetricCard = ({
   </div>
 );
 
-const GradeBar = ({
-  grades,
-  total,
-}: {
-  grades: Record<string, number>;
-  total: number;
-}) => (
-  <div className="flex gap-1 mt-1 h-2 rounded-full overflow-hidden">
-    {Object.entries(grades)
-      .sort()
-      .map(([g, cnt]) => (
-        <div
-          key={g}
-          title={`${g}: ${cnt}`}
-          style={{ width: `${(cnt / total) * 100}%`, background: gradeColor(g) }}
-        />
-      ))}
-  </div>
-);
-
 const AnalyticsPage = () => {
   const user = useAppSelector(selectUser);
   const isAdmin = user?.type === "admin" || user?.type === "super";
 
   const [sessionId, setSessionId] = useState("");
-  const [termId, setTermId] = useState("");
+  const [centerId, setCenterId] = useState("");
 
-  const { data: sessionsRes } = useGetSessionsQuery();
-  const sessions = (sessionsRes?.data as unknown as AcademicSession[]) ?? [];
+  const { data: sessionsData = [] } = useGetSessionsQuery();
+  const sessions = sessionsData as unknown as AcademicSession[];
 
-  const { data: termsRes } = useGetTermsQuery(
-    sessionId ? { sessionId } : undefined,
-    { skip: !sessionId },
+  const { data: centersRes } = useGetCentersQuery(
+    { page: 1, limit: 100 },
+    { skip: !isAdmin },
   );
-  const terms = (termsRes?.data as unknown as AcademicTerm[]) ?? [];
+  const centers = centersRes?.data?.docs ?? [];
 
   useEffect(() => {
     if (sessions.length > 0 && !sessionId) {
-      const current = sessions.find((s) => (s as any).isCurrent) || sessions[0];
+      const current = sessions.find((s) => s.isCurrent) || sessions[0];
       if (current) setSessionId(current._id);
     }
   }, [sessions, sessionId]);
 
-  useEffect(() => {
-    if (terms.length > 0 && !termId) {
-      const current = terms.find((t) => (t as any).isCurrent) || terms[0];
-      if (current) setTermId(current._id);
-    }
-  }, [terms, termId]);
-
-  const { data: subjectRes, isLoading: subLoading } =
-    useGetSubjectAnalyticsQuery(
-      { ...(sessionId ? { sessionId } : {}), ...(termId ? { termId } : {}) },
-      { skip: !sessionId || !termId },
-    );
-  const subjectData = (subjectRes?.data as unknown as any[]) ?? [];
+  const { data: yearRes, isLoading: yearLoading } = useGetYearAnalyticsQuery(
+    {
+      sessionId,
+      ...(isAdmin && centerId ? { centerId } : {}),
+    },
+    { skip: !sessionId },
+  );
+  const yearData = (yearRes?.data as unknown as YearPerformanceSummary[]) ?? [];
 
   const { data: systemRes, isLoading: sysLoading } = useGetSystemAnalyticsQuery(
-    { ...(sessionId ? { sessionId } : {}), ...(termId ? { termId } : {}) },
-    { skip: !isAdmin || !sessionId || !termId },
+    {
+      sessionId,
+      ...(isAdmin && centerId ? { centerId } : {}),
+    },
+    { skip: !isAdmin || !sessionId },
   );
-  const centerData = (systemRes?.data as unknown as any[]) ?? [];
+  const centerData = (systemRes?.data as unknown as CenterPerformanceSummary[]) ?? [];
 
-  const avgScore = subjectData.length
-    ? subjectData.reduce((s, d) => s + d.averageScore, 0) / subjectData.length
+  const avgScore = yearData.length
+    ? yearData.reduce((s, d) => s + d.averageScore, 0) / yearData.length
     : 0;
   const totalStudents =
-    subjectData.length > 0
-      ? Math.max(...subjectData.map((d) => d.totalStudents))
+    yearData.length > 0
+      ? Math.max(...yearData.map((d) => d.totalStudents))
       : 0;
 
   return (
@@ -127,15 +104,12 @@ const AnalyticsPage = () => {
       <div className="space-y-6 mt-6 pb-16">
         <PageCard>
           <Stack direction="row" gap={3} flexWrap="wrap" alignItems="flex-end">
-            <FormControl size="sm" sx={{ minWidth: 200 }}>
+            <FormControl size="sm" sx={{ minWidth: 220 }}>
               <FormLabel>Session</FormLabel>
               <Select
                 placeholder="Select session"
                 value={sessionId}
-                onChange={(_, v) => {
-                  setSessionId(v as string);
-                  setTermId("");
-                }}
+                onChange={(_, v) => setSessionId(v as string)}
               >
                 {sessions.map((s) => (
                   <Option key={s._id} value={s._id}>
@@ -144,43 +118,45 @@ const AnalyticsPage = () => {
                 ))}
               </Select>
             </FormControl>
-            <FormControl size="sm" sx={{ minWidth: 180 }}>
-              <FormLabel>Term</FormLabel>
-              <Select
-                placeholder="Select term"
-                value={termId}
-                onChange={(_, v) => setTermId(v as string)}
-              >
-                {terms.map((t) => (
-                  <Option key={t._id} value={t._id}>
-                    {t.name}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
+            {isAdmin && (
+              <FormControl size="sm" sx={{ minWidth: 220 }}>
+                <FormLabel>Centre</FormLabel>
+                <Select
+                  placeholder="All centres"
+                  value={centerId}
+                  onChange={(_, v) => setCenterId(v as string)}
+                >
+                  <Option value="">All centres</Option>
+                  {centers.map((c) => (
+                    <Option key={c._id} value={c._id}>
+                      {c.name}
+                    </Option>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
           </Stack>
         </PageCard>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard label="Total Students" value={totalStudents} />
-          <MetricCard label="Subjects Tracked" value={subjectData.length} />
+          <MetricCard label="Years Tracked" value={yearData.length} />
           <MetricCard
             label="Overall Average"
             value={`${avgScore.toFixed(1)}%`}
-            sub={avgScore >= 50 ? "Above pass mark" : "Below pass mark"}
           />
           {isAdmin && (
             <MetricCard label="Centres" value={centerData.length} />
           )}
         </div>
 
-        <PageCard padded={false} title="Subject Performance">
-            <div className="overflow-x-auto min-h-[400px]">
-            {subLoading ? (
+        <PageCard padded={false} title="Year Performance">
+          <div className="overflow-x-auto min-h-[400px]">
+            {yearLoading ? (
               <div className="flex justify-center py-12">
                 <CircularProgress />
               </div>
-            ) : subjectData.length === 0 ? (
+            ) : yearData.length === 0 ? (
               <div className="text-center py-12 text-[#94A3B8] text-sm">
                 No data for selection
               </div>
@@ -188,8 +164,7 @@ const AnalyticsPage = () => {
               <table className="w-full text-sm">
                 <TableHeader>
                   <tr>
-                    <TableHeaderCell>Subject</TableHeaderCell>
-                    <TableHeaderCell>Code</TableHeaderCell>
+                    <TableHeaderCell>Year</TableHeaderCell>
                     <TableHeaderCell className="text-center">
                       Students
                     </TableHeaderCell>
@@ -202,59 +177,30 @@ const AnalyticsPage = () => {
                     <TableHeaderCell className="text-center">
                       Lowest
                     </TableHeaderCell>
-                    <TableHeaderCell>Grade Distribution</TableHeaderCell>
                   </tr>
                 </TableHeader>
                 <TableBody>
-                  {subjectData
+                  {yearData
                     .slice()
-                    .sort((a, b) => b.averageScore - a.averageScore)
+                    .sort((a, b) => a.yearNumber - b.yearNumber)
                     .map((s) => (
-                      <TableRow key={s.subjectId}>
-                        <TableCell>{s.subjectName}</TableCell>
+                      <TableRow key={s.yearId}>
                         <TableCell>
-                          <span className="text-[#94A3B8]">
-                            {s.subjectCode}
+                          <span className="font-semibold text-[#001F54]">
+                            {s.yearName}
                           </span>
                         </TableCell>
                         <TableCell className="text-center">
                           {s.totalStudents}
                         </TableCell>
                         <TableCell className="text-center font-bold">
-                          <span
-                            style={{
-                              color: s.averageScore >= 50 ? "#16a34a" : "#dc2626",
-                            }}
-                          >
-                            {s.averageScore.toFixed(1)}%
-                          </span>
+                          {s.averageScore.toFixed(1)}%
                         </TableCell>
                         <TableCell className="text-center text-green-600 font-semibold">
                           {s.highestScore}
                         </TableCell>
                         <TableCell className="text-center text-red-500 font-semibold">
                           {s.lowestScore}
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-40">
-                            <GradeBar
-                              grades={s.gradeDistribution}
-                              total={s.totalStudents}
-                            />
-                            <div className="flex gap-2 mt-1 flex-wrap">
-                              {Object.entries(s.gradeDistribution)
-                                .sort()
-                                .map(([g, c]) => (
-                                  <span
-                                    key={g}
-                                    className="text-xs"
-                                    style={{ color: gradeColor(g) }}
-                                  >
-                                    {g}:{c as number}
-                                  </span>
-                                ))}
-                            </div>
-                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -266,7 +212,7 @@ const AnalyticsPage = () => {
 
         {isAdmin && (
           <PageCard padded={false} title="Centre Performance Comparison">
-          <div className="overflow-x-auto min-h-[400px]">
+            <div className="overflow-x-auto min-h-[400px]">
               {sysLoading ? (
                 <div className="flex justify-center py-12">
                   <CircularProgress />
@@ -289,7 +235,6 @@ const AnalyticsPage = () => {
                       <TableHeaderCell className="text-center">
                         Pass Rate
                       </TableHeaderCell>
-                      <TableHeaderCell>Pass Rate Bar</TableHeaderCell>
                     </tr>
                   </TableHeader>
                   <TableBody>
@@ -308,27 +253,10 @@ const AnalyticsPage = () => {
                             {c.totalStudents}
                           </TableCell>
                           <TableCell className="text-center font-bold">
-                            <span
-                              style={{
-                                color:
-                                  c.averageScore >= 50 ? "#16a34a" : "#dc2626",
-                              }}
-                            >
-                              {c.averageScore.toFixed(1)}%
-                            </span>
+                            {c.averageScore.toFixed(1)}%
                           </TableCell>
-                          <TableCell className="text-center font-bold text-[#001EC5]">
+                          <TableCell className="text-center font-semibold text-[#16a34a]">
                             {c.passRate.toFixed(1)}%
-                          </TableCell>
-                          <TableCell>
-                            <div className="w-40">
-                              <div className="bg-[#E6ECFF] rounded-full h-2 overflow-hidden">
-                                <div
-                                  className="h-2 rounded-full bg-[#001EC5] transition-all"
-                                  style={{ width: `${c.passRate}%` }}
-                                />
-                              </div>
-                            </div>
                           </TableCell>
                         </TableRow>
                       ))}

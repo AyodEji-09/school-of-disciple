@@ -1,13 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Select,
-  Option,
+  Modal,
+  ModalDialog,
+  ModalClose,
   Typography,
+  DialogTitle,
+  DialogContent,
   Stack,
   FormControl,
   FormLabel,
+  Select,
+  Option,
+  Box,
 } from "@mui/joy";
+import { RocketLaunch } from "@mui/icons-material";
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
 import { useAppSelector } from "../../data/hooks";
@@ -15,11 +22,7 @@ import { selectUser } from "../../data/selectors/authSelector";
 import {
   useGetResultsQuery,
   useGetSessionsQuery,
-  useGetTermsQuery,
-  useGetPublicationsQuery,
-  useApprovePublicationMutation,
-  useRejectPublicationMutation,
-  useLockResultsMutation,
+  usePublishSessionResultsMutation,
 } from "../../data/rtk/academic";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import {
@@ -41,7 +44,7 @@ import {
   EmptyValue,
 } from "../../components/feedback/TableShell";
 import ActionLink from "../../components/feedback/ActionLink";
-import { RESULT_STATUS } from "../../utils/status";
+import { RESULT_STATUS, CENTER_RESULT_STATUS } from "../../utils/status";
 
 const ResultsPage = () => {
   const navigate = useNavigate();
@@ -50,18 +53,12 @@ const ResultsPage = () => {
   const isAdmin = user?.type === "admin" || user?.type === "super";
 
   const [sessionId, setSessionId] = useState("");
-  const [termId, setTermId] = useState("");
   const [status, setStatus] = useState<ResultStatus | "">("");
   const [viewCenterId, setViewCenterId] = useState<string | null>(null);
+  const [confirmPublish, setConfirmPublish] = useState(false);
 
-  const { data: sessionsRes } = useGetSessionsQuery();
-  const sessions = (sessionsRes?.data as unknown as AcademicSession[]) ?? [];
-
-  const { data: termsRes } = useGetTermsQuery(
-    sessionId ? { sessionId } : undefined,
-    { skip: !sessionId },
-  );
-  const terms = (termsRes?.data as unknown as AcademicTerm[]) ?? [];
+  const { data: sessionsData = [] } = useGetSessionsQuery();
+  const sessions = sessionsData as unknown as AcademicSession[];
 
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : (user?.center as any)?._id;
@@ -72,78 +69,45 @@ const ResultsPage = () => {
   );
   const centers = centersRes?.data?.docs ?? [];
 
-  const { data: publicationsRes } = useGetPublicationsQuery(
-    sessionId && termId ? { sessionId, termId } : undefined,
-    { skip: !sessionId || !termId },
-  );
-  const publications =
-    (publicationsRes?.data as unknown as ResultPublication[]) ?? [];
-
   const { data, isLoading } = useGetResultsQuery({
     ...(sessionId ? { sessionId } : {}),
-    ...(termId ? { termId } : {}),
     ...(status ? { status } : {}),
     ...(isCoordinator && coordinatorCenterId
       ? { centerId: coordinatorCenterId }
       : {}),
   });
 
-  const [approvePublication] = useApprovePublicationMutation();
-  const [rejectPublication] = useRejectPublicationMutation();
-  const [lockResults] = useLockResultsMutation();
-
-  const results = (data?.data as unknown as StudentResult[]) ?? [];
+  const [publishSession, { isLoading: publishing }] =
+    usePublishSessionResultsMutation();
+  const results = (data ?? []) as unknown as StudentResult[];
 
   useEffect(() => {
     if (sessions.length > 0 && !sessionId) {
-      const current = sessions.find((s) => (s as any).isCurrent) || sessions[0];
+      const current = sessions.find((s) => s.isCurrent) || sessions[0];
       if (current) setSessionId(current._id);
     }
   }, [sessions, sessionId]);
 
-  useEffect(() => {
-    if (terms.length > 0 && !termId) {
-      const current = terms.find((t) => (t as any).isCurrent) || terms[0];
-      if (current) setTermId(current._id);
-    }
-  }, [terms, termId]);
+  const draftCount = useMemo(
+    () => results.filter((r) => r.status === "draft").length,
+    [results],
+  );
+  const selectedSession = sessions.find((s) => s._id === sessionId);
 
-  const handleApprove = async (pubId: string) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to approve this centre's results? This will publish the results to students.",
-      )
-    )
-      return;
+  const handlePublishAll = async () => {
+    if (!sessionId) return;
     try {
-      await approvePublication(pubId).unwrap();
-      toast.success("Publication approved successfully");
-    } catch (err) {
-      toast.error(handleError(err));
-    }
-  };
-
-  const handleReject = async (pubId: string) => {
-    const reason = window.prompt("Enter rejection reason:");
-    if (reason === null) return;
-    try {
-      await rejectPublication({ id: pubId, rejectionReason: reason }).unwrap();
-      toast.success("Publication rejected successfully");
-    } catch (err) {
-      toast.error(handleError(err));
-    }
-  };
-
-  const handleLock = async (centerId: string) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to lock this centre's results? This will prevent any further edits by coordinators.",
-      )
-    )
-      return;
-    try {
-      await lockResults({ sessionId, termId, centerId }).unwrap();
-      toast.success("Results locked successfully");
+      const res = await publishSession({ sessionId }).unwrap();
+      // Backend returns `{ message: "Published N results" }`. Parse the count
+      // out of the message so we can show a useful toast.
+      const match = res?.message?.match(/Published\s+(\d+)/i);
+      const n = match ? Number(match[1]) : 0;
+      toast.success(
+        n > 0
+          ? `Published ${n} draft result${n === 1 ? "" : "s"} for ${selectedSession?.name ?? "this session"}`
+          : res?.message ?? "No draft results to publish for this session",
+      );
+      setConfirmPublish(false);
     } catch (err) {
       toast.error(handleError(err));
     }
@@ -158,9 +122,7 @@ const ResultsPage = () => {
       <div className="space-y-6 mt-6 pb-16">
         {!isLoading && results.length > 0 && isCoordinator && (
           <Stack direction="row" gap={3} flexWrap="wrap">
-            {(
-              ["draft", "submitted", "published", "locked"] as ResultStatus[]
-            ).map((s) => {
+            {(["draft", "published"] as ResultStatus[]).map((s) => {
               const count = results.filter((r) => r.status === s).length;
               return (
                 <div
@@ -190,7 +152,7 @@ const ResultsPage = () => {
           <Typography level="body-sm" textColor="neutral.500">
             {isCoordinator
               ? "Manage and upload student results for your centre."
-              : "View and manage results across all centres."}
+              : "View results across all centres."}
           </Typography>
 
           {isCoordinator && (
@@ -204,12 +166,13 @@ const ResultsPage = () => {
               >
                 Bulk Upload (Excel)
               </AppButton>
-              <AppButton
-                variant="outlined"
-                onClick={() => navigate("/dashboard/results/submit")}
-              >
-                Submit for Publication
-              </AppButton>
+              {draftCount > 0 && (
+                <AppButton onClick={() => setConfirmPublish(true)}>
+                  <RocketLaunch sx={{ fontSize: 16, mr: 0.5 }} />
+                  Publish {draftCount} Draft
+                  {draftCount === 1 ? "" : "s"}
+                </AppButton>
+              )}
             </Stack>
           )}
           {isAdmin && (
@@ -232,14 +195,13 @@ const ResultsPage = () => {
 
         <PageCard>
           <Stack direction="row" gap={2} flexWrap="wrap" alignItems="flex-end">
-            <FormControl size="sm" sx={{ minWidth: 200 }}>
+            <FormControl size="sm" sx={{ minWidth: 220 }}>
               <FormLabel>Session</FormLabel>
               <Select
                 size="sm"
                 value={sessionId}
                 onChange={(_, v) => {
                   setSessionId((v as string) ?? "");
-                  setTermId("");
                   setViewCenterId(null);
                 }}
                 placeholder="Select session"
@@ -247,26 +209,6 @@ const ResultsPage = () => {
                 {sessions.map((s) => (
                   <Option key={s._id} value={s._id}>
                     {s.name}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl size="sm" sx={{ minWidth: 180 }}>
-              <FormLabel>Term</FormLabel>
-              <Select
-                size="sm"
-                value={termId}
-                onChange={(_, v) => {
-                  setTermId((v as string) ?? "");
-                  setViewCenterId(null);
-                }}
-                placeholder={sessionId ? "Select term" : "Select session first"}
-                disabled={!sessionId}
-              >
-                {terms.map((t) => (
-                  <Option key={t._id} value={t._id}>
-                    {t.name}
                   </Option>
                 ))}
               </Select>
@@ -282,9 +224,7 @@ const ResultsPage = () => {
               >
                 <Option value="">All statuses</Option>
                 <Option value="draft">Draft</Option>
-                <Option value="submitted">Submitted</Option>
                 <Option value="published">Published</Option>
-                <Option value="locked">Locked</Option>
               </Select>
             </FormControl>
           </Stack>
@@ -317,11 +257,7 @@ const ResultsPage = () => {
                     <TableHeaderCell className="text-center">
                       Students Uploaded
                     </TableHeaderCell>
-                    <TableHeaderCell className="text-center">
-                      Average Score
-                    </TableHeaderCell>
                     <TableHeaderCell>Status</TableHeaderCell>
-                    <TableHeaderCell>Submitted By</TableHeaderCell>
                     <TableHeaderCell className="text-right">
                       Action
                     </TableHeaderCell>
@@ -330,13 +266,13 @@ const ResultsPage = () => {
                 <TableBody>
                   {isLoading ? (
                     <tr>
-                      <td colSpan={6}>
-                        <TableSkeleton columns={6} rows={6} />
+                      <td colSpan={4}>
+                        <TableSkeleton columns={4} rows={6} />
                       </td>
                     </tr>
                   ) : centers.length === 0 ? (
                     <tr>
-                      <td colSpan={6}>
+                      <td colSpan={4}>
                         <CenteredEmptyState description="No centres configured." />
                       </td>
                     </tr>
@@ -346,33 +282,15 @@ const ResultsPage = () => {
                         (r) => resolveId(r.centerId) === center._id,
                       );
                       const totalUploaded = centerResults.length;
-                      const avgScore = totalUploaded
-                        ? centerResults.reduce((s, r) => s + r.average, 0) /
-                          totalUploaded
-                        : 0;
 
-                      const pub = publications.find(
-                        (p) => resolveId(p.centerId) === center._id,
-                      );
-                      let statusKey: string = "no_uploads";
-                      if (totalUploaded > 0) {
-                        if (!pub) {
-                          statusKey = "draft";
-                        } else if (pub.status === "approved") {
-                          const isLocked = centerResults.every(
-                            (r) => r.status === "locked",
-                          );
-                          statusKey = isLocked ? "locked" : "published";
-                        } else if (pub.status === "pending") {
-                          statusKey = "pending_approval";
-                        } else if (pub.status === "rejected") {
-                          statusKey = "rejected";
-                        }
-                      }
-
-                      const submittedByName = pub?.submittedBy
-                        ? `${(pub.submittedBy as any).firstName} ${(pub.submittedBy as any).lastName}`
-                        : null;
+                      const centerStatus: keyof typeof CENTER_RESULT_STATUS =
+                        totalUploaded === 0
+                          ? "not_uploaded"
+                          : centerResults.every(
+                                (r) => r.status === "published",
+                              )
+                            ? "published"
+                            : "draft";
 
                       return (
                         <TableRow key={center._id}>
@@ -380,66 +298,22 @@ const ResultsPage = () => {
                           <TableCell className="text-center font-semibold">
                             {totalUploaded}
                           </TableCell>
-                          <TableCell className="text-center font-bold">
-                            {totalUploaded ? (
-                              <span
-                                style={{
-                                  color: avgScore >= 50 ? "#16a34a" : "#dc2626",
-                                }}
+                          <TableCell>
+                            <StatusBadge
+                              status={centerStatus}
+                              map={CENTER_RESULT_STATUS}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {totalUploaded > 0 ? (
+                              <ActionLink
+                                onClick={() => setViewCenterId(center._id)}
                               >
-                                {avgScore.toFixed(1)}%
-                              </span>
+                                View Results
+                              </ActionLink>
                             ) : (
                               <EmptyValue />
                             )}
-                          </TableCell>
-                          <TableCell>
-                            <PublicationStatusBadge statusKey={statusKey} />
-                          </TableCell>
-                          <TableCell>
-                            {submittedByName ?? <EmptyValue />}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Stack
-                              direction="row"
-                              gap={1.5}
-                              justifyContent="flex-end"
-                            >
-                              {totalUploaded > 0 && (
-                                <ActionLink
-                                  onClick={() => setViewCenterId(center._id)}
-                                >
-                                  View Results
-                                </ActionLink>
-                              )}
-
-                              {pub && pub.status === "pending" && (
-                                <>
-                                  <ActionLink
-                                    onClick={() => handleApprove(pub._id)}
-                                    variant="success"
-                                  >
-                                    Approve
-                                  </ActionLink>
-                                  <ActionLink
-                                    onClick={() => handleReject(pub._id)}
-                                    variant="danger"
-                                  >
-                                    Reject
-                                  </ActionLink>
-                                </>
-                              )}
-
-                              {pub && pub.status === "approved" &&
-                                statusKey !== "locked" && (
-                                  <ActionLink
-                                    onClick={() => handleLock(center._id)}
-                                    variant="muted"
-                                  >
-                                    Lock
-                                  </ActionLink>
-                                )}
-                            </Stack>
                           </TableCell>
                         </TableRow>
                       );
@@ -455,10 +329,6 @@ const ResultsPage = () => {
                     <TableHeaderCell>Matric No.</TableHeaderCell>
                     <TableHeaderCell>Centre</TableHeaderCell>
                     <TableHeaderCell>Session</TableHeaderCell>
-                    <TableHeaderCell>Term</TableHeaderCell>
-                    <TableHeaderCell className="text-center">
-                      Average
-                    </TableHeaderCell>
                     <TableHeaderCell>Status</TableHeaderCell>
                     <TableHeaderCell>Date</TableHeaderCell>
                     <TableHeaderCell className="text-right">
@@ -469,13 +339,13 @@ const ResultsPage = () => {
                 <TableBody>
                   {isLoading ? (
                     <tr>
-                      <td colSpan={9}>
-                        <TableSkeleton columns={9} rows={6} />
+                      <td colSpan={7}>
+                        <TableSkeleton columns={7} rows={6} />
                       </td>
                     </tr>
                   ) : displayedResults.length === 0 ? (
                     <tr>
-                      <td colSpan={9}>
+                      <td colSpan={7}>
                         <CenteredEmptyState description="No results found." />
                       </td>
                     </tr>
@@ -490,17 +360,11 @@ const ResultsPage = () => {
                           <TableCell>
                             {student?.matricNumber ?? <EmptyValue />}
                           </TableCell>
-                          <TableCell>{resolveName(r.centerId as any)}</TableCell>
-                          <TableCell>{resolveName(r.sessionId as any)}</TableCell>
-                          <TableCell>{resolveName(r.termId as any)}</TableCell>
-                          <TableCell className="text-center font-semibold">
-                            <span
-                              style={{
-                                color: r.average >= 50 ? "#16a34a" : "#dc2626",
-                              }}
-                            >
-                              {r.average.toFixed(1)}%
-                            </span>
+                          <TableCell>
+                            {resolveName(r.centerId as any)}
+                          </TableCell>
+                          <TableCell>
+                            {resolveName(r.sessionId as any)}
                           </TableCell>
                           <TableCell>
                             <StatusBadge
@@ -526,7 +390,7 @@ const ResultsPage = () => {
                               >
                                 View
                               </ActionLink>
-                              {isCoordinator && r.status === "draft" && (
+                              {isCoordinator && (
                                 <ActionLink
                                   onClick={() =>
                                     navigate(
@@ -550,24 +414,53 @@ const ResultsPage = () => {
           </div>
         </PageCard>
       </div>
+
+      <Modal
+        open={confirmPublish}
+        onClose={() => (publishing ? null : setConfirmPublish(false))}
+      >
+        <ModalDialog variant="outlined" role="alertdialog">
+          <ModalClose disabled={publishing} />
+          <DialogTitle>Publish all draft results?</DialogTitle>
+          <DialogContent>
+            <Stack gap={2} mt={1}>
+              <Box>
+                <Typography level="body-md">
+                  You are about to publish{" "}
+                  <strong>{draftCount}</strong> draft result
+                  {draftCount === 1 ? "" : "s"} for{" "}
+                  <strong>{selectedSession?.name ?? "this session"}</strong>.
+                  Once published, students will see their results and may
+                  request score corrections.
+                </Typography>
+              </Box>
+              <Typography level="body-sm" textColor="warning.500">
+                ⚠ You can still edit a published result afterwards, but
+                students may submit correction requests on any year.
+              </Typography>
+            </Stack>
+          </DialogContent>
+          <Stack direction="row" gap={1.5} justifyContent="flex-end" mt={2}>
+            <AppButton
+              type="button"
+              variant="outlined"
+              onClick={() => setConfirmPublish(false)}
+              disabled={publishing}
+            >
+              Cancel
+            </AppButton>
+            <AppButton
+              type="button"
+              onClick={handlePublishAll}
+              loading={publishing}
+            >
+              Publish All
+            </AppButton>
+          </Stack>
+        </ModalDialog>
+      </Modal>
     </Frame>
   );
 };
 
 export default ResultsPage;
-
-const PublicationStatusBadge = ({ statusKey }: { statusKey: string }) => {
-  const map: Record<
-    string,
-    { color: "success" | "warning" | "danger" | "neutral" | "primary"; label: string }
-  > = {
-    no_uploads: { color: "neutral", label: "No Uploads" },
-    draft: { color: "neutral", label: "Draft" },
-    published: { color: "success", label: "Published" },
-    locked: { color: "primary", label: "Locked" },
-    pending_approval: { color: "warning", label: "Pending Approval" },
-    rejected: { color: "danger", label: "Rejected" },
-  };
-  const c = map[statusKey] || map.no_uploads;
-  return <StatusBadge status={statusKey} map={map} />;
-};

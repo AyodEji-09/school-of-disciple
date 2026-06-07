@@ -178,16 +178,10 @@ const navGroups: NavGroup[] = [
         role: ["coordinator"],
       },
       {
-        id: "submit",
-        name: "Submit for Publication",
-        url: "/dashboard/results/submit",
+        id: "coordinator-reports",
+        name: "My Reports",
+        url: "/coordinator/reports",
         role: ["coordinator"],
-      },
-      {
-        id: "publications",
-        name: "Publications",
-        url: "/dashboard/results/publications",
-        role: ["admin"],
       },
       {
         id: "analytics",

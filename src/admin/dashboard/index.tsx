@@ -154,9 +154,7 @@ const Dashboard = () => {
 
   const hasUnassignedView = isUnassignedCoordinator;
 
-  const welcomeName =
-    getUserFullName(user) ||
-    (user ? capitalizeWords(user?.firstName ?? "") : "");
+  const welcomeName = user ? capitalizeWords(user?.firstName ?? "") : "";
 
   return (
     <Frame text={`Welcome, ${welcomeName}!`}>

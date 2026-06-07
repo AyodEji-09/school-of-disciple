@@ -42,13 +42,17 @@ export const MANUAL_ORDER_STATUS: Record<string, StatusEntry> = {
 
 export const RESULT_STATUS: Record<string, StatusEntry> = {
   draft: { label: "Draft", color: "warning" },
-  submitted: { label: "Submitted", color: "primary" },
   published: { label: "Published", color: "success" },
-  locked: { label: "Locked", color: "neutral" },
 };
 
-export const PUBLICATION_STATUS: Record<string, StatusEntry> = {
-  pending: { label: "Pending Approval", color: "warning" },
+export const CENTER_RESULT_STATUS: Record<string, StatusEntry> = {
+  not_uploaded: { label: "Not Uploaded", color: "neutral" },
+  draft: { label: "Drafts Pending", color: "warning" },
+  published: { label: "Published", color: "success" },
+};
+
+export const CORRECTION_STATUS: Record<string, StatusEntry> = {
+  pending: { label: "Pending", color: "warning" },
   approved: { label: "Approved", color: "success" },
   rejected: { label: "Rejected", color: "danger" },
 };

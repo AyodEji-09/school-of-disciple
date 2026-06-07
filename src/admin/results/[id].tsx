@@ -1,16 +1,15 @@
-import { Chip, Typography, Stack, Divider } from "@mui/joy";
+import { Typography, Stack } from "@mui/joy";
 import { useNavigate, useParams } from "react-router-dom";
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
 import { useGetResultByIdQuery } from "../../data/rtk/academic";
-import { gradeColor, resolveName } from "../../utils/academic";
+import { resolveName } from "../../utils/academic";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import { TOKEN, useURL } from "../../data/config";
 import moment from "moment";
-import { Print } from "@mui/icons-material";
+import { ArrowBack, Edit, PictureAsPdf } from "@mui/icons-material";
 import PageCard from "../../components/feedback/PageCard";
-import StatusBadge from "../../components/feedback/StatusBadge";
 import {
   TableHeader,
   TableHeaderCell,
@@ -19,7 +18,6 @@ import {
   TableCell,
   EmptyValue,
 } from "../../components/feedback/TableShell";
-import { RESULT_STATUS } from "../../utils/status";
 import { PageLoader } from "../../components/query-state/QueryStates";
 
 const ResultDetailPage = () => {
@@ -27,8 +25,7 @@ const ResultDetailPage = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
-  const { data: res, isLoading } = useGetResultByIdQuery(id!);
-  const result = res?.data as unknown as StudentResult | undefined;
+  const { data: result, isLoading } = useGetResultByIdQuery(id!);
 
   const handlePrintOrDownload = () => {
     const token = localStorage.getItem(TOKEN);
@@ -59,166 +56,157 @@ const ResultDetailPage = () => {
   const student = result.studentId as any;
   const center = result.centerId as any;
   const session = result.sessionId as any;
-  const term = result.termId as any;
+  const yearScores = result.yearScores ?? [];
+  const recordedCount = yearScores.filter(
+    (ys) => ys.score !== undefined && ys.score !== null,
+  ).length;
+  const isPublished = result.status === "published";
 
   return (
     <Frame text="Result Detail">
       <div className="max-w-3xl mx-auto mt-6 grid gap-5 pb-16">
-        <div className="bg-gradient-to-br from-[#001F54] to-[#001EC5] rounded-2xl p-8 text-white">
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="flex-start"
-            flexWrap="wrap"
-            gap={3}
-          >
-            <div>
+        <PageCard padded={false}>
+          <div className="flex flex-wrap items-start justify-between gap-4 p-6 border-b border-[#E6ECFF]">
+            <div className="min-w-0">
               <Typography
                 level="h3"
-                sx={{ color: "white", fontWeight: 800 }}
+                sx={{ color: "#001F54", fontWeight: 800 }}
               >
                 {student?.firstName} {student?.lastName}
               </Typography>
               <Typography
                 level="body-sm"
-                sx={{ color: "#93c5fd", mt: 0.5 }}
+                textColor="neutral.500"
+                sx={{ mt: 0.5 }}
               >
                 Matric No: {student?.matricNumber ?? "N/A"}
               </Typography>
-              <Typography level="body-sm" sx={{ color: "#93c5fd" }}>
-                Centre: {resolveName(center)}
-              </Typography>
             </div>
             <div className="text-right">
-              <StatusBadge
-                status={result.status}
-                map={RESULT_STATUS}
-                size="lg"
-              />
               <Typography
-                level="body-sm"
-                sx={{ color: "#bfdbfe", mt: 1 }}
+                level="title-md"
+                sx={{ color: "#001F54", fontWeight: 700 }}
               >
-                {session?.name} · {term?.name}
+                {session?.name}
               </Typography>
-              <Typography level="body-xs" sx={{ color: "#93c5fd" }}>
-                {moment(result.createdAt).format("DD MMMM YYYY")}
-              </Typography>
-            </div>
-          </Stack>
-
-          <div className="grid grid-cols-3 gap-4 mt-6 bg-white/10 rounded-xl p-4">
-            <div className="text-center">
               <Typography
-                level="h2"
-                sx={{ color: "white", fontWeight: 900 }}
+                level="body-xs"
+                textColor="neutral.500"
+                sx={{ mt: 0.5 }}
               >
-                {result.totalScore}
-              </Typography>
-              <Typography level="body-xs" sx={{ color: "#bfdbfe" }}>
-                Total Score
-              </Typography>
-            </div>
-            <div className="text-center border-x border-white/20">
-              <Typography
-                level="h2"
-                sx={{
-                  color: result.average >= 50 ? "#86efac" : "#fca5a5",
-                  fontWeight: 900,
-                }}
-              >
-                {result.average.toFixed(1)}%
-              </Typography>
-              <Typography level="body-xs" sx={{ color: "#bfdbfe" }}>
-                Average
-              </Typography>
-            </div>
-            <div className="text-center">
-              <Typography
-                level="h2"
-                sx={{
-                  color: result.average >= 50 ? "#86efac" : "#fca5a5",
-                  fontWeight: 900,
-                }}
-              >
-                {result.average >= 50 ? "PASS" : "FAIL"}
-              </Typography>
-              <Typography level="body-xs" sx={{ color: "#bfdbfe" }}>
-                Overall
+                {moment(result.publishedAt ?? result.createdAt).format(
+                  "DD MMMM YYYY",
+                )}
               </Typography>
             </div>
           </div>
-        </div>
 
-        <PageCard padded={false} title="Subject Breakdown">
-          <div className="overflow-x-auto min-h-[400px]">
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#E6ECFF]">
+            <div className="px-6 py-4">
+              <Typography level="body-xs" textColor="neutral.500">
+                Centre
+              </Typography>
+              <Typography
+                level="title-sm"
+                sx={{ color: "#001F54", fontWeight: 600, mt: 0.5 }}
+              >
+                {resolveName(center)}
+              </Typography>
+            </div>
+            <div className="px-6 py-4">
+              <Typography level="body-xs" textColor="neutral.500">
+                Years Recorded
+              </Typography>
+              <Typography
+                level="title-sm"
+                sx={{ color: "#001F54", fontWeight: 600, mt: 0.5 }}
+              >
+                {recordedCount} of 10
+              </Typography>
+            </div>
+            <div className="px-6 py-4">
+              <Typography level="body-xs" textColor="neutral.500">
+                Lifecycle
+              </Typography>
+              <Typography
+                level="title-sm"
+                sx={{ color: "#001F54", fontWeight: 600, mt: 0.5 }}
+              >
+                {isPublished ? "Published" : "Draft"}
+              </Typography>
+            </div>
+          </div>
+        </PageCard>
+
+        <PageCard padded={false} title="Year Scores">
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <TableHeader>
                 <tr>
-                  <TableHeaderCell>Subject</TableHeaderCell>
-                  <TableHeaderCell>Code</TableHeaderCell>
-                  <TableHeaderCell className="text-center">
+                  <TableHeaderCell>Year</TableHeaderCell>
+                  <TableHeaderCell className="text-right">
                     Score
                   </TableHeaderCell>
-                  <TableHeaderCell className="text-center">
-                    Grade
-                  </TableHeaderCell>
-                  <TableHeaderCell>Remark</TableHeaderCell>
                 </tr>
               </TableHeader>
               <TableBody>
-                {result.subjects.map((sub, i) => {
-                  const subj = sub.subjectId as any;
+                {yearScores.map((ys) => {
+                  const yr = ys.yearId as any;
                   return (
-                    <TableRow key={i}>
-                      <TableCell>{subj?.name ?? <EmptyValue />}</TableCell>
-                      <TableCell>{subj?.code ?? <EmptyValue />}</TableCell>
-                      <TableCell className="text-center font-bold">
-                        <span
-                          style={{
-                            color: sub.score >= 50 ? "#16a34a" : "#dc2626",
-                          }}
-                        >
-                          {sub.score}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span
-                          className="inline-block font-bold text-xs px-2.5 py-0.5 rounded-full"
-                          style={{
-                            color: gradeColor(sub.grade),
-                            background: gradeColor(sub.grade) + "20",
-                          }}
-                        >
-                          {sub.grade}
-                        </span>
-                      </TableCell>
+                    <TableRow key={String(yr?._id ?? Math.random())}>
                       <TableCell>
-                        <span className="text-[#475569]">{sub.remark}</span>
+                        <span className="font-semibold text-[#001F54]">
+                          {yr?.name ?? <EmptyValue />}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="inline-flex items-baseline gap-1 font-bold text-[#001F54]">
+                          {ys.score}
+                          <span className="text-xs font-medium text-[#94A3B8]">
+                            / 100
+                          </span>
+                        </span>
                       </TableCell>
                     </TableRow>
                   );
                 })}
+                {yearScores.length === 0 && (
+                  <TableRow>
+                    <TableCell className="text-center text-[#94A3B8] py-8">
+                      No year scores recorded.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </table>
           </div>
         </PageCard>
 
-        <Stack direction="row" gap={2} justifyContent="flex-end">
-          <AppButton variant="outlined" onClick={() => navigate(-1)}>
-            ← Back
+        <Stack
+          direction="row"
+          gap={2}
+          justifyContent="flex-end"
+          flexWrap="wrap"
+        >
+          <AppButton
+            type="button"
+            variant="outlined"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowBack sx={{ fontSize: 16, mr: 0.5 }} /> Back
           </AppButton>
-          {isCoordinator && result.status === "draft" && (
+          {isCoordinator && (
             <AppButton
+              type="button"
               variant="outlined"
               onClick={() => navigate(`/dashboard/results/${id}/edit`)}
             >
-              Edit
+              <Edit sx={{ fontSize: 16, mr: 0.5 }} /> Edit Scores
             </AppButton>
           )}
-          {(result.status === "published" || result.status === "locked") && (
-            <AppButton onClick={handlePrintOrDownload}>
-              <Print sx={{ fontSize: 16, mr: 0.5 }} /> Download PDF
+          {isPublished && (
+            <AppButton type="button" onClick={handlePrintOrDownload}>
+              <PictureAsPdf sx={{ fontSize: 16, mr: 0.5 }} /> Download PDF
             </AppButton>
           )}
         </Stack>

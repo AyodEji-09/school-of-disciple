@@ -7,9 +7,8 @@ import {
   FormLabel,
   Input,
 } from "@mui/joy";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm, useFieldArray } from "react-hook-form";
 import { toast } from "react-toastify";
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
@@ -17,25 +16,12 @@ import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import {
   useGetSessionsQuery,
-  useGetTermsQuery,
-  useGetSubjectsQuery,
+  useGetYearsQuery,
   useCreateResultMutation,
 } from "../../data/rtk/academic";
 import { useGetUsersQuery } from "../../data/rtk/user";
 import { handleError } from "../../utils";
 import PageCard from "../../components/feedback/PageCard";
-import ActionLink from "../../components/feedback/ActionLink";
-
-interface SubjectEntry {
-  subjectId: string;
-  score: number;
-}
-interface FormValues {
-  studentId: string;
-  sessionId: string;
-  termId: string;
-  subjects: SubjectEntry[];
-}
 
 const UploadResultPage = () => {
   const navigate = useNavigate();
@@ -43,54 +29,56 @@ const UploadResultPage = () => {
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : (user?.center as any)?._id;
 
-  const { data: sessionsRes } = useGetSessionsQuery();
-  const { data: subjectsRes } = useGetSubjectsQuery();
+  const { data: sessionsData = [] } = useGetSessionsQuery();
   const { data: studentsRes } = useGetUsersQuery({
     type: "user",
     ...(coordinatorCenterId ? { center: coordinatorCenterId } : {}),
   });
   const [createResult, { isLoading }] = useCreateResultMutation();
 
-  const sessions = (sessionsRes?.data as unknown as AcademicSession[]) ?? [];
-  const subjects = (subjectsRes?.data as unknown as AcademicSubject[]) ?? [];
+  const sessions = sessionsData as unknown as AcademicSession[];
   const students = studentsRes?.data?.docs ?? [];
 
-  const {
-    register,
-    handleSubmit,
-    control,
-  } = useForm<FormValues>({
-    defaultValues: {
-      studentId: "",
-      sessionId: "",
-      termId: "",
-      subjects: [{ subjectId: "", score: 0 }],
-    },
-  });
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "subjects",
-  });
   const [selSession, setSelSession] = useState("");
-  const [selTerm, setSelTerm] = useState("");
   const [selStudent, setSelStudent] = useState("");
+  const [scores, setScores] = useState<Record<string, string>>({});
 
-  const { data: termsRes } = useGetTermsQuery(
+  const { data: yearsData = [] } = useGetYearsQuery(
     selSession ? { sessionId: selSession } : undefined,
     { skip: !selSession },
   );
-  const terms = (termsRes?.data as unknown as AcademicTerm[]) ?? [];
+  const years = [...(yearsData as unknown as AcademicYear[])].sort(
+    (a, b) => a.number - b.number,
+  );
 
-  const onSubmit = async (values: FormValues) => {
+  useEffect(() => {
+    setScores({});
+  }, [selSession]);
+
+  const onScoreChange = (yearId: string, value: string) => {
+    setScores((prev) => ({ ...prev, [yearId]: value }));
+  };
+
+  const onSubmit = async () => {
+    if (!selStudent) return toast.error("Select a student");
+    if (!selSession) return toast.error("Select a session");
+
+    const yearScores = years
+      .map((y) => ({
+        yearId: y._id,
+        score: Number(scores[y._id] ?? 0),
+      }))
+      .filter((ys) => !Number.isNaN(ys.score));
+
+    if (yearScores.length === 0) {
+      return toast.error("Enter at least one year score");
+    }
+
     try {
       await createResult({
         studentId: selStudent,
         sessionId: selSession,
-        termId: selTerm,
-        subjects: values.subjects.map((s) => ({
-          subjectId: s.subjectId,
-          score: Number(s.score),
-        })),
+        yearScores,
       }).unwrap();
       toast.success("Result uploaded successfully!");
       navigate("/dashboard/results");
@@ -107,10 +95,11 @@ const UploadResultPage = () => {
             New Result Entry
           </Typography>
           <Typography level="body-sm" textColor="neutral.500" mb={4}>
-            Fill in the student details and enter scores for each subject.
+            Pick a student and session, then enter a score (0–100) for each
+            academic year (1–10). Leave a year blank to skip it.
           </Typography>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-5">
+          <div className="grid gap-5">
             <FormControl required>
               <FormLabel>Student</FormLabel>
               <Select
@@ -126,94 +115,60 @@ const UploadResultPage = () => {
               </Select>
             </FormControl>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormControl required>
-                <FormLabel>Session</FormLabel>
-                <Select
-                  placeholder="Select session"
-                  value={selSession}
-                  onChange={(_, v) => setSelSession(v as string)}
-                >
-                  {sessions.map((s) => (
-                    <Option key={s._id} value={s._id}>
-                      {s.name}
-                    </Option>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl required>
-                <FormLabel>Term</FormLabel>
-                <Select
-                  placeholder={
-                    selSession ? "Select term" : "Select session first"
-                  }
-                  value={selTerm}
-                  onChange={(_, v) => setSelTerm(v as string)}
-                  disabled={!selSession}
-                >
-                  {terms.map((t) => (
-                    <Option key={t._id} value={t._id}>
-                      {t.name}
-                    </Option>
-                  ))}
-                </Select>
-              </FormControl>
-            </div>
+            <FormControl required>
+              <FormLabel>Session</FormLabel>
+              <Select
+                placeholder="Select session"
+                value={selSession}
+                onChange={(_, v) => setSelSession(v as string)}
+              >
+                {sessions.map((s) => (
+                  <Option key={s._id} value={s._id}>
+                    {s.name}
+                  </Option>
+                ))}
+              </Select>
+            </FormControl>
 
             <div>
               <Typography level="title-sm" mb={2} sx={{ color: "#001F54" }}>
-                Subjects & Scores
+                Year Scores
               </Typography>
-              <div className="grid gap-3">
-                {fields.map((field, idx) => (
-                  <div key={field.id} className="flex gap-3 items-end">
-                    <FormControl sx={{ flex: 1 }}>
-                      <FormLabel>Subject</FormLabel>
-                      <select
-                        {...register(`subjects.${idx}.subjectId`, {
-                          required: true,
-                        })}
-                        className="border border-[#CBD5E1] rounded-lg px-3 py-2 text-sm text-[#001F54] bg-white"
-                      >
-                        <option value="">Select subject</option>
-                        {subjects.map((s) => (
-                          <option key={s._id} value={s._id}>
-                            {s.name} ({s.code})
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormControl sx={{ width: 120 }}>
-                      <FormLabel>Score (0-100)</FormLabel>
-                      <Input
-                        type="number"
-                        slotProps={{ input: { min: 0, max: 100 } }}
-                        {...register(`subjects.${idx}.score`, {
-                          required: true,
-                          min: 0,
-                          max: 100,
-                        })}
-                      />
-                    </FormControl>
-                    {fields.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => remove(idx)}
-                        className="mb-1 text-red-500 hover:text-red-700 text-sm font-medium"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <ActionLink
-                type="button"
-                onClick={() => append({ subjectId: "", score: 0 })}
-                className="mt-3"
-              >
-                + Add Subject
-              </ActionLink>
+              {!selSession ? (
+                <div className="text-sm text-[#94A3B8] bg-[#F8FAFC] border border-dashed border-[#E6ECFF] rounded-xl p-6 text-center">
+                  Select a session to load its 10 academic years.
+                </div>
+              ) : years.length === 0 ? (
+                <div className="text-sm text-[#94A3B8] bg-[#F8FAFC] border border-dashed border-[#E6ECFF] rounded-xl p-6 text-center">
+                  This session has no years configured.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {years.map((y) => (
+                    <div
+                      key={y._id}
+                      className="flex items-center gap-3 border border-[#E6ECFF] rounded-xl p-3"
+                    >
+                      <div className="w-24 shrink-0">
+                        <Typography level="body-xs" textColor="neutral.500">
+                          {y.name}
+                        </Typography>
+                      </div>
+                      <FormControl sx={{ flex: 1 }}>
+                        <Input
+                          type="number"
+                          placeholder="0–100"
+                          slotProps={{ input: { min: 0, max: 100 } }}
+                          value={scores[y._id] ?? ""}
+                          onChange={(e) =>
+                            onScoreChange(y._id, e.target.value)
+                          }
+                        />
+                      </FormControl>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Stack direction="row" gap={2} justifyContent="flex-end" mt={2}>
@@ -223,11 +178,11 @@ const UploadResultPage = () => {
               >
                 Cancel
               </AppButton>
-              <AppButton type="submit" loading={isLoading}>
+              <AppButton onClick={onSubmit} loading={isLoading}>
                 Save Result
               </AppButton>
             </Stack>
-          </form>
+          </div>
         </PageCard>
       </div>
     </Frame>

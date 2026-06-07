@@ -8,7 +8,6 @@ import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import {
   useGetSessionsQuery,
-  useGetTermsQuery,
   useBulkUploadResultsMutation,
 } from "../../data/rtk/academic";
 import { handleError } from "../../utils";
@@ -23,17 +22,10 @@ const BulkUploadPage = () => {
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : (user?.center as any)?._id;
 
-  const { data: sessionsRes } = useGetSessionsQuery();
-  const sessions = (sessionsRes?.data as unknown as AcademicSession[]) ?? [];
+  const { data: sessionsData = [] } = useGetSessionsQuery();
+  const sessions = sessionsData as unknown as AcademicSession[];
 
   const [sessionId, setSessionId] = useState("");
-  const [termId, setTermId] = useState("");
-
-  const { data: termsRes } = useGetTermsQuery(
-    sessionId ? { sessionId } : undefined,
-    { skip: !sessionId },
-  );
-  const terms = (termsRes?.data as unknown as AcademicTerm[]) ?? [];
 
   const [bulkUpload, { isLoading }] = useBulkUploadResultsMutation();
   const [file, setFile] = useState<File | null>(null);
@@ -67,7 +59,7 @@ const BulkUploadPage = () => {
       link.download = "results-template.xlsx";
       link.click();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       toast.error("Could not download template");
     } finally {
       setDownloading(false);
@@ -77,19 +69,17 @@ const BulkUploadPage = () => {
   const handleSubmit = async () => {
     if (!file) return toast.error("Please select a file");
     if (!sessionId) return toast.error("Please select a session");
-    if (!termId) return toast.error("Please select a term");
 
     const fd = new FormData();
     fd.append("file", file);
     fd.append("sessionId", sessionId);
-    fd.append("termId", termId);
     if (coordinatorCenterId) fd.append("centerId", coordinatorCenterId);
 
     try {
       const res = await bulkUpload(fd).unwrap();
-      setResult((res as any).data);
+      setResult(res.data);
       toast.success(
-        `Processed ${(res as any).data?.processed} of ${(res as any).data?.total} rows`,
+        `Processed ${res.data?.processed} of ${res.data?.total} rows`,
       );
     } catch (err) {
       toast.error(handleError(err));
@@ -115,9 +105,10 @@ const BulkUploadPage = () => {
                   each student
                 </li>
                 <li>
-                  One column per subject using the subject{" "}
-                  <strong>code</strong> (e.g. <code>MATH101</code>), score
-                  0–100
+                  One column per academic year: <code>year1</code>,{" "}
+                  <code>year2</code>, … <code>year10</code>, with scores
+                  0–100. Columns map to the session's AcademicYear records by
+                  name.
                 </li>
               </ul>
             </div>
@@ -134,40 +125,20 @@ const BulkUploadPage = () => {
         </div>
 
         <PageCard>
-          <div className="grid grid-cols-2 gap-4">
-            <FormControl required>
-              <FormLabel>Session</FormLabel>
-              <Select
-                placeholder="Select session first"
-                value={sessionId}
-                onChange={(_, v) => {
-                  setSessionId(v as string);
-                  setTermId("");
-                }}
-              >
-                {sessions.map((s) => (
-                  <Option key={s._id} value={s._id}>
-                    {s.name}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl required>
-              <FormLabel>Term</FormLabel>
-              <Select
-                placeholder={sessionId ? "Select term" : "Select session first"}
-                value={termId}
-                onChange={(_, v) => setTermId(v as string)}
-                disabled={!sessionId}
-              >
-                {terms.map((t) => (
-                  <Option key={t._id} value={t._id}>
-                    {t.name}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
-          </div>
+          <FormControl required>
+            <FormLabel>Session</FormLabel>
+            <Select
+              placeholder="Select session"
+              value={sessionId}
+              onChange={(_, v) => setSessionId(v as string)}
+            >
+              {sessions.map((s) => (
+                <Option key={s._id} value={s._id}>
+                  {s.name}
+                </Option>
+              ))}
+            </Select>
+          </FormControl>
 
           <div
             className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors mt-5 ${

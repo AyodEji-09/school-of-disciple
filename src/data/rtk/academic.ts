@@ -2,15 +2,44 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { TOKEN, useURL } from "../config";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+// Mirrors the API contract in docs/api-contracts.md.
+//
+// Endpoints split into two response shapes:
+//   • Collection GETs (sessions, years, results, corrections) and
+//     single-resource GETs return raw arrays/objects — NO `{ data }` wrapper.
+//   • Analytics GETs and most mutations return `{ message, data?: ... }`.
+//
+// Year scores have no grade/remark fields — only `yearId` and `score`.
+// Correction resolution uses body `{ status, rejectionReason? }` and the
+// correction doc has `resolvedBy`/`resolvedAt`/`rejectionReason` (NOT
+// `reviewedBy`/`reviewedAt`/`resolutionNote`).
 
-export type ResultStatus = "draft" | "submitted" | "published" | "locked";
-export type PublicationStatus = "pending" | "approved" | "rejected";
+export type ResultStatus = "draft" | "published";
+export type CorrectionStatus = "pending" | "approved" | "rejected";
 
-export interface SubjectResult {
-  subjectId: { _id: string; name: string; code: string; creditUnit?: number } | string;
+export interface AcademicSession {
+  _id: string;
+  name: string;
+  startYear: number;
+  endYear: number;
+  isCurrent: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AcademicYear {
+  _id: string;
+  name: string;
+  number: number;
+  sessionId: { _id: string; name: string } | string;
+  isCurrent: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface YearScore {
+  yearId: { _id: string; name: string; number: number } | string;
   score: number;
-  grade: string;
-  remark: string;
 }
 
 export interface StudentResult {
@@ -18,50 +47,29 @@ export interface StudentResult {
   studentId: { _id: string; firstName: string; lastName: string; matricNumber: string } | string;
   centerId: { _id: string; name: string } | string;
   sessionId: { _id: string; name: string } | string;
-  termId: { _id: string; name: string } | string;
-  subjects: SubjectResult[];
+  yearScores: YearScore[];
   totalScore: number;
   average: number;
   status: ResultStatus;
-  submittedAt?: string;
   publishedAt?: string;
-  lockedAt?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
-export interface ResultPublication {
+export interface ScoreCorrection {
   _id: string;
-  centerId: { _id: string; name: string } | string;
-  sessionId: { _id: string; name: string } | string;
-  termId: { _id: string; name: string } | string;
-  submittedBy: { _id: string; firstName: string; lastName: string } | string;
-  approvedBy?: { _id: string; firstName: string; lastName: string } | string;
-  status: PublicationStatus;
-  rejectionReason?: string;
-  reviewedAt?: string;
+  resultId: StudentResult | string;
+  yearId: { _id: string; name: string; number: number } | string;
+  studentId: { _id: string; firstName: string; lastName: string; matricNumber: string } | string;
+  currentScore: number;
+  requestedScore: number;
+  reason: string;
+  status: CorrectionStatus;
+  resolvedBy?: { _id: string; firstName: string; lastName: string } | string | null;
+  resolvedAt?: string | null;
+  rejectionReason?: string | null;
   createdAt: string;
-}
-
-export interface AcademicSession {
-  _id: string;
-  name: string;
-  startDate?: string;
-  endDate?: string;
-  createdAt: string;
-}
-
-export interface AcademicTerm {
-  _id: string;
-  name: string;
-  sessionId: string;
-  createdAt: string;
-}
-
-export interface Subject {
-  _id: string;
-  name: string;
-  code: string;
-  creditUnit?: number;
+  updatedAt?: string;
 }
 
 export interface BulkUploadResult {
@@ -74,26 +82,14 @@ export interface BulkUploadResult {
   };
 }
 
-export interface StudentPerformanceData {
-  sessions: {
-    sessionName: string;
-    termName: string;
-    average: number;
-    totalScore: number;
-    status: string;
-  }[];
-  overallAverage: number;
-}
-
-export interface SubjectPerformanceSummary {
-  subjectId: string;
-  subjectName: string;
-  subjectCode: string;
+export interface YearPerformanceSummary {
+  yearId: string;
+  yearName: string;
+  yearNumber: number;
   averageScore: number;
   highestScore: number;
   lowestScore: number;
   totalStudents: number;
-  gradeDistribution: Record<string, number>;
 }
 
 export interface CenterPerformanceSummary {
@@ -104,29 +100,61 @@ export interface CenterPerformanceSummary {
   passRate: number;
 }
 
-export interface CenterReport {
-  center: { _id: string; name: string };
-  session: { _id: string; name: string };
-  term: { _id: string; name: string };
-  totalStudents: number;
-  averageScore: number;
-  passRate: number;
-  gradeDistribution: Record<string, number>;
-  subjectSummaries: SubjectPerformanceSummary[];
+export interface StudentPerformanceData {
+  sessions: {
+    sessionName: string;
+    yearName: string;
+    average: number;
+    totalScore: number;
+    status: string;
+  }[];
+  overallAverage: number;
 }
 
-export interface GlobalReport {
-  totalStudents: number;
-  totalCenters: number;
-  overallAverage: number;
-  centers: CenterReport[];
+interface WrappedResponse<T> {
+  message: string;
+  data: T;
 }
+
+interface MessageOnlyResponse {
+  message: string;
+}
+
+// ── Defensive unwraps ────────────────────────────────────────────────────────
+// The spec says collection endpoints return raw arrays, but the deployed
+// backend may still return `{ data: [...] }`. These helpers accept either
+// shape so the frontend works against both — when the backend is fully
+// migrated, the `as T[]` branch will be the one that hits.
+
+const unwrapList = <T,>(raw: unknown): T[] => {
+  if (Array.isArray(raw)) return raw as T[];
+  if (raw && typeof raw === "object" && Array.isArray((raw as { data?: unknown }).data)) {
+    return ((raw as { data: T[] }).data) ?? [];
+  }
+  return [];
+};
+
+const unwrapOne = <T,>(raw: unknown): T | undefined => {
+  if (raw && typeof raw === "object" && "data" in (raw as object)) {
+    return (raw as { data: T }).data;
+  }
+  return raw as T;
+};
 
 // ── API ───────────────────────────────────────────────────────────────────────
 
 export const academicApi = createApi({
   reducerPath: "academicApi",
-  tagTypes: ["Result", "ResultList", "Publication", "PublicationList", "Session", "SessionList", "Subject", "SubjectList"],
+  tagTypes: [
+    "Result",
+    "ResultList",
+    "Session",
+    "SessionList",
+    "Year",
+    "YearList",
+    "Correction",
+    "CorrectionList",
+  ],
   keepUnusedDataFor: 120,
   refetchOnFocus: true,
   refetchOnReconnect: true,
@@ -139,134 +167,138 @@ export const academicApi = createApi({
   }),
   endpoints: (builder) => ({
     // ── Results ──────────────────────────────────────────────────────────────
+    // Collection endpoints return raw arrays.
     getResults: builder.query<
-      ApiResponseN<StudentResult[]>,
-      { studentId?: string; sessionId?: string; termId?: string; centerId?: string; status?: ResultStatus }
+      StudentResult[],
+      {
+        studentId?: string;
+        sessionId?: string;
+        centerId?: string;
+        status?: ResultStatus;
+        yearId?: string;
+      }
     >({
       query: (params = {}) => {
         const q = new URLSearchParams();
         Object.entries(params).forEach(([k, v]) => v && q.set(k, v));
         return `/academic/results?${q}`;
       },
+      transformResponse: (res: unknown) => unwrapList<StudentResult>(res),
       providesTags: ["ResultList"],
     }),
-    getMyResults: builder.query<ApiResponseN<StudentResult[]>, void>({
+    getMyResults: builder.query<StudentResult[], void>({
       query: () => "/academic/results/my",
+      transformResponse: (res: unknown) => unwrapList<StudentResult>(res),
       providesTags: ["ResultList"],
     }),
-    getResultById: builder.query<ApiResponseN<StudentResult>, string>({
+    getResultById: builder.query<StudentResult, string>({
       query: (id) => `/academic/results/${id}`,
+      transformResponse: (res: unknown) => unwrapOne<StudentResult>(res),
       providesTags: (_, __, id) => [{ type: "Result", id }],
     }),
     createResult: builder.mutation<
-      ApiResponseN<StudentResult>,
-      { studentId: string; sessionId: string; termId: string; centerId?: string; subjects: { subjectId: string; score: number }[] }
+      StudentResult,
+      {
+        studentId: string;
+        sessionId: string;
+        yearScores: { yearId: string; score: number }[];
+      }
     >({
       query: (body) => ({ url: "/academic/results", method: "POST", body }),
+      transformResponse: (res: unknown) => unwrapOne<StudentResult>(res),
       invalidatesTags: ["ResultList"],
     }),
     updateResult: builder.mutation<
-      ApiResponseN<StudentResult>,
-      { id: string; subjects?: { subjectId: string; score: number }[]; sessionId?: string; termId?: string }
+      StudentResult,
+      { id: string; yearScores: { yearId: string; score: number }[] }
     >({
-      query: ({ id, ...body }) => ({ url: `/academic/results/${id}`, method: "PATCH", body }),
-      invalidatesTags: (_, __, arg) => ["ResultList", { type: "Result", id: arg.id }],
+      query: ({ id, ...body }) => ({
+        url: `/academic/results/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      transformResponse: (res: unknown) => unwrapOne<StudentResult>(res),
+      invalidatesTags: (_, __, arg) => [
+        "ResultList",
+        { type: "Result", id: arg.id },
+      ],
     }),
     bulkUploadResults: builder.mutation<
-      ApiResponseN<BulkUploadResult>,
+      WrappedResponse<BulkUploadResult>,
       FormData
     >({
-      query: (formData) => ({ url: "/academic/results/bulk-upload", method: "POST", body: formData }),
+      query: (formData) => ({
+        url: "/academic/results/bulk-upload",
+        method: "POST",
+        body: formData,
+      }),
+      transformResponse: (res: unknown) => {
+        if (
+          res &&
+          typeof res === "object" &&
+          "data" in (res as object) &&
+          (res as { data: unknown }).data
+        ) {
+          return res as WrappedResponse<BulkUploadResult>;
+        }
+        return { message: "", data: res as BulkUploadResult };
+      },
       invalidatesTags: ["ResultList"],
     }),
-
-    // ── Publication ───────────────────────────────────────────────────────────
-    getPublications: builder.query<
-      ApiResponseN<ResultPublication[]>,
-      { centerId?: string; status?: string; sessionId?: string; termId?: string } | void
+    publishSessionResults: builder.mutation<
+      MessageOnlyResponse,
+      { sessionId: string }
     >({
-      query: (params = {}) => {
-        const q = new URLSearchParams();
-        if (params) {
-          Object.entries(params).forEach(([k, v]) => v && q.set(k, v));
-        }
-        return `/academic/publication?${q}`;
-      },
-      providesTags: ["PublicationList"],
-    }),
-    submitForPublication: builder.mutation<
-      ApiResponseN<null>,
-      { sessionId: string; termId: string; centerId?: string }
-    >({
-      query: (body) => ({ url: "/academic/publication", method: "POST", body }),
-      invalidatesTags: ["PublicationList", "ResultList"],
-    }),
-    approvePublication: builder.mutation<ApiResponseN<null>, string>({
-      query: (id) => ({ url: `/academic/publication/${id}/approve`, method: "PATCH" }),
-      invalidatesTags: ["PublicationList", "ResultList"],
-    }),
-    rejectPublication: builder.mutation<
-      ApiResponseN<null>,
-      { id: string; rejectionReason?: string }
-    >({
-      query: ({ id, ...body }) => ({ url: `/academic/publication/${id}/reject`, method: "PATCH", body }),
-      invalidatesTags: ["PublicationList", "ResultList"],
-    }),
-    lockResults: builder.mutation<
-      ApiResponseN<null>,
-      { sessionId?: string; termId?: string; centerId?: string }
-    >({
-      query: (body) => ({ url: "/academic/publication/lock", method: "PATCH", body }),
-      invalidatesTags: ["ResultList", "PublicationList"],
+      query: (body) => ({
+        url: "/academic/results/publish",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["ResultList", "SessionList"],
     }),
 
-    // ── Sessions & Terms ─────────────────────────────────────────────────────
-    getSessions: builder.query<ApiResponseN<AcademicSession[]>, void>({
+    // ── Sessions & Years ─────────────────────────────────────────────────────
+    getSessions: builder.query<AcademicSession[], void>({
       query: () => "/academic/sessions",
+      transformResponse: (res: unknown) => unwrapList<AcademicSession>(res),
       providesTags: ["SessionList"],
     }),
-    getTerms: builder.query<ApiResponseN<AcademicTerm[]>, { sessionId?: string } | void>({
+    getYears: builder.query<
+      AcademicYear[],
+      { sessionId?: string } | void
+    >({
       query: (params) => {
-        if (params?.sessionId) return `/academic/sessions/terms?sessionId=${params.sessionId}`;
-        return "/academic/sessions/terms";
+        if (params?.sessionId)
+          return `/academic/sessions/years?sessionId=${params.sessionId}`;
+        return "/academic/sessions/years";
       },
-      providesTags: ["SessionList"],
-    }),
-
-    // ── Subjects ──────────────────────────────────────────────────────────────
-    getSubjects: builder.query<ApiResponseN<Subject[]>, void>({
-      query: () => "/academic/subjects?limit=100",
-      transformResponse: (response: any) => {
-        if (response && response.data && typeof response.data === "object" && "docs" in response.data) {
-          return {
-            ...response,
-            data: response.data.docs,
-          };
-        }
-        return response;
-      },
-      providesTags: ["SubjectList"],
+      transformResponse: (res: unknown) => unwrapList<AcademicYear>(res),
+      providesTags: ["YearList"],
     }),
 
     // ── Analytics ─────────────────────────────────────────────────────────────
-    getStudentPerformance: builder.query<ApiResponseN<StudentPerformanceData>, string>({
+    // Analytics endpoints return `{ message, data }`.
+    getStudentPerformance: builder.query<
+      WrappedResponse<StudentPerformanceData>,
+      string
+    >({
       query: (studentId) => `/academic/analytics/student/${studentId}`,
     }),
-    getSubjectAnalytics: builder.query<
-      ApiResponseN<SubjectPerformanceSummary[]>,
-      { sessionId?: string; termId?: string }
+    getYearAnalytics: builder.query<
+      WrappedResponse<YearPerformanceSummary[]>,
+      { sessionId: string; centerId?: string }
     >({
-      query: (params = {}) => {
+      query: (params) => {
         const q = new URLSearchParams();
         Object.entries(params).forEach(([k, v]) => v && q.set(k, v));
-        return `/academic/analytics/subjects?${q}`;
+        return `/academic/analytics/years?${q}`;
       },
     }),
     getSystemAnalytics: builder.query<
-      ApiResponseN<CenterPerformanceSummary[]>,
-      { sessionId?: string; termId?: string }
+      WrappedResponse<CenterPerformanceSummary[]>,
+      { sessionId: string; centerId?: string }
     >({
-      query: (params = {}) => {
+      query: (params) => {
         const q = new URLSearchParams();
         Object.entries(params).forEach(([k, v]) => v && q.set(k, v));
         return `/academic/analytics/system?${q}`;
@@ -274,58 +306,66 @@ export const academicApi = createApi({
     }),
 
     // ── Reports ───────────────────────────────────────────────────────────────
-    getCenterReport: builder.query<
-      ApiResponseN<CenterReport>,
-      { centerId: string; sessionId: string; termId: string }
-    >({
-      query: ({ centerId, sessionId, termId }) =>
-        `/academic/reports/center/${centerId}?sessionId=${sessionId}&termId=${termId}`,
-    }),
-    getGlobalReport: builder.query<
-      ApiResponseN<GlobalReport>,
-      { sessionId: string; termId?: string }
-    >({
-      query: ({ sessionId, termId }) => {
-        const q = new URLSearchParams({ sessionId });
-        if (termId) q.set("termId", termId);
-        return `/academic/reports/global?${q}`;
-      },
-    }),
-    // ── Session & Term mutations ──────────────────────────────────────────────
+    // Center and global report endpoints return PDFs. The Reports pages fetch
+    // them as blobs via axios and trigger a download — RTK Query is not used
+    // here because the response is binary, not JSON.
+
+    // ── Session mutations ─────────────────────────────────────────────────────
     createSession: builder.mutation<
-      ApiResponseN<AcademicSession>,
+      AcademicSession,
       { name: string; startYear: number; endYear: number; isCurrent?: boolean }
     >({
       query: (body) => ({ url: "/academic/sessions", method: "POST", body }),
-      invalidatesTags: ["SessionList"],
+      transformResponse: (res: unknown) => unwrapOne<AcademicSession>(res),
+      invalidatesTags: ["SessionList", "YearList"],
     }),
-    deleteSession: builder.mutation<ApiResponseN<null>, string>({
+    deleteSession: builder.mutation<MessageOnlyResponse, string>({
       query: (id) => ({ url: `/academic/sessions/${id}`, method: "DELETE" }),
-      invalidatesTags: ["SessionList"],
-    }),
-    createTerm: builder.mutation<
-      ApiResponseN<AcademicTerm>,
-      { sessionId: string; name: string; isCurrent?: boolean }
-    >({
-      query: (body) => ({ url: "/academic/sessions/terms", method: "POST", body }),
-      invalidatesTags: ["SessionList"],
-    }),
-    deleteTerm: builder.mutation<ApiResponseN<null>, string>({
-      query: (id) => ({ url: `/academic/sessions/terms/${id}`, method: "DELETE" }),
-      invalidatesTags: ["SessionList"],
+      invalidatesTags: ["SessionList", "YearList"],
     }),
 
-    // ── Subject mutations ─────────────────────────────────────────────────────
-    createSubject: builder.mutation<
-      ApiResponseN<Subject>,
-      { name: string; code: string; creditUnit?: number }
+    // ── Corrections ───────────────────────────────────────────────────────────
+    requestCorrection: builder.mutation<
+      WrappedResponse<ScoreCorrection>,
+      {
+        resultId: string;
+        yearId: string;
+        requestedScore: number;
+        reason: string;
+      }
     >({
-      query: (body) => ({ url: "/academic/subjects", method: "POST", body }),
-      invalidatesTags: ["SubjectList"],
+      query: (body) => ({ url: "/academic/corrections", method: "POST", body }),
+      invalidatesTags: ["CorrectionList"],
     }),
-    deleteSubject: builder.mutation<ApiResponseN<null>, string>({
-      query: (id) => ({ url: `/academic/subjects/${id}`, method: "DELETE" }),
-      invalidatesTags: ["SubjectList"],
+    getCorrections: builder.query<
+      ScoreCorrection[],
+      {
+        status?: CorrectionStatus;
+        resultId?: string;
+        centerId?: string;
+        sessionId?: string;
+      } | void
+    >({
+      query: (params = {}) => {
+        const q = new URLSearchParams();
+        if (params) {
+          Object.entries(params).forEach(([k, v]) => v && q.set(k, v));
+        }
+        return `/academic/corrections?${q}`;
+      },
+      transformResponse: (res: unknown) => unwrapList<ScoreCorrection>(res),
+      providesTags: ["CorrectionList"],
+    }),
+    resolveCorrection: builder.mutation<
+      MessageOnlyResponse,
+      { id: string; status: "approved" | "rejected"; rejectionReason?: string | null }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/academic/corrections/${id}/resolve`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["CorrectionList", "ResultList"],
     }),
   }),
 });
@@ -337,23 +377,15 @@ export const {
   useCreateResultMutation,
   useUpdateResultMutation,
   useBulkUploadResultsMutation,
-  useGetPublicationsQuery,
-  useSubmitForPublicationMutation,
-  useApprovePublicationMutation,
-  useRejectPublicationMutation,
-  useLockResultsMutation,
+  usePublishSessionResultsMutation,
   useGetSessionsQuery,
-  useGetTermsQuery,
-  useGetSubjectsQuery,
+  useGetYearsQuery,
   useCreateSessionMutation,
   useDeleteSessionMutation,
-  useCreateTermMutation,
-  useDeleteTermMutation,
-  useCreateSubjectMutation,
-  useDeleteSubjectMutation,
   useGetStudentPerformanceQuery,
-  useGetSubjectAnalyticsQuery,
+  useGetYearAnalyticsQuery,
   useGetSystemAnalyticsQuery,
-  useGetCenterReportQuery,
-  useGetGlobalReportQuery,
+  useRequestCorrectionMutation,
+  useGetCorrectionsQuery,
+  useResolveCorrectionMutation,
 } = academicApi;
