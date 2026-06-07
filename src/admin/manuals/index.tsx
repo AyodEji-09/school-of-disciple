@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Stack, Typography } from "@mui/joy";
+import { useEffect, useRef, useState } from "react";
+import { FormControl, FormLabel, Option, Select, Stack, Typography } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { RiAddLine, RiCheckLine, RiUploadCloud2Line } from "react-icons/ri";
@@ -16,6 +16,10 @@ import {
   useGetManualOrdersQuery,
   useUploadManualOrderReceiptMutation,
 } from "../../data/rtk/manual-order";
+import {
+  useGetAllRegistrationWindowsQuery,
+  useGetRegistrationWindowQuery,
+} from "../../data/rtk/registration";
 import PageCard from "../../components/feedback/PageCard";
 import StatusBadge from "../../components/feedback/StatusBadge";
 import {
@@ -40,11 +44,30 @@ const formatCurrency = (cents: number) =>
 const ManualOrdersPage = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [academicYear, setAcademicYear] = useState<string>("");
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
+    page: 1,
+    limit: 100,
+  });
+  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
+  const academicYears =
+    allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+
+  useEffect(() => {
+    if (academicYear || !currentWindowRes?.data?.label) return;
+    setAcademicYear(currentWindowRes.data.label);
+  }, [currentWindowRes, academicYear]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [academicYear]);
 
   const { data: manualOrdersRes, isLoading } = useGetManualOrdersQuery({
     limit: 10,
     page,
+    ...(academicYear ? { academicYear } : {}),
   });
   const [uploadReceipt, { isLoading: uploadingReceipt }] =
     useUploadManualOrderReceiptMutation();
@@ -89,6 +112,26 @@ const ManualOrdersPage = () => {
           padded={false}
           title="Manual Order History"
           subtitle="Your recent manual book orders and their payment status."
+          action={
+            <FormControl size="sm" sx={{ minWidth: 200 }}>
+              <FormLabel>Academic Session</FormLabel>
+              <Select
+                size="sm"
+                value={academicYear}
+                onChange={(_, val) =>
+                  setAcademicYear((val as string) ?? "")
+                }
+                placeholder="All sessions"
+              >
+                <Option value="">All sessions</Option>
+                {academicYears.map((year) => (
+                  <Option key={year} value={year}>
+                    {year}
+                  </Option>
+                ))}
+              </Select>
+            </FormControl>
+          }
         >
           <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full text-sm text-left">

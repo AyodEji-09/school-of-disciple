@@ -118,7 +118,7 @@ const ManualOrdersAdminPage = () => {
         o.status === "pending_payment" || o.status === "pending_confirmation",
     );
     const inFlight = orders.filter(
-      (o) => o.status === "processing" || o.status === "shipped",
+      (o) => o.status === "processing",
     );
     const totalRevenue = paid.reduce((sum, o) => sum + (o.amount || 0), 0);
     return {

@@ -29,6 +29,7 @@ export interface TransactionDoc {
   };
   confirmedAt?: string;
   rejectionReason?: string;
+  metadata?: Record<string, any>;
   academicYear?: string;
   createdAt: string;
   updatedAt: string;
