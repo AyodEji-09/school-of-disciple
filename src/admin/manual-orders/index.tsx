@@ -24,10 +24,7 @@ import {
 } from "../../components/query-state/QueryStates";
 import { useGetManualOrdersQuery } from "../../data/rtk/manual-order";
 import { useGetCentersQuery } from "../../data/rtk/center";
-import {
-  useGetAllRegistrationWindowsQuery,
-  useGetRegistrationWindowQuery,
-} from "../../data/rtk/registration";
+import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { getUserFullName } from "../../utils";
 import PageCard from "../../components/feedback/PageCard";
 import StatusBadge from "../../components/feedback/StatusBadge";
@@ -75,18 +72,14 @@ const ManualOrdersAdminPage = () => {
   const { data: centersRes } = useGetCentersQuery({ page: 1, limit: 100 });
   const centers = centersRes?.data?.docs ?? [];
 
-  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
-    page: 1,
-    limit: 100,
-  });
-  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
-  const academicYears =
-    allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+  const { data: sessions = [] } = useGetSessionsQuery();
+  const academicYears = sessions.map((s) => s.name);
 
   useEffect(() => {
-    if (academicYear || !currentWindowRes?.data?.label) return;
-    setAcademicYear(currentWindowRes.data.label);
-  }, [currentWindowRes, academicYear]);
+    if (academicYear) return;
+    const current = sessions.find((s) => s.isCurrent);
+    if (current?.name) setAcademicYear(current.name);
+  }, [sessions, academicYear]);
 
   useEffect(() => {
     setPage(1);

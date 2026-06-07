@@ -22,10 +22,7 @@ import {
   EmptyValue,
 } from "../../components/feedback/TableShell";
 import { useGetRemittancesQuery } from "../../data/rtk/remittance";
-import {
-  useGetAllRegistrationWindowsQuery,
-  useGetRegistrationWindowQuery,
-} from "../../data/rtk/registration";
+import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import { openRemittanceReportPrintPreview } from "./report-template";
 import { getUserFullName, handleError } from "../../utils";
@@ -44,25 +41,24 @@ const RemittancesPage = () => {
   const [initialized, setInitialized] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
-  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
-    page: 1,
-    limit: 100,
-  });
-  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
+  const { data: sessions = [] } = useGetSessionsQuery();
   const { data: centersRes } = useGetCentersQuery({ limit: 100 });
 
   useEffect(() => {
-    if (!initialized && currentWindowRes?.data?.label) {
-      setSelectedYear(currentWindowRes.data.label);
-      setInitialized(true);
+    if (!initialized) {
+      const current = sessions.find((s) => s.isCurrent);
+      if (current?.name) {
+        setSelectedYear(current.name);
+        setInitialized(true);
+      }
     }
-  }, [currentWindowRes, initialized]);
+  }, [sessions, initialized]);
 
   useEffect(() => {
     setPage(1);
   }, [selectedYear, selectedCenter]);
 
-  const academicYears = allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+  const academicYears = sessions.map((s) => s.name);
   const centers = centersRes?.data?.docs ?? [];
 
   const { data: remittances, isLoading } = useGetRemittancesQuery({

@@ -23,10 +23,7 @@ import {
 } from "../../components/feedback/TableShell";
 import { useGetUsersQuery } from "../../data/rtk/user";
 import { useGetCentersQuery } from "../../data/rtk/center";
-import {
-  useGetAllRegistrationWindowsQuery,
-  useGetRegistrationWindowQuery,
-} from "../../data/rtk/registration";
+import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { getUserFullName } from "../../utils";
 import { PAYMENT_STATUS } from "../../utils/status";
 
@@ -37,22 +34,21 @@ const StudentsPage = () => {
   const [page, setPage] = useState(1);
   const [initialized, setInitialized] = useState(false);
 
-  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
-    page: 1,
-    limit: 100,
-  });
-  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
+  const { data: sessions = [] } = useGetSessionsQuery();
 
   useEffect(() => {
-    if (!initialized && currentWindowRes?.data?.label) {
-      setSelectedAcademicYear(currentWindowRes.data.label);
-      setInitialized(true);
+    if (!initialized) {
+      const current = sessions.find((s) => s.isCurrent);
+      if (current?.name) {
+        setSelectedAcademicYear(current.name);
+        setInitialized(true);
+      }
     }
-  }, [currentWindowRes, initialized]);
+  }, [sessions, initialized]);
 
   const { data: centersRes } = useGetCentersQuery({ limit: 100 });
   const centers = centersRes?.data?.docs ?? [];
-  const academicYears = allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+  const academicYears = sessions.map((s) => s.name);
 
   useEffect(() => {
     setPage(1);

@@ -1,12 +1,10 @@
 import axios from "axios";
 
 export const handleError = (error: unknown): string => {
-  const err = error as ApiError;
-  if (err.response) {
-    return err.response.data.message;
-  } else {
-    return err.message;
-  }
+  const err = error as any;
+  if (err?.data?.message) return err.data.message;
+  if (err?.response?.data?.message) return err.response.data.message;
+  return err?.message || "An unexpected error occurred";
 };
 
 export const titleCaseName = (value: string) =>

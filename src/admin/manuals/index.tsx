@@ -16,10 +16,7 @@ import {
   useGetManualOrdersQuery,
   useUploadManualOrderReceiptMutation,
 } from "../../data/rtk/manual-order";
-import {
-  useGetAllRegistrationWindowsQuery,
-  useGetRegistrationWindowQuery,
-} from "../../data/rtk/registration";
+import { useGetSessionsQuery } from "../../data/rtk/academic";
 import PageCard from "../../components/feedback/PageCard";
 import StatusBadge from "../../components/feedback/StatusBadge";
 import {
@@ -47,18 +44,14 @@ const ManualOrdersPage = () => {
   const [academicYear, setAcademicYear] = useState<string>("");
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
-  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
-    page: 1,
-    limit: 100,
-  });
-  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
-  const academicYears =
-    allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+  const { data: sessions = [] } = useGetSessionsQuery();
+  const academicYears = sessions.map((s) => s.name);
 
   useEffect(() => {
-    if (academicYear || !currentWindowRes?.data?.label) return;
-    setAcademicYear(currentWindowRes.data.label);
-  }, [currentWindowRes, academicYear]);
+    if (academicYear) return;
+    const current = sessions.find((s) => s.isCurrent);
+    if (current?.name) setAcademicYear(current.name);
+  }, [sessions, academicYear]);
 
   useEffect(() => {
     setPage(1);

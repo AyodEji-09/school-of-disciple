@@ -72,7 +72,14 @@ const RegistrationPage = () => {
   const currentWindow = currentWindowRes?.data;
   const statusKey = resolveWindowKey(currentWindow);
   const isSubmitting = creating || updating;
-  const sessions = sessionsRes?.data ?? [];
+  const sessions = sessionsRes ?? [];
+  const currentSession = sessions.find((s: any) => s.isCurrent);
+  const lastWindowSessionId =
+    currentWindow && typeof currentWindow.sessionId === "object"
+      ? (currentWindow.sessionId as any)?._id
+      : currentWindow?.sessionId;
+  const canCreateNewWindow =
+    !currentWindow || (currentSession && currentSession._id !== lastWindowSessionId);
 
   const {
     control,
@@ -180,7 +187,11 @@ const RegistrationPage = () => {
             </div>
 
             <Stack direction="row" gap={2} flexShrink={0}>
-              {statusKey === "open" || statusKey === "upcoming" ? (
+              {canCreateNewWindow ? (
+                <AppButton type="button" onClick={openCreateModal}>
+                  {currentWindow ? "New Window" : "Set Window"}
+                </AppButton>
+              ) : statusKey === "open" || statusKey === "upcoming" ? (
                 <AppButton type="button" onClick={openEditModal}>
                   {statusKey === "upcoming"
                     ? "Edit Upcoming Window"
@@ -194,7 +205,7 @@ const RegistrationPage = () => {
                       variant="outlined"
                       onClick={openEditModal}
                     >
-                      Edit Last Window
+                      Edit Window
                     </AppButton>
                   )}
                   <AppButton type="button" onClick={openCreateModal}>
@@ -216,9 +227,7 @@ const RegistrationPage = () => {
               }}
             >
               <Typography level="body-sm" sx={{ color: "#92400E" }}>
-                ⏳ This window hasn't opened yet. Edit it if you need to adjust
-                the dates. A new window cannot be created while one is already
-                scheduled.
+                ⏳ This window hasn't opened yet. Edit the dates if needed.
               </Typography>
             </Box>
           )}
@@ -315,13 +324,16 @@ const RegistrationPage = () => {
                         value={value}
                         onChange={(_, val) => onChange(val)}
                         placeholder="Select a session…"
+                        disabled={mode === "create"}
                       >
-                        {sessions.map((s: any) => (
-                          <Option key={s._id} value={s._id}>
-                            {s.name}
-                            {s.isCurrent ? " · Current" : ""}
-                          </Option>
-                        ))}
+                        {sessions
+                          .filter((s: any) => s.isCurrent)
+                          .map((s: any) => (
+                            <Option key={s._id} value={s._id}>
+                              {s.name}
+                              {s.isCurrent ? " · Current" : ""}
+                            </Option>
+                          ))}
                       </Select>
                     </FormControl>
                   )}

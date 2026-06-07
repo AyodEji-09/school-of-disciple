@@ -319,6 +319,18 @@ export const academicApi = createApi({
       transformResponse: (res: unknown) => unwrapOne<AcademicSession>(res),
       invalidatesTags: ["SessionList", "YearList"],
     }),
+    updateSession: builder.mutation<
+      AcademicSession,
+      { id: string; name: string; startYear: number; endYear: number; isCurrent?: boolean }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/academic/sessions/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      transformResponse: (res: unknown) => unwrapOne<AcademicSession>(res),
+      invalidatesTags: ["SessionList", "YearList"],
+    }),
     deleteSession: builder.mutation<MessageOnlyResponse, string>({
       query: (id) => ({ url: `/academic/sessions/${id}`, method: "DELETE" }),
       invalidatesTags: ["SessionList", "YearList"],
@@ -381,6 +393,7 @@ export const {
   useGetSessionsQuery,
   useGetYearsQuery,
   useCreateSessionMutation,
+  useUpdateSessionMutation,
   useDeleteSessionMutation,
   useGetStudentPerformanceQuery,
   useGetYearAnalyticsQuery,

@@ -20,10 +20,7 @@ import {
 import { useAppSelector } from "../data/hooks";
 import { selectUser } from "../data/selectors/authSelector";
 import { useGetUsersQuery } from "../data/rtk/user";
-import {
-  useGetAllRegistrationWindowsQuery,
-  useGetRegistrationWindowQuery,
-} from "../data/rtk/registration";
+import { useGetSessionsQuery } from "../data/rtk/academic";
 import { getUserFullName } from "../utils";
 
 const CoordinatorStudentsPage = () => {
@@ -37,20 +34,19 @@ const CoordinatorStudentsPage = () => {
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
 
-  const { data: allWindowsRes } = useGetAllRegistrationWindowsQuery({
-    page: 1,
-    limit: 100,
-  });
-  const { data: currentWindowRes } = useGetRegistrationWindowQuery();
+  const { data: sessions = [] } = useGetSessionsQuery();
 
   useEffect(() => {
-    if (!initialized && currentWindowRes?.data?.label) {
-      setSelectedAcademicYear(currentWindowRes.data.label);
-      setInitialized(true);
+    if (!initialized) {
+      const current = sessions.find((s) => s.isCurrent);
+      if (current?.name) {
+        setSelectedAcademicYear(current.name);
+        setInitialized(true);
+      }
     }
-  }, [currentWindowRes, initialized]);
+  }, [sessions, initialized]);
 
-  const academicYears = allWindowsRes?.data?.docs?.map((w) => w.label) ?? [];
+  const academicYears = sessions.map((s) => s.name);
 
   const { data: students, isLoading } = useGetUsersQuery(
     {
