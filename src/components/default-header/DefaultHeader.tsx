@@ -568,7 +568,9 @@ const DefaultHeader = ({
                         >
                           {coordinatorName && (
                             <>
-                              <strong>{coordinatorName}</strong>
+                              <strong>
+                                {capitalizeWords(coordinatorName)}
+                              </strong>
                               {centerName ? " · " : ""}
                             </>
                           )}
@@ -656,7 +658,7 @@ const DefaultHeader = ({
 
           <Divider />
           <MenuItem
-            onClick={() => navigate("/dashboard/payments")}
+            onClick={() => navigate("/dashboard/payments/approvals")}
             sx={{
               justifyContent: "center",
               color: "#001EC5",
@@ -666,7 +668,7 @@ const DefaultHeader = ({
               flexShrink: 0,
             }}
           >
-            View All Payments →
+            View All Pending Payments →
           </MenuItem>
         </Menu>
       </Dropdown>
