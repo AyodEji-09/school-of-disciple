@@ -29,6 +29,7 @@ import AdminManualOrdersPage from "./admin/manual-orders";
 
 import store from "./data/store";
 import { loadUser } from "./data/reducers/userSlice";
+import { useNotificationSocket } from "./data/useNotificationSocket";
 import { useAppSelector } from "./data/hooks";
 import {
   selectAuth,
@@ -122,6 +123,8 @@ const ProfileRoute = () => {
 };
 
 const App = () => {
+  useNotificationSocket();
+
   useEffect(() => {
     store.dispatch(loadUser());
   }, []);
