@@ -417,8 +417,7 @@ const DefaultHeader = ({
     </Stack>
   );
 
-  const renderNotificationBell = () =>
-    isAdmin ? (
+  const renderNotificationBell = () => (
       <Dropdown>
         <MenuButton
           sx={{
@@ -512,7 +511,7 @@ const DefaultHeader = ({
             ) : (
               notifications.map((n: any, idx: number) => {
                 const isPendingTx =
-                  n.type === "transaction_pending" && !n.isRead;
+                  n.type === "transaction_pending" && !n.isRead && isAdmin;
                 const txId = n.transactionId?._id || n.transactionId;
                 const receiptUrl = n.transactionId?.zelleReceiptUrl;
                 const txCreatedBy = n.transactionId?.createdBy;
@@ -522,6 +521,14 @@ const DefaultHeader = ({
                     txCreatedBy.email
                   : null;
                 const centerName = txCenter?.name;
+
+                const typeLabel: Record<string, string> = {
+                  transaction_pending: "Pending Zelle Approval",
+                  transaction_confirmed: "Payment Confirmed",
+                  transaction_rejected: "Payment Rejected",
+                  results_published: "Results Published",
+                  order_placed: "New Manual Order",
+                };
 
                 return (
                   <Box
@@ -543,13 +550,7 @@ const DefaultHeader = ({
                             color: n.isRead ? "neutral.600" : "#001F54",
                           }}
                         >
-                          {n.type === "transaction_pending"
-                            ? "Pending Zelle Approval"
-                            : n.type === "transaction_confirmed"
-                              ? "Payment Confirmed"
-                              : n.type === "transaction_rejected"
-                                ? "Payment Rejected"
-                                : "Notification"}
+                          {typeLabel[n.type] || "Notification"}
                         </Typography>
                         <Typography
                           level="body-xs"
@@ -632,7 +633,24 @@ const DefaultHeader = ({
                         </Stack>
                       )}
 
-                      {!n.isRead && !isPendingTx && (
+                      {n.type === "results_published" && (
+                        <Stack direction="row" gap={1} sx={{ mt: 1.5 }}>
+                          <Button
+                            size="sm"
+                            color="primary"
+                            variant="solid"
+                            onClick={() => {
+                              markAsRead(n._id);
+                              navigate("/my-dashboard/results");
+                            }}
+                            sx={{ fontWeight: 600, flex: 1 }}
+                          >
+                            View Results
+                          </Button>
+                        </Stack>
+                      )}
+
+                      {!n.isRead && !isPendingTx && n.type !== "results_published" && (
                         <Stack
                           direction="row"
                           justifyContent="flex-end"
@@ -656,23 +674,27 @@ const DefaultHeader = ({
             )}
           </Box>
 
-          <Divider />
-          <MenuItem
-            onClick={() => navigate("/dashboard/payments/approvals")}
-            sx={{
-              justifyContent: "center",
-              color: "#001EC5",
-              fontWeight: 600,
-              fontSize: 13,
-              py: 1.5,
-              flexShrink: 0,
-            }}
-          >
-            View All Pending Payments →
-          </MenuItem>
+          {notifications.some((n: any) => n.type === "transaction_pending") && (
+            <>
+              <Divider />
+              <MenuItem
+                onClick={() => navigate("/dashboard/payments/approvals")}
+                sx={{
+                  justifyContent: "center",
+                  color: "#001EC5",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  py: 1.5,
+                  flexShrink: 0,
+                }}
+              >
+                View All Pending Payments →
+              </MenuItem>
+            </>
+          )}
         </Menu>
       </Dropdown>
-    ) : null;
+    );
 
   const renderAvatar = () => (
     <Dropdown>
