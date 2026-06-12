@@ -8,7 +8,7 @@ import AppButton from "../../components/Button/AppButton";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { handleError } from "../../utils";
-import { openFinancialReportPrintPreview } from "./report-template";
+import { useURL } from "../../data/config";
 import AppPagination from "../../components/pagination/Pagination";
 import {
   CenteredEmptyState,
@@ -29,31 +29,6 @@ import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import Frame from "../../components/frame/Frame";
 import { PAYMENT_STATUS } from "../../utils/status";
-
-type CenterBreakdown = {
-  centerName: string;
-  transactions: number;
-  amount: number;
-};
-
-const formatCurrency = (kobo: number) => {
-  return `$${(kobo / 100).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-};
-
-const isSuccessfulPayment = (status?: string) => {
-  const value = (status || "").toLowerCase();
-  return ["paid", "success", "successful", "succeeded", "completed"].includes(
-    value,
-  );
-};
-
-const isFailedPayment = (status?: string) => {
-  const value = (status || "").toLowerCase();
-  return ["failed", "cancelled", "canceled", "error"].includes(value);
-};
 
 const getStudentFromPayment = (payment: Payment) => {
   if (!payment.studentId || typeof payment.studentId === "string") {
@@ -141,140 +116,30 @@ const Payments = () => {
 
     setIsGeneratingReport(true);
     try {
-      const fetchedPayments: Payment[] = [];
-      let pg = 1;
-      let hasNextPage = true;
-
-      while (hasNextPage) {
-        const params = new URLSearchParams();
-        params.set("page", String(pg));
-        params.set("limit", "100");
-
-        if (isCoordinator && coordinatorCenterId) {
-          params.set("center", coordinatorCenterId);
-        } else if (isAdmin && selectedCenter) {
-          params.set("center", selectedCenter);
-        }
-        if (selectedYear) params.set("academicYear", selectedYear);
-
-        const res = await axios.get<ApiResponse<Payment>>(
-          `/payment?${params.toString()}`,
-        );
-
-        const docs = res?.data?.data?.docs ?? [];
-        fetchedPayments.push(...docs);
-
-        const totalPagesCount = res?.data?.data?.totalPages ?? 1;
-        hasNextPage = pg < totalPagesCount;
-        pg += 1;
+      const params = new URLSearchParams();
+      if (isCoordinator && coordinatorCenterId) {
+        params.set("center", coordinatorCenterId);
+      } else if (isAdmin && selectedCenter) {
+        params.set("center", selectedCenter);
       }
+      if (selectedYear) params.set("academicYear", selectedYear);
 
-      const totalTransactions = fetchedPayments.length;
-      const successfulTransactions = fetchedPayments.filter((p) =>
-        isSuccessfulPayment(p.status),
-      ).length;
-      const failedTransactions = fetchedPayments.filter((p) =>
-        isFailedPayment(p.status),
-      ).length;
-      const pendingTransactions =
-        totalTransactions - successfulTransactions - failedTransactions;
-      const totalAmount = fetchedPayments.reduce(
-        (sum, p) => sum + (p.amount || 0),
-        0,
+      const res = await axios.get<Blob>(
+        `${useURL}/financial/reports/payments/pdf?${params.toString()}`,
+        { responseType: "blob" },
       );
-      const averageAmount = totalTransactions
-        ? Math.round(totalAmount / totalTransactions)
-        : 0;
 
-      const timestamps = fetchedPayments
-        .map((p) => new Date(p.createdAt).getTime())
-        .filter((v) => Number.isFinite(v));
-      const minTime = timestamps.length ? Math.min(...timestamps) : undefined;
-      const maxTime = timestamps.length ? Math.max(...timestamps) : undefined;
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `FinancialReport-${selectedYear || "All"}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
 
-      const centerMap = new Map<
-        string,
-        { transactions: number; amount: number }
-      >();
-      fetchedPayments.forEach((payment) => {
-        const centerName = isCoordinator
-          ? coordinatorCenterName || "Coordinator Center"
-          : getCenterNameFromPayment(payment);
-        const prev = centerMap.get(centerName) ?? {
-          transactions: 0,
-          amount: 0,
-        };
-        centerMap.set(centerName, {
-          transactions: prev.transactions + 1,
-          amount: prev.amount + (payment.amount || 0),
-        });
-      });
-
-      const centerBreakdown: CenterBreakdown[] = Array.from(centerMap.entries())
-        .map(([centerName, stats]) => ({
-          centerName,
-          transactions: stats.transactions,
-          amount: stats.amount,
-        }))
-        .sort((a, b) => b.amount - a.amount);
-
-      const yearLabel = selectedYear || "All Years";
-      const centerLabel = isCoordinator
-        ? coordinatorCenterName || "My Center"
-        : selectedCenter
-          ? (centers.find((c) => c._id === selectedCenter)?.name ??
-            "Selected Center")
-          : "All Centers";
-
-      const report = {
-        scopeLabel: `${yearLabel} — ${centerLabel}`,
-        generatedAt: moment().format("MM/DD/YYYY, HH:mm"),
-        totalTransactions,
-        successfulTransactions,
-        pendingTransactions,
-        failedTransactions,
-        totalAmount,
-        averageAmount,
-        dateFrom: minTime ? moment(minTime).format("MM/DD/YYYY") : undefined,
-        dateTo: maxTime ? moment(maxTime).format("MM/DD/YYYY") : undefined,
-        centerBreakdown,
-      };
-
-      const didOpenPreview = openFinancialReportPrintPreview({
-        report: {
-          scopeLabel: report.scopeLabel,
-          generatedAt: report.generatedAt,
-          totalTransactions: report.totalTransactions,
-          successfulTransactions: report.successfulTransactions,
-          pendingTransactions: report.pendingTransactions,
-          failedTransactions: report.failedTransactions,
-          totalAmountFormatted: formatCurrency(report.totalAmount),
-          averageAmountFormatted: formatCurrency(report.averageAmount),
-          dateFrom: report.dateFrom,
-          dateTo: report.dateTo,
-          centerBreakdown: report.centerBreakdown.map((center) => ({
-            centerName: center.centerName,
-            transactions: center.transactions,
-            amountFormatted: formatCurrency(center.amount),
-          })),
-        },
-        transactions: fetchedPayments.map((payment) => ({
-          date: moment(payment.createdAt).format("MM/DD/YYYY"),
-          transactionRef: payment._id,
-          description: payment.description || "Registration Fee",
-          center: isCoordinator
-            ? coordinatorCenterName || "-"
-            : getCenterNameFromPayment(payment),
-          status: payment.status,
-          amountFormatted: formatCurrency(payment.amount),
-        })),
-      });
-
-      if (!didOpenPreview) {
-        toast.error("Unable to open report preview. Please allow popups.");
-        return;
-      }
-      toast.success("Financial report generated.");
+      toast.success("Financial report downloaded.");
     } catch (error) {
       toast.error(handleError(error));
     } finally {

@@ -24,7 +24,7 @@ import {
 import { useGetRemittancesQuery } from "../../data/rtk/remittance";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { useGetCentersQuery } from "../../data/rtk/center";
-import { openRemittanceReportPrintPreview } from "./report-template";
+import { useURL } from "../../data/config";
 import { getUserFullName, handleError } from "../../utils";
 import { METHOD_STATUS, REMITTANCE_STATUS } from "../../utils/status";
 
@@ -85,121 +85,26 @@ const RemittancesPage = () => {
   const generateRemittanceReport = async () => {
     setIsGeneratingReport(true);
     try {
-      const fetchedRemittances: Remittance[] = [];
-      let pg = 1;
-      let hasNextPage = true;
+      const params = new URLSearchParams();
+      if (selectedYear) params.set("academicYear", selectedYear);
+      if (selectedCenter) params.set("center", selectedCenter);
 
-      while (hasNextPage) {
-        const params = new URLSearchParams();
-        params.set("page", String(pg));
-        params.set("limit", "100");
-        if (selectedYear) params.set("academicYear", selectedYear);
-        if (selectedCenter) params.set("center", selectedCenter);
-
-        const res = await axios.get<ApiResponse<Remittance>>(
-          `/remittance?${params.toString()}`,
-        );
-
-        const resDocs = res?.data?.data?.docs ?? [];
-        fetchedRemittances.push(...resDocs);
-
-        const totalPagesCount = res?.data?.data?.totalPages ?? 1;
-        hasNextPage = pg < totalPagesCount;
-        pg += 1;
-      }
-
-      const totalRemittances = fetchedRemittances.length;
-      const confirmedList = fetchedRemittances.filter(
-        (r) => r.status === "paid",
-      );
-      const pendingList = fetchedRemittances.filter(
-        (r) => r.status === "pending_confirmation",
-      );
-      const rejectedList = fetchedRemittances.filter(
-        (r) => r.status === "rejected",
+      const res = await axios.get<Blob>(
+        `${useURL}/financial/reports/remittances/pdf?${params.toString()}`,
+        { responseType: "blob" },
       );
 
-      const totalConfirmedAmount = confirmedList.reduce(
-        (sum, r) => sum + (r.amount || 0),
-        0,
-      );
-      const totalAmount = fetchedRemittances.reduce(
-        (sum, r) => sum + (r.amount || 0),
-        0,
-      );
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `RemittanceReport-${selectedYear || "All"}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
 
-      const timestamps = fetchedRemittances
-        .map((r) => new Date(r.createdAt).getTime())
-        .filter((t) => Number.isFinite(t));
-      const minTime = timestamps.length ? Math.min(...timestamps) : undefined;
-      const maxTime = timestamps.length ? Math.max(...timestamps) : undefined;
-
-      const centerMap = new Map<
-        string,
-        { remittances: number; confirmedAmount: number }
-      >();
-      fetchedRemittances.forEach((r) => {
-        const centerName = getCenterName(r);
-        const prev = centerMap.get(centerName) ?? {
-          remittances: 0,
-          confirmedAmount: 0,
-        };
-        centerMap.set(centerName, {
-          remittances: prev.remittances + 1,
-          confirmedAmount:
-            prev.confirmedAmount + (r.status === "paid" ? r.amount || 0 : 0),
-        });
-      });
-
-      const centerBreakdown = Array.from(centerMap.entries())
-        .map(([centerName, stats]) => ({
-          centerName,
-          remittances: stats.remittances,
-          confirmedAmountFormatted: formatCurrency(stats.confirmedAmount),
-        }))
-        .sort((a, b) => b.remittances - a.remittances);
-
-      const yearLabel = selectedYear || "All Years";
-      const centerLabel = selectedCenter
-        ? (centers.find((c) => c._id === selectedCenter)?.name ??
-          "Selected Center")
-        : "All Centers";
-
-      const didOpenPreview = openRemittanceReportPrintPreview({
-        report: {
-          scopeLabel: `${yearLabel} — ${centerLabel}`,
-          generatedAt: moment().format("MM/DD/YYYY, HH:mm"),
-          totalRemittances,
-          confirmedRemittances: confirmedList.length,
-          pendingRemittances: pendingList.length,
-          rejectedRemittances: rejectedList.length,
-          totalConfirmedAmountFormatted: formatCurrency(totalConfirmedAmount),
-          totalAmountFormatted: formatCurrency(totalAmount),
-          dateFrom: minTime ? moment(minTime).format("MM/DD/YYYY") : undefined,
-          dateTo: maxTime ? moment(maxTime).format("MM/DD/YYYY") : undefined,
-          centerBreakdown,
-        },
-        remittances: fetchedRemittances.map((r) => ({
-          date: moment(r.createdAt).format("MM/DD/YYYY"),
-          coordinator: getCoordinatorName(r),
-          center: getCenterName(r),
-          method: r.method === "stripe" ? "Stripe" : "Zelle",
-          amountFormatted: formatCurrency(r.amount),
-          status:
-            r.status === "paid"
-              ? "Confirmed"
-              : r.status === "pending_confirmation"
-                ? "Pending"
-                : "Rejected",
-          description: r.description || "-",
-        })),
-      });
-
-      if (!didOpenPreview) {
-        toast.error("Unable to open report preview. Please allow popups.");
-        return;
-      }
-      toast.success("Remittance report generated.");
+      toast.success("Remittance report downloaded.");
     } catch (error) {
       toast.error(handleError(error));
     } finally {
