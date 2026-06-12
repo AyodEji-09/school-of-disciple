@@ -110,7 +110,7 @@ const MyResultDetailPage = () => {
                 level="title-sm"
                 sx={{ color: "#001F54", fontWeight: 600, mt: 0.5 }}
               >
-                {recordedCount} of 10
+                {recordedCount}
               </Typography>
             </div>
             <div className="px-6 py-4 text-center sm:text-right">

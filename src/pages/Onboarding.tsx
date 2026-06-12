@@ -242,6 +242,9 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
       <div className={containerClass}>
         <div className="max-w-5xl mx-auto">
           <StepProgressBar steps={onboardingSections} currentStep={step} />
+          <div className="text-xs text-[#94A3B8] text-center mt-2">
+            Your progress is saved automatically. You can log out and continue anytime.
+          </div>
         </div>
 
         <SectionCard

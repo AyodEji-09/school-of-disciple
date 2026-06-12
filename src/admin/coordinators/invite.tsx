@@ -50,7 +50,7 @@ const AddCenterManager = () => {
       const res = await axios.post("/admin/invite-coordinator", normalizedData);
       console.log({ res });
       toast.success(res.data.message);
-      navigate("/dashboard");
+      navigate("/dashboard/coordinators");
     } catch (error) {
       console.log({ error });
       toast.error(handleError(error));
@@ -75,7 +75,9 @@ const AddCenterManager = () => {
                   label="First Name"
                   value={value}
                   onChange={onChange}
-                  onBlur={(e) => onChange(titleCaseName(e.target.value || value))}
+                  onBlur={(e) =>
+                    onChange(titleCaseName(e.target.value || value))
+                  }
                 />
               )}
             />
@@ -95,7 +97,9 @@ const AddCenterManager = () => {
                   label="Last Name"
                   value={value}
                   onChange={onChange}
-                  onBlur={(e) => onChange(titleCaseName(e.target.value || value))}
+                  onBlur={(e) =>
+                    onChange(titleCaseName(e.target.value || value))
+                  }
                 />
               )}
             />

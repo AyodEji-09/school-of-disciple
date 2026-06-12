@@ -25,7 +25,7 @@ export const useNotificationSocket = () => {
       if (!notification.isRead) {
         const labels: Record<string, string> = {
           transaction_pending: "New pending payment approval",
-          transaction_confirmed: "Payment confirmed",
+          transaction_confirmed: "Payment successful",
           transaction_rejected: "Payment rejected",
           results_published: "Results published",
           order_placed: "New manual order",

@@ -502,14 +502,16 @@ const DefaultHeader = ({
           </Box>
 
           <Box sx={{ overflowY: "auto", flexGrow: 1 }}>
-            {notifications.length === 0 ? (
+            {notifications.filter((n: any) => !(n.type === "transaction_pending" && n.isRead)).length === 0 ? (
               <Box sx={{ py: 5, px: 3, textAlign: "center" }}>
                 <Typography level="body-sm" textColor="neutral.400">
                   All caught up — no new notifications.
                 </Typography>
               </Box>
             ) : (
-              notifications.map((n: any, idx: number) => {
+              notifications
+                .filter((n: any) => !(n.type === "transaction_pending" && n.isRead))
+                .map((n: any, idx: number) => {
                 const isPendingTx =
                   n.type === "transaction_pending" && !n.isRead && isAdmin;
                 const txId = n.transactionId?._id || n.transactionId;
@@ -524,7 +526,7 @@ const DefaultHeader = ({
 
                 const typeLabel: Record<string, string> = {
                   transaction_pending: "Pending Zelle Approval",
-                  transaction_confirmed: "Payment Confirmed",
+                  transaction_confirmed: "Payment Successful",
                   transaction_rejected: "Payment Rejected",
                   results_published: "Results Published",
                   order_placed: "New Manual Order",

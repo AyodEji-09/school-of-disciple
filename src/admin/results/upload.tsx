@@ -6,8 +6,9 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Chip,
 } from "@mui/joy";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Frame from "../../components/frame/Frame";
@@ -18,6 +19,8 @@ import {
   useGetSessionsQuery,
   useGetYearsQuery,
   useCreateResultMutation,
+  useUpdateResultMutation,
+  useGetResultsQuery,
 } from "../../data/rtk/academic";
 import { useGetUsersQuery } from "../../data/rtk/user";
 import { handleError } from "../../utils";
@@ -30,18 +33,44 @@ const UploadResultPage = () => {
     typeof user?.center === "string" ? user.center : (user?.center as any)?._id;
 
   const { data: sessionsData = [] } = useGetSessionsQuery();
-  const { data: studentsRes } = useGetUsersQuery({
-    type: "user",
-    ...(coordinatorCenterId ? { center: coordinatorCenterId } : {}),
-  });
-  const [createResult, { isLoading }] = useCreateResultMutation();
+  const [createResult, { isLoading: isCreating }] = useCreateResultMutation();
+  const [updateResult, { isLoading: isUpdating }] = useUpdateResultMutation();
 
   const sessions = sessionsData as unknown as AcademicSession[];
-  const students = studentsRes?.data?.docs ?? [];
 
   const [selSession, setSelSession] = useState("");
   const [selStudent, setSelStudent] = useState("");
   const [scores, setScores] = useState<Record<string, string>>({});
+
+  const currentSession = useMemo(
+    () => sessions.find((s) => s.isCurrent) ?? null,
+    [sessions],
+  );
+
+  useEffect(() => {
+    if (!selSession && currentSession) {
+      setSelSession(currentSession._id);
+    }
+  }, [currentSession, selSession]);
+
+  const selSessionData = useMemo(
+    () => sessions.find((s) => s._id === selSession) ?? null,
+    [sessions, selSession],
+  );
+  const admissionYear = selSessionData?.startYear;
+
+  const { data: studentsRes } = useGetUsersQuery({
+    type: "user",
+    ...(coordinatorCenterId ? { center: coordinatorCenterId } : {}),
+  });
+  const allStudents = studentsRes?.data?.docs ?? [];
+  const students = useMemo(() => {
+    if (!admissionYear) return allStudents;
+    const filtered = allStudents.filter(
+      (s: any) => Number(s.admissionYear) === admissionYear,
+    );
+    return filtered.length > 0 ? filtered : allStudents;
+  }, [allStudents, admissionYear]);
 
   const { data: yearsData = [] } = useGetYearsQuery(
     selSession ? { sessionId: selSession } : undefined,
@@ -51,9 +80,33 @@ const UploadResultPage = () => {
     (a, b) => a.number - b.number,
   );
 
+  const { data: existingResults = [] } = useGetResultsQuery(
+    selStudent && selSession ? { studentId: selStudent, sessionId: selSession } : undefined,
+    { skip: !selStudent || !selSession },
+  );
+  const existingResult = useMemo(
+    () => (existingResults as StudentResult[])?.[0] ?? null,
+    [existingResults],
+  );
+
+  const isLoading = isCreating || isUpdating;
+
   useEffect(() => {
     setScores({});
+    setSelStudent("");
   }, [selSession]);
+
+  useEffect(() => {
+    if (!existingResult) return;
+    const prefilled: Record<string, string> = {};
+    for (const ys of existingResult.yearScores ?? []) {
+      const yearId = typeof ys.yearId === "string" ? ys.yearId : (ys.yearId as any)?._id;
+      if (yearId) {
+        prefilled[yearId] = String(ys.score);
+      }
+    }
+    setScores((prev) => ({ ...prev, ...prefilled }));
+  }, [existingResult]);
 
   const onScoreChange = (yearId: string, value: string) => {
     setScores((prev) => ({ ...prev, [yearId]: value }));
@@ -75,12 +128,20 @@ const UploadResultPage = () => {
     }
 
     try {
-      await createResult({
-        studentId: selStudent,
-        sessionId: selSession,
-        yearScores,
-      }).unwrap();
-      toast.success("Result uploaded successfully!");
+      if (existingResult) {
+        await updateResult({
+          id: existingResult._id,
+          yearScores,
+        }).unwrap();
+        toast.success("Result updated successfully!");
+      } else {
+        await createResult({
+          studentId: selStudent,
+          sessionId: selSession,
+          yearScores,
+        }).unwrap();
+        toast.success("Result uploaded successfully!");
+      }
       navigate("/dashboard/results");
     } catch (err) {
       toast.error(handleError(err));
@@ -91,30 +152,22 @@ const UploadResultPage = () => {
     <Frame text="Upload Student Result">
       <div className="max-w-2xl mx-auto mt-6 pb-16">
         <PageCard>
-          <Typography level="title-lg" mb={1} sx={{ color: "#001F54" }}>
-            New Result Entry
-          </Typography>
+          <Stack direction="row" alignItems="center" gap={1.5} mb={1}>
+            <Typography level="title-lg" sx={{ color: "#001F54" }}>
+              {existingResult ? "Edit Result" : "New Result Entry"}
+            </Typography>
+            {existingResult && (
+              <Chip size="sm" color="primary" variant="soft">
+                Editing existing
+              </Chip>
+            )}
+          </Stack>
           <Typography level="body-sm" textColor="neutral.500" mb={4}>
             Pick a student and session, then enter a score (0–100) for each
-            academic year (1–10). Leave a year blank to skip it.
+            academic year. Leave a year blank to skip it.
           </Typography>
 
           <div className="grid gap-5">
-            <FormControl required>
-              <FormLabel>Student</FormLabel>
-              <Select
-                placeholder="Select student"
-                value={selStudent}
-                onChange={(_, v) => setSelStudent(v as string)}
-              >
-                {students.map((s) => (
-                  <Option key={s._id} value={s._id}>
-                    {s.firstName} {s.lastName} — {s.matricNumber}
-                  </Option>
-                ))}
-              </Select>
-            </FormControl>
-
             <FormControl required>
               <FormLabel>Session</FormLabel>
               <Select
@@ -125,6 +178,21 @@ const UploadResultPage = () => {
                 {sessions.map((s) => (
                   <Option key={s._id} value={s._id}>
                     {s.name}
+                  </Option>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl required>
+              <FormLabel>Student</FormLabel>
+              <Select
+                placeholder="Select student"
+                value={selStudent}
+                onChange={(_, v) => setSelStudent(v as string)}
+              >
+                {students.map((s) => (
+                  <Option key={s._id} value={s._id}>
+                    {s.firstName} {s.lastName} — {s.matricNumber}
                   </Option>
                 ))}
               </Select>
@@ -179,7 +247,7 @@ const UploadResultPage = () => {
                 Cancel
               </AppButton>
               <AppButton onClick={onSubmit} loading={isLoading}>
-                Save Result
+                {existingResult ? "Update Result" : "Save Result"}
               </AppButton>
             </Stack>
           </div>
