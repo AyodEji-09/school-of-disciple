@@ -71,15 +71,20 @@ export const validateStep = (
     if (!isFilled(intakeForm.personalInfo?.dateOfBirth))
       missing.push("Date of Birth");
     else {
-      // verify age >= 15
       try {
         const dob = new Date(intakeForm.personalInfo!.dateOfBirth as string);
         if (!isNaN(dob.getTime())) {
-          const ageDifMs = Date.now() - dob.getTime();
-          const ageDate = new Date(ageDifMs);
-          const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-          if (age < 15)
-            missing.push("Date of Birth (must be at least 15 years old)");
+          if (dob.getTime() >= Date.now()) {
+            missing.push("Date of Birth (cannot be in the future)");
+          } else {
+            const ageDifMs = Date.now() - dob.getTime();
+            const ageDate = new Date(ageDifMs);
+            const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+            if (age < 15)
+              missing.push("Date of Birth (must be at least 15 years old)");
+            else if (age > 120)
+              missing.push("Date of Birth (age seems unrealistic)");
+          }
         }
       } catch (e) {
         // ignore parsing errors

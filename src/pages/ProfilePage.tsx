@@ -408,18 +408,27 @@ const ProfilePage = () => {
                 />
               </div>
 
-              {isCoordinator && (
+                  {isCoordinator && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-[#001F54] font-medium">
                       Birthday
                     </label>
-                    <input
-                      type="date"
-                      value={form.birthday}
-                      onChange={(e) => onChange("birthday", e.target.value)}
-                      className="w-full h-10 border border-[#CBD5E1] rounded-md px-3 mt-1 outline-none focus:border-[#001EC5]"
-                    />
+                    {(() => {
+                      const today = new Date();
+                      const pad = (n: number) => n.toString().padStart(2, "0");
+                      const minDate = `${today.getFullYear() - 120}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+                      return (
+                        <input
+                          type="date"
+                          min={minDate}
+                          max={`${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`}
+                          value={form.birthday}
+                          onChange={(e) => onChange("birthday", e.target.value)}
+                          className="w-full h-10 border border-[#CBD5E1] rounded-md px-3 mt-1 outline-none focus:border-[#001EC5]"
+                        />
+                      );
+                    })()}
                   </div>
                   <Input
                     label="Phone"

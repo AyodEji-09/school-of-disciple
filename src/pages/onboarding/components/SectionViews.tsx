@@ -54,18 +54,19 @@ export const PersonalSectionView = ({
     />
     {(() => {
       const today = new Date();
-      const minYear = today.getFullYear() - 100; // allow reasonable range
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      const minDob = `${today.getFullYear() - 120}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
       const maxDate = new Date(
         today.getFullYear() - 15,
         today.getMonth(),
         today.getDate(),
       );
-      const pad = (n: number) => n.toString().padStart(2, "0");
       const maxDob = `${maxDate.getFullYear()}-${pad(maxDate.getMonth() + 1)}-${pad(maxDate.getDate())}`;
       return (
         <Input
           label="Date of Birth"
           type="date"
+          min={minDob}
           max={maxDob}
           value={intakeForm.personalInfo?.dateOfBirth || ""}
           onChange={(e) =>

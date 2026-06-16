@@ -47,6 +47,10 @@ const SessionsSection = () => {
 
   const handleCreate = async () => {
     if (!name || !startYear || !endYear) return toast.error("Fill all fields");
+    if (Number(endYear) <= Number(startYear))
+      return toast.error("End year must be after start year");
+    if (Number(endYear) - Number(startYear) > 10)
+      return toast.error("Session span cannot exceed 10 years");
     const duplicate = sessions.find((s) => s.startYear === Number(startYear));
     if (duplicate) {
       const confirmed = window.confirm(
@@ -93,6 +97,10 @@ const SessionsSection = () => {
   const handleUpdate = async () => {
     if (!editingSession || !name || !startYear || !endYear)
       return toast.error("Fill all fields");
+    if (Number(endYear) <= Number(startYear))
+      return toast.error("End year must be after start year");
+    if (Number(endYear) - Number(startYear) > 10)
+      return toast.error("Session span cannot exceed 10 years");
     const duplicate = sessions.find(
       (s) => s._id !== editingSession._id && s.startYear === Number(startYear),
     );
@@ -166,6 +174,7 @@ const SessionsSection = () => {
               <Input
                 type="number"
                 placeholder="2025"
+                slotProps={{ input: { min: 1900, max: new Date().getFullYear() + 5 } }}
                 value={startYear}
                 onChange={(e) => setStartYear(e.target.value)}
               />
@@ -175,6 +184,7 @@ const SessionsSection = () => {
               <Input
                 type="number"
                 placeholder="2026"
+                slotProps={{ input: { min: 1901, max: new Date().getFullYear() + 5 } }}
                 value={endYear}
                 onChange={(e) => setEndYear(e.target.value)}
               />
@@ -216,6 +226,7 @@ const SessionsSection = () => {
               <Input
                 type="number"
                 placeholder="2025"
+                slotProps={{ input: { min: 1900, max: new Date().getFullYear() + 5 } }}
                 value={startYear}
                 onChange={(e) => setStartYear(e.target.value)}
               />
@@ -225,6 +236,7 @@ const SessionsSection = () => {
               <Input
                 type="number"
                 placeholder="2026"
+                slotProps={{ input: { min: 1901, max: new Date().getFullYear() + 5 } }}
                 value={endYear}
                 onChange={(e) => setEndYear(e.target.value)}
               />
