@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Frame from "../components/frame/Frame";
 import AppButton from "../components/Button/AppButton";
 import { useGetResultByIdQuery } from "../data/rtk/academic";
-import { resolveName } from "../utils/academic";
+import { resolveName, resolveId } from "../utils/academic";
 import { ArrowBack, PictureAsPdf } from "@mui/icons-material";
 import moment from "moment";
 import { TOKEN, useURL } from "../data/config";
@@ -59,16 +59,7 @@ const MyResultDetailPage = () => {
 
   const session = result.sessionId as any;
   const center = result.centerId as any;
-  const sortedYears = [...(result.yearScores ?? [])].sort((a, b) => {
-    const aNum =
-      typeof a.yearId === "string" ? 0 : (a.yearId as AcademicYear)?.number ?? 0;
-    const bNum =
-      typeof b.yearId === "string" ? 0 : (b.yearId as AcademicYear)?.number ?? 0;
-    return aNum - bNum;
-  });
-  const recordedCount = sortedYears.filter(
-    (ys) => ys.score !== undefined && ys.score !== null,
-  ).length;
+  const yearScores = result.yearScores ?? [];
 
   return (
     <Frame text="Academic Report Card">
@@ -110,7 +101,7 @@ const MyResultDetailPage = () => {
                 level="title-sm"
                 sx={{ color: "#001F54", fontWeight: 600, mt: 0.5 }}
               >
-                {recordedCount}
+                {yearScores.length}
               </Typography>
             </div>
             <div className="px-6 py-4 text-center sm:text-right">
@@ -140,36 +131,35 @@ const MyResultDetailPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {sortedYears.map((ys) => {
+                {yearScores.map((ys) => {
                   const yr = ys.yearId as any;
-                  const yearId = yr?._id ?? String(ys.yearId);
                   return (
                     <tr
-                      key={yearId}
+                      key={resolveId(ys.yearId)}
                       className="border-t border-[#F1F5F9] hover:bg-[#F8FAFC]"
                     >
                       <td className="px-6 py-3.5 font-medium text-[#001F54]">
-                        {yr?.name ?? "—"}
+                        {resolveName(yr)}
                       </td>
                       <td className="px-6 py-3.5 text-center">
-                        <span className="inline-flex items-baseline gap-1 font-bold text-[#001F54]">
-                          {ys.score}
-                          <span className="text-xs font-medium text-[#94A3B8]">
-                            / 100
+                        {ys.score !== null && ys.score !== undefined ? (
+                          <span className="inline-flex items-baseline gap-1 font-bold text-[#001F54]">
+                            {ys.score}
+                            <span className="text-xs font-medium text-[#94A3B8]">
+                              / 100
+                            </span>
                           </span>
-                        </span>
-                      </td>
-                      <td className="px-6 py-3.5 text-[#475569]">
-                        {ys.remark ? (
-                          ys.remark
                         ) : (
                           <span className="text-[#94A3B8]">—</span>
                         )}
                       </td>
+                      <td className="px-6 py-3.5 text-[#475569]">
+                        {ys.remark || <span className="text-[#94A3B8]">—</span>}
+                      </td>
                     </tr>
                   );
                 })}
-                {sortedYears.length === 0 && (
+                {yearScores.length === 0 && (
                   <tr>
                     <td
                       colSpan={3}

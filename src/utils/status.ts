@@ -42,12 +42,14 @@ export const MANUAL_ORDER_STATUS: Record<string, StatusEntry> = {
 
 export const RESULT_STATUS: Record<string, StatusEntry> = {
   draft: { label: "Draft", color: "warning" },
+  draft_pending: { label: "Draft Pending", color: "warning" },
   published: { label: "Published", color: "success" },
 };
 
 export const CENTER_RESULT_STATUS: Record<string, StatusEntry> = {
   not_uploaded: { label: "Not Uploaded", color: "neutral" },
   draft: { label: "Drafts Pending", color: "warning" },
+  draft_pending: { label: "Draft Pending", color: "warning" },
   published: { label: "Published", color: "success" },
 };
 

@@ -1,9 +1,9 @@
-import { Typography, Stack } from "@mui/joy";
+import { Typography, Stack, Chip } from "@mui/joy";
 import { useNavigate, useParams } from "react-router-dom";
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
-import { useGetResultByIdQuery } from "../../data/rtk/academic";
-import { resolveName } from "../../utils/academic";
+import { useGetResultByIdQuery, useGetYearsQuery } from "../../data/rtk/academic";
+import { resolveName, resolveId } from "../../utils/academic";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import { TOKEN, useURL } from "../../data/config";
@@ -26,6 +26,11 @@ const ResultDetailPage = () => {
   const user = useAppSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
   const { data: result, isLoading } = useGetResultByIdQuery(id!);
+  const sessionId = resolveId((result as any)?.sessionId);
+  const { data: allYears = [] } = useGetYearsQuery(
+    sessionId ? { sessionId } : undefined,
+    { skip: !sessionId },
+  );
 
   const handlePrintOrDownload = () => {
     const token = localStorage.getItem(TOKEN);
@@ -56,11 +61,48 @@ const ResultDetailPage = () => {
   const student = result.studentId as any;
   const center = result.centerId as any;
   const session = result.sessionId as any;
-  const yearScores = result.yearScores ?? [];
-  const recordedCount = yearScores.filter(
-    (ys) => ys.score !== undefined && ys.score !== null,
-  ).length;
   const isPublished = result.status === "published";
+  const hasDraft = (result as any).draftYearScores?.length > 0;
+
+  const activeScores = (result as any).draftYearScores?.length
+    ? (result as any).draftYearScores
+    : result.yearScores ?? [];
+
+  const academicYears = (allYears as unknown as AcademicYear[]).slice().sort(
+    (a, b) => a.number - b.number,
+  );
+
+  const ysMap = new Map(
+    activeScores.map((ys: any) => [resolveId(ys.yearId), ys]),
+  );
+
+  const publishedScoresMap = new Map(
+    ((result as any).yearScores ?? []).map((ys: any) => [
+      resolveId(ys.yearId),
+      ys,
+    ]),
+  );
+
+  const getYearStatus = (yearId: string, score: number | null) => {
+    if (score === null || score === undefined) return null;
+    if (!hasDraft) return "Published";
+    const published = publishedScoresMap.get(yearId);
+    if (!published) return "Draft";
+    return published.score === score ? "Published" : "Modified";
+  };
+
+  const mergedYears = academicYears.map((y) => {
+    const ys = ysMap.get(y._id);
+    return {
+      yearId: y,
+      score: ys?.score ?? null,
+      remark: ys?.remark ?? null,
+    };
+  });
+
+  const recordedCount = mergedYears.filter(
+    (ys) => ys.score !== null && ys.score !== undefined,
+  ).length;
 
   return (
     <Frame text="Result Detail">
@@ -132,7 +174,7 @@ const ResultDetailPage = () => {
                 level="title-sm"
                 sx={{ color: "#001F54", fontWeight: 600, mt: 0.5 }}
               >
-                {isPublished ? "Published" : "Draft"}
+                {isPublished ? (hasDraft ? "Published (draft)" : "Published") : "Draft"}
               </Typography>
             </div>
           </div>
@@ -147,30 +189,65 @@ const ResultDetailPage = () => {
                   <TableHeaderCell className="text-right">
                     Score
                   </TableHeaderCell>
+                  <TableHeaderCell className="text-left">
+                    Remark
+                  </TableHeaderCell>
+                  <TableHeaderCell className="text-center">
+                    Status
+                  </TableHeaderCell>
                 </tr>
               </TableHeader>
               <TableBody>
-                {yearScores.map((ys) => {
+                {mergedYears.map((ys) => {
                   const yr = ys.yearId as any;
+                  const status = getYearStatus(yr._id, ys.score);
+                  const statusColor =
+                    status === "Published"
+                      ? "text-green-600"
+                      : status === "Draft"
+                        ? "text-yellow-600"
+                        : status === "Modified"
+                          ? "text-orange-600"
+                          : "text-[#94A3B8]";
                   return (
-                    <TableRow key={String(yr?._id ?? Math.random())}>
+                    <TableRow key={yr._id}>
                       <TableCell>
                         <span className="font-semibold text-[#001F54]">
                           {yr?.name ?? <EmptyValue />}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="inline-flex items-baseline gap-1 font-bold text-[#001F54]">
-                          {ys.score}
-                          <span className="text-xs font-medium text-[#94A3B8]">
-                            / 100
+                        {ys.score !== null ? (
+                          <span className="inline-flex items-baseline gap-1 font-bold text-[#001F54]">
+                            {ys.score}
+                            <span className="text-xs font-medium text-[#94A3B8]">
+                              / 100
+                            </span>
                           </span>
-                        </span>
+                        ) : (
+                          <span className="text-[#94A3B8]">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {ys.remark ? (
+                          ys.remark
+                        ) : (
+                          <span className="text-[#94A3B8]">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {status ? (
+                          <span className={`text-xs font-semibold ${statusColor}`}>
+                            {status}
+                          </span>
+                        ) : (
+                          <span className="text-[#94A3B8]">—</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
                 })}
-                {yearScores.length === 0 && (
+                {mergedYears.length === 0 && (
                   <TableRow>
                     <TableCell className="text-center text-[#94A3B8] py-8">
                       No year scores recorded.
@@ -182,6 +259,16 @@ const ResultDetailPage = () => {
           </div>
         </PageCard>
 
+        {hasDraft && (
+          <Chip
+            color="warning"
+            variant="soft"
+            size="sm"
+            sx={{ alignSelf: "center", mr: "auto" }}
+          >
+            Draft pending publish
+          </Chip>
+        )}
         <Stack
           direction="row"
           gap={2}

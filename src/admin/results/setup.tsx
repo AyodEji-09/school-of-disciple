@@ -297,7 +297,7 @@ const YearsSection = () => {
   return (
     <PageCard
       title="Academic Years"
-      subtitle="10 years (Year 1–Year 10) are auto-generated for each session"
+      subtitle="Years are auto-generated when a session is created"
     >
       <FormControl size="sm" sx={{ mb: 4, maxWidth: 320 }}>
         <FormLabel>Select Session</FormLabel>
@@ -323,25 +323,26 @@ const YearsSection = () => {
           <CenteredEmptyState description="No years returned for this session. Confirm the session was created after the year-generation feature was enabled." />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            {sortedYears.map((y) => (
-              <div
-                key={y._id}
-                className="border border-[#E6ECFF] rounded-xl p-3 text-center bg-[#F8FAFC]"
-              >
-                <Typography level="body-xs" textColor="neutral.500">
-                  Year
-                </Typography>
-                <Typography
-                  level="title-lg"
-                  sx={{ color: "#001F54", fontWeight: 800 }}
+            {sortedYears.map((y) => {
+              const isTheory = /^theory/i.test(y.name);
+              const numMatch = y.name.match(/(\d+)/);
+              return (
+                <div
+                  key={y._id}
+                  className="border border-[#E6ECFF] rounded-xl p-3 text-center bg-[#F8FAFC]"
                 >
-                  {y.number}
-                </Typography>
-                <Typography level="body-xs" textColor="neutral.500">
-                  {y.name}
-                </Typography>
-              </div>
-            ))}
+                  <Typography level="body-xs" textColor="neutral.500">
+                    {isTheory ? "Theory" : "Year"}
+                  </Typography>
+                  <Typography
+                    level="title-lg"
+                    sx={{ color: "#001F54", fontWeight: 800 }}
+                  >
+                    {numMatch ? numMatch[1] : y.number}
+                  </Typography>
+                </div>
+              );
+            })}
           </div>
         ))}
 

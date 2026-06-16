@@ -90,6 +90,24 @@ const UploadResultPage = () => {
   );
 
   const isLoading = isCreating || isUpdating;
+  const isPublished = existingResult?.status === "published";
+  const existingScores = (existingResult as any)?.draftYearScores?.length
+    ? (existingResult as any).draftYearScores
+    : existingResult?.yearScores ?? [];
+  const scoredYearIds = useMemo(() => {
+    if (!existingResult) return new Set<string>();
+    const set = new Set<string>();
+    for (const ys of existingScores) {
+      const yearId =
+        typeof ys.yearId === "string"
+          ? ys.yearId
+          : (ys.yearId as any)?._id;
+      if (yearId && ys.score !== null && ys.score !== undefined) {
+        set.add(yearId);
+      }
+    }
+    return set;
+  }, [existingResult]);
 
   useEffect(() => {
     setScores({});
@@ -99,7 +117,7 @@ const UploadResultPage = () => {
   useEffect(() => {
     if (!existingResult) return;
     const prefilled: Record<string, string> = {};
-    for (const ys of existingResult.yearScores ?? []) {
+    for (const ys of existingScores) {
       const yearId = typeof ys.yearId === "string" ? ys.yearId : (ys.yearId as any)?._id;
       if (yearId) {
         prefilled[yearId] = String(ys.score);
@@ -117,11 +135,14 @@ const UploadResultPage = () => {
     if (!selSession) return toast.error("Select a session");
 
     const yearScores = years
-      .map((y) => ({
-        yearId: y._id,
-        score: Number(scores[y._id] ?? 0),
-      }))
-      .filter((ys) => !Number.isNaN(ys.score));
+      .map((y) => {
+        const raw = scores[y._id];
+        if (raw === undefined || raw === "") return null;
+        const value = Number(raw);
+        if (Number.isNaN(value)) return null;
+        return { yearId: y._id, score: value };
+      })
+      .filter((x): x is { yearId: string; score: number } => x !== null);
 
     if (yearScores.length === 0) {
       return toast.error("Enter at least one year score");
@@ -199,9 +220,22 @@ const UploadResultPage = () => {
             </FormControl>
 
             <div>
-              <Typography level="title-sm" mb={2} sx={{ color: "#001F54" }}>
+              <Typography level="title-sm" mb={1} sx={{ color: "#001F54" }}>
                 Year Scores
               </Typography>
+              {isPublished && (
+                <Typography
+                  level="body-sm"
+                  textColor="warning.500"
+                  mb={2}
+                  p={1.5}
+                  bgcolor="warning.50"
+                  borderRadius="md"
+                >
+                  Changes are saved as a draft. Students will still see the
+                  published version until you publish the draft.
+                </Typography>
+              )}
               {!selSession ? (
                 <div className="text-sm text-[#94A3B8] bg-[#F8FAFC] border border-dashed border-[#E6ECFF] rounded-xl p-6 text-center">
                   Select a session to load its 10 academic years.
@@ -221,6 +255,11 @@ const UploadResultPage = () => {
                         <Typography level="body-xs" textColor="neutral.500">
                           {y.name}
                         </Typography>
+                        {scoredYearIds.has(y._id) && (
+                          <Chip size="sm" color="success" variant="soft" sx={{ mt: 0.5 }}>
+                            Saved
+                          </Chip>
+                        )}
                       </div>
                       <FormControl sx={{ flex: 1 }}>
                         <Input
@@ -246,7 +285,7 @@ const UploadResultPage = () => {
               >
                 Cancel
               </AppButton>
-              <AppButton onClick={onSubmit} loading={isLoading}>
+              <AppButton onClick={onSubmit} loading={isLoading} disabled={isLoading}>
                 {existingResult ? "Update Result" : "Save Result"}
               </AppButton>
             </Stack>

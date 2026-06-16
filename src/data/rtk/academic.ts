@@ -243,7 +243,7 @@ export const academicApi = createApi({
         }
         return { message: "", data: res as BulkUploadResult };
       },
-      invalidatesTags: ["ResultList"],
+      invalidatesTags: ["ResultList", "Result"],
     }),
     publishSessionResults: builder.mutation<
       MessageOnlyResponse,
@@ -254,7 +254,7 @@ export const academicApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["ResultList", "SessionList"],
+      invalidatesTags: ["ResultList", "SessionList", "Result"],
     }),
 
     // ── Sessions & Years ─────────────────────────────────────────────────────

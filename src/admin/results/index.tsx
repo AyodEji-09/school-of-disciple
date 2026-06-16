@@ -92,6 +92,15 @@ const ResultsPage = () => {
     () => results.filter((r) => r.status === "draft").length,
     [results],
   );
+  const pendingCount = useMemo(
+    () =>
+      results.filter(
+        (r) =>
+          r.status === "draft" ||
+          ((r as any).draftYearScores?.length ?? 0) > 0,
+      ).length,
+    [results],
+  );
   const selectedSession = sessions.find((s) => s._id === sessionId);
 
   const handlePublishAll = async () => {
@@ -139,6 +148,25 @@ const ResultsPage = () => {
                 </div>
               );
             })}
+            {(() => {
+              const n = results.filter(
+                (r) =>
+                  r.status === "published" &&
+                  ((r as any).draftYearScores?.length ?? 0) > 0,
+              ).length;
+              if (n === 0) return null;
+              return (
+                <div className="bg-white border border-[#E6ECFF] rounded-2xl px-5 py-4 flex items-center gap-3 min-w-[180px]">
+                  <StatusBadge status="draft_pending" map={RESULT_STATUS} />
+                  <Typography
+                    level="title-lg"
+                    sx={{ color: "#001F54", fontWeight: 700 }}
+                  >
+                    {n}
+                  </Typography>
+                </div>
+              );
+            })()}
           </Stack>
         )}
 
@@ -166,11 +194,10 @@ const ResultsPage = () => {
               >
                 Bulk Upload (Excel)
               </AppButton>
-              {draftCount > 0 && (
+              {pendingCount > 0 && (
                 <AppButton onClick={() => setConfirmPublish(true)}>
                   <RocketLaunch sx={{ fontSize: 16, mr: 0.5 }} />
-                  Publish {draftCount} Draft
-                  {draftCount === 1 ? "" : "s"}
+                  Publish {pendingCount} Item{pendingCount === 1 ? "" : "s"}
                 </AppButton>
               )}
             </Stack>
@@ -286,11 +313,16 @@ const ResultsPage = () => {
                       const centerStatus: keyof typeof CENTER_RESULT_STATUS =
                         totalUploaded === 0
                           ? "not_uploaded"
-                          : centerResults.every(
-                                (r) => r.status === "published",
-                              )
-                            ? "published"
-                            : "draft";
+                          : centerResults.some((r) => r.status === "draft")
+                            ? "draft"
+                            : centerResults.some(
+                                  (r) =>
+                                    r.status === "published" &&
+                                    ((r as any).draftYearScores?.length ?? 0) >
+                                      0,
+                                )
+                              ? "draft_pending"
+                              : "published";
 
                       return (
                         <TableRow key={center._id}>
@@ -368,7 +400,12 @@ const ResultsPage = () => {
                           </TableCell>
                           <TableCell>
                             <StatusBadge
-                              status={r.status}
+                              status={
+                                r.status === "published" &&
+                                ((r as any).draftYearScores?.length ?? 0) > 0
+                                  ? "draft_pending"
+                                  : r.status
+                              }
                               map={RESULT_STATUS}
                             />
                           </TableCell>
@@ -427,17 +464,12 @@ const ResultsPage = () => {
               <Box>
                 <Typography level="body-md">
                   You are about to publish{" "}
-                  <strong>{draftCount}</strong> draft result
-                  {draftCount === 1 ? "" : "s"} for{" "}
+                  <strong>{pendingCount}</strong> item{pendingCount === 1 ? "" : "s"} for{" "}
                   <strong>{selectedSession?.name ?? "this session"}</strong>.
-                  Once published, students will see their results and may
-                  request score corrections.
+                  Draft changes will be applied and students will see the
+                  updated results.
                 </Typography>
               </Box>
-              <Typography level="body-sm" textColor="warning.500">
-                ⚠ You can still edit a published result afterwards, but
-                students may submit correction requests on any year.
-              </Typography>
             </Stack>
           </DialogContent>
           <Stack direction="row" gap={1.5} justifyContent="flex-end" mt={2}>
