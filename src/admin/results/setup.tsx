@@ -47,6 +47,13 @@ const SessionsSection = () => {
 
   const handleCreate = async () => {
     if (!name || !startYear || !endYear) return toast.error("Fill all fields");
+    const duplicate = sessions.find((s) => s.startYear === Number(startYear));
+    if (duplicate) {
+      const confirmed = window.confirm(
+        `"${duplicate.name}" already has start year ${startYear}.\n\nCreating another session with the same start year may cause ambiguity when linking students by admission year.\n\nProceed anyway?`,
+      );
+      if (!confirmed) return;
+    }
     try {
       await createSession({
         name,
@@ -86,6 +93,15 @@ const SessionsSection = () => {
   const handleUpdate = async () => {
     if (!editingSession || !name || !startYear || !endYear)
       return toast.error("Fill all fields");
+    const duplicate = sessions.find(
+      (s) => s._id !== editingSession._id && s.startYear === Number(startYear),
+    );
+    if (duplicate) {
+      const confirmed = window.confirm(
+        `"${duplicate.name}" already has start year ${startYear}.\n\nUpdating this session to share the same start year may cause ambiguity when linking students by admission year.\n\nProceed anyway?`,
+      );
+      if (!confirmed) return;
+    }
     try {
       await updateSession({
         id: editingSession._id,

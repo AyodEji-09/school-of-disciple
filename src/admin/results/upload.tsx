@@ -53,24 +53,11 @@ const UploadResultPage = () => {
     }
   }, [currentSession, selSession]);
 
-  const selSessionData = useMemo(
-    () => sessions.find((s) => s._id === selSession) ?? null,
-    [sessions, selSession],
-  );
-  const admissionYear = selSessionData?.startYear;
-
   const { data: studentsRes } = useGetUsersQuery({
     type: "user",
     ...(coordinatorCenterId ? { center: coordinatorCenterId } : {}),
   });
-  const allStudents = studentsRes?.data?.docs ?? [];
-  const students = useMemo(() => {
-    if (!admissionYear) return allStudents;
-    const filtered = allStudents.filter(
-      (s: any) => Number(s.admissionYear) === admissionYear,
-    );
-    return filtered.length > 0 ? filtered : allStudents;
-  }, [allStudents, admissionYear]);
+  const students = studentsRes?.data?.docs ?? [];
 
   const { data: yearsData = [] } = useGetYearsQuery(
     selSession ? { sessionId: selSession } : undefined,
@@ -213,7 +200,7 @@ const UploadResultPage = () => {
               >
                 {students.map((s) => (
                   <Option key={s._id} value={s._id}>
-                    {s.firstName} {s.lastName} — {s.matricNumber}
+                    {s.firstName} {s.lastName} — {s.matricNumber} {s.admissionYear ? `(admitted ${s.admissionYear})` : ""}
                   </Option>
                 ))}
               </Select>

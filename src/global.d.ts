@@ -27,6 +27,7 @@ type User = {
   phone: string;
   departmentCode: string;
   admissionYear: number;
+  admissionSessionId?: string;
   academicYear?: string;
   matricNumber: string;
   paymentStatus: string;
