@@ -32,7 +32,7 @@ import {
 import { resolveId, resolveName } from "../../utils/academic";
 import moment from "moment";
 import { toast } from "react-toastify";
-import { handleError } from "../../utils";
+import { handleError, getUserFullName } from "../../utils";
 import PageCard from "../../components/feedback/PageCard";
 import StatusBadge from "../../components/feedback/StatusBadge";
 import {
@@ -387,7 +387,7 @@ const ResultsPage = () => {
                       return (
                         <TableRow key={r._id}>
                           <TableCell>
-                            {student?.firstName} {student?.lastName}
+                            {getUserFullName(student)}
                           </TableCell>
                           <TableCell>
                             {student?.matricNumber ?? <EmptyValue />}

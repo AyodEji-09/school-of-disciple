@@ -4,7 +4,7 @@ import moment from "moment";
 import { toast } from "react-toastify";
 
 import Frame from "../../components/frame/Frame";
-import { handleError } from "../../utils";
+import { handleError, getUserFullName } from "../../utils";
 import { TableSkeleton } from "../../components/query-state/QueryStates";
 import PageCard from "../../components/feedback/PageCard";
 import StatusBadge from "../../components/feedback/StatusBadge";
@@ -43,11 +43,7 @@ const PendingApprovalsPage = () => {
 
   const getPayerName = (t: any) => {
     if (!t.createdBy) return null;
-    const first = t.createdBy.firstName || "";
-    const last = t.createdBy.lastName || "";
-    return (
-      `${first} ${last}`.trim() || t.createdBy.email || null
-    );
+    return getUserFullName(t.createdBy) || t.createdBy.email || null;
   };
 
   const getCenterName = (t: any) => t.center?.name || null;

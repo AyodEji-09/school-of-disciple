@@ -23,7 +23,7 @@ import {
   useGetResultsQuery,
 } from "../../data/rtk/academic";
 import { useGetUsersQuery } from "../../data/rtk/user";
-import { handleError } from "../../utils";
+import { handleError, getUserFullName } from "../../utils";
 import PageCard from "../../components/feedback/PageCard";
 
 const UploadResultPage = () => {
@@ -200,7 +200,7 @@ const UploadResultPage = () => {
               >
                 {students.map((s) => (
                   <Option key={s._id} value={s._id}>
-                    {s.firstName} {s.lastName} — {s.matricNumber} {s.admissionYear ? `(admitted ${s.admissionYear})` : ""}
+                    {getUserFullName(s)} — {s.matricNumber} {s.admissionYear ? `(admitted ${s.admissionYear})` : ""}
                   </Option>
                 ))}
               </Select>

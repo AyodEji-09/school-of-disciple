@@ -28,7 +28,7 @@ import {
   CenteredEmptyState,
   TableSkeleton,
 } from "../../components/query-state/QueryStates";
-import { handleError } from "../../utils";
+import { handleError, getUserFullName } from "../../utils";
 import moment from "moment";
 import PageCard from "../../components/feedback/PageCard";
 import StatusBadge from "../../components/feedback/StatusBadge";
@@ -256,7 +256,7 @@ const CorrectionsPage = () => {
                       <TableRow key={c._id}>
                         <TableCell>
                           <div className="font-semibold text-[#001F54]">
-                            {student?.firstName} {student?.lastName}
+                            {getUserFullName(student)}
                           </div>
                           <div className="text-xs text-[#94A3B8]">
                             {student?.matricNumber ?? "—"}
@@ -328,8 +328,7 @@ const CorrectionsPage = () => {
                                 onClick={() =>
                                   handleApprove(
                                     c._id,
-                                    `${student?.firstName ?? ""} ${student?.lastName ?? ""}`.trim() ||
-                                      "student",
+                                    getUserFullName(student) || "student",
                                   )
                                 }
                                 loading={actionId === c._id}
@@ -343,7 +342,7 @@ const CorrectionsPage = () => {
                                 onClick={() =>
                                   setRejectFor({
                                     id: c._id,
-                                    studentName: `${student?.firstName ?? ""} ${student?.lastName ?? ""}`.trim(),
+                                    studentName: getUserFullName(student),
                                     yearName: yr?.name ?? "Year",
                                   })
                                 }

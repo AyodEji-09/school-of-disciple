@@ -9,7 +9,7 @@ import {
   useUpdateResultMutation,
   useGetYearsQuery,
 } from "../../data/rtk/academic";
-import { handleError } from "../../utils";
+import { handleError, getUserFullName } from "../../utils";
 import PageCard from "../../components/feedback/PageCard";
 import { PageLoader } from "../../components/query-state/QueryStates";
 import { resolveId } from "../../utils/academic";
@@ -97,7 +97,7 @@ const EditResultPage = () => {
             <div>
               <span className="text-[#94A3B8] text-xs block">Student</span>
               <span className="font-semibold text-[#001F54]">
-                {student?.firstName} {student?.lastName}
+                {getUserFullName(student)}
               </span>
             </div>
             <div>

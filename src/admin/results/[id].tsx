@@ -4,6 +4,7 @@ import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
 import { useGetResultByIdQuery, useGetYearsQuery } from "../../data/rtk/academic";
 import { resolveName, resolveId } from "../../utils/academic";
+import { getUserFullName } from "../../utils";
 import { useAppSelector } from "../../data/hooks";
 import { selectUser } from "../../data/selectors/authSelector";
 import { TOKEN, useURL } from "../../data/config";
@@ -114,7 +115,7 @@ const ResultDetailPage = () => {
                 level="h3"
                 sx={{ color: "#001F54", fontWeight: 800 }}
               >
-                {student?.firstName} {student?.lastName}
+                {getUserFullName(student)}
               </Typography>
               <Typography
                 level="body-sm"
