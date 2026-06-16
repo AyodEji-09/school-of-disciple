@@ -11,6 +11,10 @@ import Frame from "../../components/frame/Frame";
 
 interface FormType {
   name: string;
+  shortCode: string;
+  province: string;
+  zone: string;
+  zoneShortCode: string;
   address: string;
   city: string;
   state: string;
@@ -29,6 +33,10 @@ const AddCenter = () => {
   } = useForm({
     defaultValues: {
       name: "",
+      shortCode: "",
+      province: "",
+      zone: "",
+      zoneShortCode: "",
       address: "",
       city: "",
       state: "",
@@ -87,6 +95,74 @@ const AddCenter = () => {
                       This field is required.
                     </p>
                   )}
+                </div>
+                <div>
+                  <Controller
+                    name="shortCode"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <>
+                        <Input
+                          label="Center Short Code"
+                          value={value}
+                          onChange={onChange}
+                        />
+                        <p className="text-[#94A3B8] text-xs mt-1">
+                          Used in matric number generation.
+                        </p>
+                      </>
+                    )}
+                  />
+                  {errors.shortCode && (
+                    <p className="text-[#dc2626] text-xs">
+                      This field is required.
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Controller
+                    name="province"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Input
+                        label="Province"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                </div>
+                <div>
+                  <Controller
+                    name="zone"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Input
+                        label="Zone"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                </div>
+                <div>
+                  <Controller
+                    name="zoneShortCode"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <>
+                        <Input
+                          label="Zone Short Code"
+                          value={value}
+                          onChange={onChange}
+                        />
+                        <p className="text-[#94A3B8] text-xs mt-1">
+                          Used in matric number generation.
+                        </p>
+                      </>
+                    )}
+                  />
                 </div>
                 <div>
                   <Controller

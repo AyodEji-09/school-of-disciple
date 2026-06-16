@@ -125,6 +125,10 @@ type ApiError = {
 type Center = {
   _id: string;
   name: string;
+  shortCode: string;
+  province?: string;
+  zone?: string;
+  zoneShortCode?: string;
   address: string;
   city?: string;
   state?: string;

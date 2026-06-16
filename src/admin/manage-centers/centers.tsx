@@ -49,6 +49,10 @@ import { COORDINATOR_STATUS } from "../../utils/status";
 
 interface FormType {
   name: string;
+  shortCode: string;
+  province: string;
+  zone: string;
+  zoneShortCode: string;
   address: string;
   city: string;
   state: string;
@@ -154,6 +158,10 @@ const Centers = () => {
   } = useForm({
     defaultValues: {
       name: selectedCenter?.name || "",
+      shortCode: selectedCenter?.shortCode || "",
+      province: selectedCenter?.province || "",
+      zone: selectedCenter?.zone || "",
+      zoneShortCode: selectedCenter?.zoneShortCode || "",
       address: selectedCenter?.address || "",
       city: selectedCenter?.city || "",
       state: selectedCenter?.state || "",
@@ -196,6 +204,10 @@ const Centers = () => {
   useEffect(() => {
     if (selectedCenter) {
       setValue("name", selectedCenter?.name);
+      setValue("shortCode", selectedCenter?.shortCode || "");
+      setValue("province", selectedCenter?.province || "");
+      setValue("zone", selectedCenter?.zone || "");
+      setValue("zoneShortCode", selectedCenter?.zoneShortCode || "");
       setValue("address", selectedCenter?.address);
       setValue("city", selectedCenter?.city || "");
       setValue("state", selectedCenter?.state || "");
@@ -242,8 +254,9 @@ const Centers = () => {
                 <TableHeader>
                   <tr>
                     <TableHeaderCell>Name</TableHeaderCell>
+                    <TableHeaderCell>Short Code</TableHeaderCell>
                     <TableHeaderCell>Address</TableHeaderCell>
-                    <TableHeaderCell>Center manager</TableHeaderCell>
+                    <TableHeaderCell>Manager</TableHeaderCell>
                     <TableHeaderCell>Status</TableHeaderCell>
                     <TableHeaderCell>Action</TableHeaderCell>
                   </tr>
@@ -254,6 +267,9 @@ const Centers = () => {
                       <TableRow key={idx}>
                         <TableCell>
                           <AvatarText text={center?.name} />
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-mono text-xs uppercase">{center.shortCode}</span>
                         </TableCell>
                         <TableCell>{formatCenterAddress(center)}</TableCell>
                         <TableCell>
@@ -413,6 +429,74 @@ const Centers = () => {
                       This field is required.
                     </p>
                   )}
+                </div>
+                <div>
+                  <Controller
+                    name="shortCode"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <>
+                        <Input
+                          label="Center Short Code"
+                          value={value}
+                          onChange={onChange}
+                        />
+                        <p className="text-[#94A3B8] text-xs mt-1">
+                          Used in matric number generation.
+                        </p>
+                      </>
+                    )}
+                  />
+                  {errors.shortCode && (
+                    <p className="text-[#dc2626] text-xs">
+                      This field is required.
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Controller
+                    name="province"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Input
+                        label="Province"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                </div>
+                <div>
+                  <Controller
+                    name="zone"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Input
+                        label="Zone"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                </div>
+                <div>
+                  <Controller
+                    name="zoneShortCode"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <>
+                        <Input
+                          label="Zone Short Code"
+                          value={value}
+                          onChange={onChange}
+                        />
+                        <p className="text-[#94A3B8] text-xs mt-1">
+                          Used in matric number generation.
+                        </p>
+                      </>
+                    )}
+                  />
                 </div>
                 <div className="md:col-span-2">
                   <Controller
