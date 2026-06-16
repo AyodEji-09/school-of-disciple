@@ -22,15 +22,17 @@ export const paymentApi = createApi({
         page?: number | null;
         center?: string;
         academicYear?: string;
+        sessionId?: string;
       }
     >({
-      query: ({ limit = 20, search, center, academicYear, page = 1 }) => {
+      query: ({ limit = 20, search, center, academicYear, sessionId, page = 1 }) => {
         const params = new URLSearchParams();
 
         if (page != null) params.set("page", String(page));
         if (limit != null) params.set("limit", String(limit));
         if (center) params.set("center", center);
         if (academicYear) params.set("academicYear", academicYear);
+        if (sessionId) params.set("sessionId", sessionId);
 
         if (search) {
           params.set("search", search);

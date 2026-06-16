@@ -57,20 +57,19 @@ const CreditAdminPage = () => {
   const [isZelleModalOpen, setIsZelleModalOpen] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [description, setDescription] = useState("");
-  const [academicYear, setAcademicYear] = useState<string>("");
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
 
   const { data: sessions = [] } = useGetSessionsQuery();
-  const academicYears = sessions.map((s) => s.name);
 
   useEffect(() => {
-    if (academicYear) return;
+    if (selectedSessionId) return;
     const current = sessions.find((s) => s.isCurrent);
-    if (current?.name) setAcademicYear(current.name);
-  }, [sessions, academicYear]);
+    if (current?._id) setSelectedSessionId(current._id);
+  }, [sessions, selectedSessionId]);
 
   const { data: remittances, isLoading } = useGetRemittancesQuery({
     limit: 50,
-    ...(academicYear ? { academicYear } : {}),
+    ...(selectedSessionId ? { sessionId: selectedSessionId } : {}),
   });
   const { data: zelleDetailsRes } = useGetZelleDetailsQuery(undefined, {
     // Skip if the modal isn't open to avoid unnecessary requests
@@ -298,16 +297,16 @@ const CreditAdminPage = () => {
                 <FormLabel>Academic Session</FormLabel>
                 <Select
                   size="sm"
-                  value={academicYear}
+                  value={selectedSessionId}
                   onChange={(_, val) =>
-                    setAcademicYear((val as string) ?? "")
+                    setSelectedSessionId((val as string) ?? "")
                   }
                   placeholder="All sessions"
                 >
                   <Option value="">All sessions</Option>
-                  {academicYears.map((year) => (
-                    <Option key={year} value={year}>
-                      {year}
+                  {sessions.map((s) => (
+                    <Option key={s._id} value={s._id}>
+                      {s.name}
                     </Option>
                   ))}
                 </Select>

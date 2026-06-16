@@ -41,26 +41,25 @@ const formatCurrency = (cents: number) =>
 const ManualOrdersPage = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [academicYear, setAcademicYear] = useState<string>("");
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const { data: sessions = [] } = useGetSessionsQuery();
-  const academicYears = sessions.map((s) => s.name);
 
   useEffect(() => {
-    if (academicYear) return;
+    if (selectedSessionId) return;
     const current = sessions.find((s) => s.isCurrent);
-    if (current?.name) setAcademicYear(current.name);
-  }, [sessions, academicYear]);
+    if (current?._id) setSelectedSessionId(current._id);
+  }, [sessions, selectedSessionId]);
 
   useEffect(() => {
     setPage(1);
-  }, [academicYear]);
+  }, [selectedSessionId]);
 
   const { data: manualOrdersRes, isLoading } = useGetManualOrdersQuery({
     limit: 10,
     page,
-    ...(academicYear ? { academicYear } : {}),
+    ...(selectedSessionId ? { sessionId: selectedSessionId } : {}),
   });
   const [uploadReceipt, { isLoading: uploadingReceipt }] =
     useUploadManualOrderReceiptMutation();
@@ -110,16 +109,16 @@ const ManualOrdersPage = () => {
               <FormLabel>Academic Session</FormLabel>
               <Select
                 size="sm"
-                value={academicYear}
+                value={selectedSessionId}
                 onChange={(_, val) =>
-                  setAcademicYear((val as string) ?? "")
+                  setSelectedSessionId((val as string) ?? "")
                 }
                 placeholder="All sessions"
               >
                 <Option value="">All sessions</Option>
-                {academicYears.map((year) => (
-                  <Option key={year} value={year}>
-                    {year}
+                {sessions.map((s) => (
+                  <Option key={s._id} value={s._id}>
+                    {s.name}
                   </Option>
                 ))}
               </Select>

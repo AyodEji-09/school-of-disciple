@@ -64,7 +64,7 @@ const Payments = () => {
 
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [page, setPage] = useState(1);
-  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [selectedCenter, setSelectedCenter] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
 
@@ -77,8 +77,8 @@ const Payments = () => {
   useEffect(() => {
     if (!initialized) {
       const current = sessions.find((s) => s.isCurrent);
-      if (current?.name) {
-        setSelectedYear(current.name);
+      if (current?._id) {
+        setSelectedSessionId(current._id);
         setInitialized(true);
       }
     }
@@ -86,9 +86,8 @@ const Payments = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [selectedYear, selectedCenter]);
+  }, [selectedSessionId, selectedCenter]);
 
-  const academicYears = sessions.map((s) => s.name);
   const centers = centersRes?.data?.docs ?? [];
 
   const { data: payments, isLoading } = useGetPaymentsQuery(
@@ -100,7 +99,7 @@ const Payments = () => {
         : isAdmin && selectedCenter
           ? { center: selectedCenter }
           : {}),
-      ...(selectedYear ? { academicYear: selectedYear } : {}),
+      ...(selectedSessionId ? { sessionId: selectedSessionId } : {}),
     },
     { skip: isCoordinator && !coordinatorCenterId },
   );
@@ -122,7 +121,7 @@ const Payments = () => {
       } else if (isAdmin && selectedCenter) {
         params.set("center", selectedCenter);
       }
-      if (selectedYear) params.set("academicYear", selectedYear);
+      if (selectedSessionId) params.set("sessionId", selectedSessionId);
 
       const res = await axios.get<Blob>(
         `${useURL}/financial/reports/payments/pdf?${params.toString()}`,
@@ -133,7 +132,8 @@ const Payments = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `FinancialReport-${selectedYear || "All"}.pdf`);
+      const selectedSessionName = sessions.find((s) => s._id === selectedSessionId)?.name;
+      link.setAttribute("download", `FinancialReport-${selectedSessionName || "All"}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -172,18 +172,18 @@ const Payments = () => {
           <div className="px-6 py-4.5">
             <Stack direction="row" gap={2} flexWrap="wrap">
               <FormControl size="sm">
-                <FormLabel>Academic Year</FormLabel>
+                <FormLabel>Academic Session</FormLabel>
                 <Select
                   size="sm"
-                  value={selectedYear}
-                  onChange={(_, val) => setSelectedYear((val as string) ?? "")}
-                  placeholder="All Years"
+                  value={selectedSessionId}
+                  onChange={(_, val) => setSelectedSessionId((val as string) ?? "")}
+                  placeholder="All Sessions"
                   sx={{ minWidth: 220 }}
                 >
-                  <Option value="">All Years</Option>
-                  {academicYears.map((year) => (
-                    <Option key={year} value={year}>
-                      {year}
+                  <Option value="">All Sessions</Option>
+                  {sessions.map((s) => (
+                    <Option key={s._id} value={s._id}>
+                      {s.name}
                     </Option>
                   ))}
                 </Select>

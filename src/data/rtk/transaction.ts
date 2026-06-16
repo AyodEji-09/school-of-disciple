@@ -57,9 +57,10 @@ export const transactionApi = createApi({
         type?: string;
         method?: string;
         academicYear?: string;
+        sessionId?: string;
       }
     >({
-      query: ({ limit = 20, page = 1, status, type, method, academicYear }) => {
+      query: ({ limit = 20, page = 1, status, type, method, academicYear, sessionId }) => {
         const params = new URLSearchParams();
         params.set("page", String(page));
         params.set("limit", String(limit));
@@ -67,6 +68,7 @@ export const transactionApi = createApi({
         if (type) params.set("type", type);
         if (method) params.set("method", method);
         if (academicYear) params.set("academicYear", academicYear);
+        if (sessionId) params.set("sessionId", sessionId);
         return `/transaction?${params.toString()}`;
       },
       providesTags: (result) =>

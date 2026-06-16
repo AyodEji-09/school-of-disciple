@@ -21,15 +21,17 @@ export const remittanceApi = createApi({
         page?: number;
         status?: string;
         academicYear?: string;
+        sessionId?: string;
         center?: string;
       }
     >({
-      query: ({ limit = 20, page = 1, status, academicYear, center }) => {
+      query: ({ limit = 20, page = 1, status, academicYear, sessionId, center }) => {
         const params = new URLSearchParams();
         params.set("page", String(page));
         params.set("limit", String(limit));
         if (status) params.set("status", status);
         if (academicYear) params.set("academicYear", academicYear);
+        if (sessionId) params.set("sessionId", sessionId);
         if (center) params.set("center", center);
         return `/remittance?${params.toString()}`;
       },

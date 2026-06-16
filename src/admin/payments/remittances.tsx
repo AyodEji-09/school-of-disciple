@@ -36,7 +36,7 @@ const formatCurrency = (cents: number) =>
 
 const RemittancesPage = () => {
   const [page, setPage] = useState(1);
-  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [selectedCenter, setSelectedCenter] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
@@ -47,8 +47,8 @@ const RemittancesPage = () => {
   useEffect(() => {
     if (!initialized) {
       const current = sessions.find((s) => s.isCurrent);
-      if (current?.name) {
-        setSelectedYear(current.name);
+      if (current?._id) {
+        setSelectedSessionId(current._id);
         setInitialized(true);
       }
     }
@@ -56,15 +56,14 @@ const RemittancesPage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [selectedYear, selectedCenter]);
+  }, [selectedSessionId, selectedCenter]);
 
-  const academicYears = sessions.map((s) => s.name);
   const centers = centersRes?.data?.docs ?? [];
 
   const { data: remittances, isLoading } = useGetRemittancesQuery({
     page,
     limit: 10,
-    ...(selectedYear ? { academicYear: selectedYear } : {}),
+    ...(selectedSessionId ? { sessionId: selectedSessionId } : {}),
     ...(selectedCenter ? { center: selectedCenter } : {}),
   });
 
@@ -86,7 +85,7 @@ const RemittancesPage = () => {
     setIsGeneratingReport(true);
     try {
       const params = new URLSearchParams();
-      if (selectedYear) params.set("academicYear", selectedYear);
+      if (selectedSessionId) params.set("sessionId", selectedSessionId);
       if (selectedCenter) params.set("center", selectedCenter);
 
       const res = await axios.get<Blob>(
@@ -98,7 +97,8 @@ const RemittancesPage = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `RemittanceReport-${selectedYear || "All"}.pdf`);
+      const selectedSessionName = sessions.find((s) => s._id === selectedSessionId)?.name;
+      link.setAttribute("download", `RemittanceReport-${selectedSessionName || "All"}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -133,18 +133,18 @@ const RemittancesPage = () => {
           <div className="px-6 py-4.5">
             <Stack direction="row" gap={2} flexWrap="wrap">
               <FormControl size="sm">
-                <FormLabel>Academic Year</FormLabel>
+                <FormLabel>Academic Session</FormLabel>
                 <Select
                   size="sm"
-                  value={selectedYear}
-                  onChange={(_, val) => setSelectedYear((val as string) ?? "")}
-                  placeholder="All Years"
+                  value={selectedSessionId}
+                  onChange={(_, val) => setSelectedSessionId((val as string) ?? "")}
+                  placeholder="All Sessions"
                   sx={{ minWidth: 220 }}
                 >
-                  <Option value="">All Years</Option>
-                  {academicYears.map((year) => (
-                    <Option key={year} value={year}>
-                      {year}
+                  <Option value="">All Sessions</Option>
+                  {sessions.map((s) => (
+                    <Option key={s._id} value={s._id}>
+                      {s.name}
                     </Option>
                   ))}
                 </Select>

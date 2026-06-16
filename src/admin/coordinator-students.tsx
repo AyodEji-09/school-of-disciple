@@ -31,7 +31,7 @@ const CoordinatorStudentsPage = () => {
   const isUnassigned = !coordinatorCenterId;
 
   const [searchVar, setSearchVar] = useState("");
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
 
   const { data: sessions = [] } = useGetSessionsQuery();
@@ -39,20 +39,18 @@ const CoordinatorStudentsPage = () => {
   useEffect(() => {
     if (!initialized) {
       const current = sessions.find((s) => s.isCurrent);
-      if (current?.name) {
-        setSelectedAcademicYear(current.name);
+      if (current?._id) {
+        setSelectedSessionId(current._id);
         setInitialized(true);
       }
     }
   }, [sessions, initialized]);
 
-  const academicYears = sessions.map((s) => s.name);
-
   const { data: students, isLoading } = useGetUsersQuery(
     {
       type: "user",
       ...(coordinatorCenterId ? { center: coordinatorCenterId } : {}),
-      ...(selectedAcademicYear ? { academicYear: selectedAcademicYear } : {}),
+      ...(selectedSessionId ? { admissionSessionId: selectedSessionId } : {}),
       ...(searchVar ? { search: searchVar } : {}),
     },
     { skip: isUnassigned },
@@ -86,19 +84,19 @@ const CoordinatorStudentsPage = () => {
                 alignItems="end"
               >
                 <FormControl size="sm" sx={{ minWidth: 200 }}>
-                  <FormLabel>Academic Year</FormLabel>
+                  <FormLabel>Admission Session</FormLabel>
                   <Select
                     size="sm"
-                    value={selectedAcademicYear}
+                    value={selectedSessionId}
                     onChange={(_, val) =>
-                      setSelectedAcademicYear((val as string) ?? "")
+                      setSelectedSessionId((val as string) ?? "")
                     }
-                    placeholder="All Years"
+                    placeholder="All Sessions"
                   >
-                    <Option value="">All Years</Option>
-                    {academicYears.map((year) => (
-                      <Option key={year} value={year}>
-                        {year}
+                    <Option value="">All Sessions</Option>
+                    {sessions.map((s) => (
+                      <Option key={s._id} value={s._id}>
+                        {s.name}
                       </Option>
                     ))}
                   </Select>

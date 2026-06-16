@@ -29,7 +29,7 @@ import { PAYMENT_STATUS } from "../../utils/status";
 
 const StudentsPage = () => {
   const [searchVar, setSearchVar] = useState("");
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("");
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [selectedCenter, setSelectedCenter] = useState("");
   const [page, setPage] = useState(1);
   const [initialized, setInitialized] = useState(false);
@@ -39,8 +39,8 @@ const StudentsPage = () => {
   useEffect(() => {
     if (!initialized) {
       const current = sessions.find((s) => s.isCurrent);
-      if (current?.name) {
-        setSelectedAcademicYear(current.name);
+      if (current?._id) {
+        setSelectedSessionId(current._id);
         setInitialized(true);
       }
     }
@@ -48,17 +48,16 @@ const StudentsPage = () => {
 
   const { data: centersRes } = useGetCentersQuery({ limit: 100 });
   const centers = centersRes?.data?.docs ?? [];
-  const academicYears = sessions.map((s) => s.name);
 
   useEffect(() => {
     setPage(1);
-  }, [searchVar, selectedAcademicYear, selectedCenter]);
+  }, [searchVar, selectedSessionId, selectedCenter]);
 
   const { data: students, isLoading } = useGetUsersQuery({
     type: "user",
     page,
     limit: 20,
-    ...(selectedAcademicYear ? { academicYear: selectedAcademicYear } : {}),
+    ...(selectedSessionId ? { admissionSessionId: selectedSessionId } : {}),
     ...(selectedCenter ? { center: selectedCenter } : {}),
     ...(searchVar ? { search: searchVar } : {}),
   });
@@ -67,6 +66,7 @@ const StudentsPage = () => {
   const studentDocs = students?.data?.docs || [];
   const totalPages = students?.data?.totalPages || 1;
   const totalItems = students?.data?.totalItems || 0;
+  const selectedSessionName = sessions.find((s) => s._id === selectedSessionId)?.name;
   const selectedCenterLabel = selectedCenter
     ? (centers.find((center) => center._id === selectedCenter)?.name ??
       "Selected Center")
@@ -83,26 +83,26 @@ const StudentsPage = () => {
         <PageCard
           title="All Students"
           subtitle={`${totalItems} registered student${totalItems !== 1 ? "s" : ""}${
-            selectedAcademicYear ? ` in ${selectedAcademicYear}` : ""
+            selectedSessionName ? ` in ${selectedSessionName}` : ""
           }${selectedCenter ? ` at ${selectedCenterLabel}` : ""}`}
           padded={false}
         >
           <div className="px-6 py-4.5 flex flex-wrap gap-3 items-end">
             <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
             <FormControl size="sm" sx={{ minWidth: 180 }}>
-              <FormLabel>Academic Year</FormLabel>
+              <FormLabel>Admission Session</FormLabel>
               <Select
                 size="sm"
-                value={selectedAcademicYear}
+                value={selectedSessionId}
                 onChange={(_, val) =>
-                  setSelectedAcademicYear((val as string) ?? "")
+                  setSelectedSessionId((val as string) ?? "")
                 }
-                placeholder="All Years"
+                placeholder="All Sessions"
               >
-                <Option value="">All Years</Option>
-                {academicYears.map((year) => (
-                  <Option key={year} value={year}>
-                    {year}
+                <Option value="">All Sessions</Option>
+                {sessions.map((s) => (
+                  <Option key={s._id} value={s._id}>
+                    {s.name}
                   </Option>
                 ))}
               </Select>

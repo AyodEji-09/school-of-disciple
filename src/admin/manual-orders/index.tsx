@@ -66,24 +66,23 @@ const ManualOrdersAdminPage = () => {
   const [status, setStatus] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [center, setCenter] = useState("");
-  const [academicYear, setAcademicYear] = useState<string>("");
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [detailsOrder, setDetailsOrder] = useState<ManualOrder | null>(null);
 
   const { data: centersRes } = useGetCentersQuery({ page: 1, limit: 100 });
   const centers = centersRes?.data?.docs ?? [];
 
   const { data: sessions = [] } = useGetSessionsQuery();
-  const academicYears = sessions.map((s) => s.name);
 
   useEffect(() => {
-    if (academicYear) return;
+    if (selectedSessionId) return;
     const current = sessions.find((s) => s.isCurrent);
-    if (current?.name) setAcademicYear(current.name);
-  }, [sessions, academicYear]);
+    if (current?._id) setSelectedSessionId(current._id);
+  }, [sessions, selectedSessionId]);
 
   useEffect(() => {
     setPage(1);
-  }, [status, paymentMethod, center, academicYear]);
+  }, [status, paymentMethod, center, selectedSessionId]);
 
   const {
     data: ordersRes,
@@ -95,7 +94,7 @@ const ManualOrdersAdminPage = () => {
     ...(status ? { status } : {}),
     ...(paymentMethod ? { paymentMethod } : {}),
     ...(center ? { center } : {}),
-    ...(academicYear ? { academicYear } : {}),
+    ...(selectedSessionId ? { sessionId: selectedSessionId } : {}),
   });
 
   const orders = useMemo(() => ordersRes?.data?.docs ?? [], [ordersRes]);
@@ -127,14 +126,14 @@ const ManualOrdersAdminPage = () => {
     setStatus("");
     setPaymentMethod("");
     setCenter("");
-    setAcademicYear("");
+    setSelectedSessionId("");
   };
 
   const hasActiveFilters =
     Boolean(status) ||
     Boolean(paymentMethod) ||
     Boolean(center) ||
-    Boolean(academicYear);
+    Boolean(selectedSessionId);
 
   return (
     <Frame text="Manual Orders">
@@ -311,16 +310,16 @@ const ManualOrdersAdminPage = () => {
                   <FormLabel>Academic Session</FormLabel>
                   <Select
                     size="sm"
-                    value={academicYear}
+                    value={selectedSessionId}
                     onChange={(_, val) =>
-                      setAcademicYear((val as string) ?? "")
+                      setSelectedSessionId((val as string) ?? "")
                     }
                     placeholder="All sessions"
                   >
                     <Option value="">All sessions</Option>
-                    {academicYears.map((year) => (
-                      <Option key={year} value={year}>
-                        {year}
+                    {sessions.map((s) => (
+                      <Option key={s._id} value={s._id}>
+                        {s.name}
                       </Option>
                     ))}
                   </Select>

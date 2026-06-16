@@ -24,6 +24,7 @@ export const manualOrderApi = createApi({
         center?: string;
         coordinator?: string;
         academicYear?: string;
+        sessionId?: string;
         dateFrom?: string;
         dateTo?: string;
       }
@@ -36,6 +37,7 @@ export const manualOrderApi = createApi({
         center,
         coordinator,
         academicYear,
+        sessionId,
         dateFrom,
         dateTo,
       }) => {
@@ -47,6 +49,7 @@ export const manualOrderApi = createApi({
         if (center) params.set("center", center);
         if (coordinator) params.set("coordinator", coordinator);
         if (academicYear) params.set("academicYear", academicYear);
+        if (sessionId) params.set("sessionId", sessionId);
         if (dateFrom) params.set("dateFrom", dateFrom);
         if (dateTo) params.set("dateTo", dateTo);
         return `/manual-order?${params.toString()}`;
