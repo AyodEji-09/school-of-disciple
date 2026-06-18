@@ -20,9 +20,9 @@ import { selectUser } from "../../data/selectors/authSelector";
 import {
   useCreateStripeManualOrderMutation,
   useCreateZelleManualOrderMutation,
+  useGetManualOrderZelleDetailsQuery,
   useUploadManualOrderReceiptMutation,
 } from "../../data/rtk/manual-order";
-import { useGetZelleDetailsQuery } from "../../data/rtk/remittance";
 import { useGetSettingsQuery } from "../../data/rtk/settings";
 
 type ManualOrderForm = {
@@ -59,7 +59,7 @@ const ManualOrderNewPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const user = useAppSelector(selectUser);
-  const { data: zelleDetails } = useGetZelleDetailsQuery();
+  const { data: zelleDetails } = useGetManualOrderZelleDetailsQuery();
   const { data: settingsRes } = useGetSettingsQuery();
   const [createStripeManualOrder, { isLoading: stripeLoading }] =
     useCreateStripeManualOrderMutation();

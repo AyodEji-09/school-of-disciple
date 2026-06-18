@@ -65,6 +65,12 @@ export const manualOrderApi = createApi({
             ]
           : [{ type: "ManualOrderList", id: "LIST" }],
     }),
+    getManualOrderZelleDetails: builder.query<
+      ApiResponseN<{ email: string; name: string }>,
+      void
+    >({
+      query: () => "/manual-order/zelle-details",
+    }),
     createStripeManualOrder: builder.mutation<
       ApiResponseN<{ url: string; order: ManualOrder }>,
       {
@@ -136,6 +142,7 @@ export const manualOrderApi = createApi({
 
 export const {
   useGetManualOrdersQuery,
+  useGetManualOrderZelleDetailsQuery,
   useCreateStripeManualOrderMutation,
   useCreateZelleManualOrderMutation,
   useConfirmManualOrderMutation,
