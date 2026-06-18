@@ -27,8 +27,8 @@ const Home = () => {
   return (
     <div>
       <Hero
-        preTitle="Welcome to "
-        title="The School of Disciples"
+        preTitle="Welcome to"
+        title="RCCG The Americas-1 School of Disciples"
         subtitle="Our mission is to nurture and develop future leaders who are grounded in biblical truth, filled with the Holy Spirit, and committed to serving their communities with excellence and compassion."
       />
       <section className="bg-[#121921] p-8">

@@ -1,3 +1,13 @@
+interface HeroProps {
+  title: string;
+  subtitle?: string;
+  preTitle?: string;
+  link?: string;
+  bg?: string;
+  color?: string;
+  variant?: "main" | "sub";
+}
+
 const Hero = ({
   title,
   preTitle,
@@ -6,17 +16,12 @@ const Hero = ({
   bg = "hero.jpg",
   link,
   variant = "main",
-}: {
-  title: string;
-  subtitle?: string;
-  preTitle?: string;
-  link?: string;
-  bg?: string;
-  color?: string;
-  variant?: "main" | "sub";
-}) => {
+}: HeroProps) => {
+  const isMain = variant === "main";
+
   return (
     <div className="relative py-52">
+      {/* Background image */}
       <div className="absolute inset-0 overflow-hidden">
         <img
           src={link || `/images/${bg}`}
@@ -24,24 +29,31 @@ const Hero = ({
           className="object-cover w-full h-full"
         />
       </div>
+
+      {/* Color overlay */}
       <div
-        className={`absolute inset-0 opacity-70`}
+        className="absolute inset-0 opacity-70"
         style={{ backgroundColor: color }}
-      ></div>
-      <div className="relative text-center container mx-auto space-y-4 px-4">
-        <h1 className={`text-white ${variant === "main" ? "text-4xl md:text-5xl" : "text-4xl"} font-bold max-w-2xl uppercase mx-auto leading-16`}>
-          {variant === "main" && preTitle && (
-            <>
-              {preTitle}
-              <br />
-            </>
-          )}
-          <span className={variant === "main" ? "font-black" : ""}>
+      />
+
+      {/* Content */}
+      <div className="relative text-center container mx-auto px-4">
+        {isMain && preTitle && (
+          <p className="text-white/60 text-sm md:text-base font-medium tracking-[0.3em] uppercase mb-4">
+            {preTitle}
+          </p>
+        )}
+        <h1
+          className={`text-white ${isMain ? "text-4xl md:text-5xl lg:text-6xl" : "text-4xl"} font-bold max-w-4xl uppercase mx-auto leading-tight`}
+        >
+          <span className={isMain ? "font-black tracking-wide" : ""}>
             {title}
           </span>
         </h1>
         {subtitle && (
-          <p className="text-white text-lg max-w-2xl mx-auto">{subtitle}</p>
+          <p className="text-white/80 text-base md:text-lg leading-relaxed max-w-3xl mx-auto mt-6">
+            {subtitle}
+          </p>
         )}
       </div>
     </div>
