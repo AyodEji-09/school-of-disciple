@@ -106,10 +106,10 @@ const AddCenter = () => {
                         <Input
                           label="Center Short Code"
                           value={value}
-                          onChange={onChange}
+                          onChange={(e) => onChange(e.target.value.replace(/\s/g, ""))}
                         />
                         <p className="text-[#94A3B8] text-xs mt-1">
-                          Used in matric number generation.
+                          Used in matric number generation. No spaces allowed.
                         </p>
                       </>
                     )}
@@ -155,10 +155,10 @@ const AddCenter = () => {
                         <Input
                           label="Zone Short Code"
                           value={value}
-                          onChange={onChange}
+                          onChange={(e) => onChange(e.target.value.replace(/\s/g, ""))}
                         />
                         <p className="text-[#94A3B8] text-xs mt-1">
-                          Used in matric number generation.
+                          Used in matric number generation. No spaces allowed.
                         </p>
                       </>
                     )}
