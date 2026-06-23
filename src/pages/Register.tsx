@@ -21,7 +21,7 @@ import { titleCaseName } from "../utils";
 const getRegistrationWindowState = (
   window?: RegistrationWindow | null,
 ): {
-  status: "open" | "upcoming" | "closed" | "not-configured";
+  status: "open" | "closed" | "not-configured";
   message: string;
 } => {
   if (!window) {
@@ -32,19 +32,7 @@ const getRegistrationWindowState = (
     };
   }
 
-  const now = Date.now();
-  const start = new Date(window.startDate).getTime();
-  const end = new Date(window.endDate).getTime();
-
-  if (now < start) {
-    return {
-      status: "upcoming",
-      message:
-        "Registration has not been announced yet. Please check back soon.",
-    };
-  }
-
-  if (now > end) {
+  if (Date.now() > new Date(window.endDate).getTime()) {
     return {
       status: "closed",
       message: "Registration window is now closed.",

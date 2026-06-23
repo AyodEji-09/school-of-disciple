@@ -335,6 +335,16 @@ export const academicApi = createApi({
       query: (id) => ({ url: `/academic/sessions/${id}`, method: "DELETE" }),
       invalidatesTags: ["SessionList", "YearList"],
     }),
+    activateSession: builder.mutation<
+      WrappedResponse<AcademicSession>,
+      string
+    >({
+      query: (id) => ({
+        url: `/academic/sessions/${id}/activate`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["SessionList", "YearList"],
+    }),
 
     // ── Corrections ───────────────────────────────────────────────────────────
     requestCorrection: builder.mutation<
@@ -395,6 +405,7 @@ export const {
   useCreateSessionMutation,
   useUpdateSessionMutation,
   useDeleteSessionMutation,
+  useActivateSessionMutation,
   useGetStudentPerformanceQuery,
   useGetYearAnalyticsQuery,
   useGetSystemAnalyticsQuery,

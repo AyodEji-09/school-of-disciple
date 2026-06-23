@@ -86,6 +86,7 @@ const ResultDetailPage = () => {
 
   const getYearStatus = (yearId: string, score: number | null) => {
     if (score === null || score === undefined) return null;
+    if (!isPublished) return "Draft";
     if (!hasDraft) return "Published";
     const published = publishedScoresMap.get(yearId);
     if (!published) return "Draft";

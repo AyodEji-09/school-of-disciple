@@ -18,6 +18,7 @@ import {
   useCreateSessionMutation,
   useUpdateSessionMutation,
   useDeleteSessionMutation,
+  useActivateSessionMutation,
 } from "../../data/rtk/academic";
 import { CenteredEmptyState } from "../../components/query-state/QueryStates";
 import { handleError } from "../../utils";
@@ -30,6 +31,7 @@ const SessionsSection = () => {
   const [createSession, { isLoading: creating }] = useCreateSessionMutation();
   const [updateSession, { isLoading: updating }] = useUpdateSessionMutation();
   const [deleteSession] = useDeleteSessionMutation();
+  const [activateSession, { isLoading: activating }] = useActivateSessionMutation();
   const navigate = useNavigate();
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -63,7 +65,6 @@ const SessionsSection = () => {
         name,
         startYear: Number(startYear),
         endYear: Number(endYear),
-        isCurrent: true,
       }).unwrap();
       setCreateModalOpen(false);
       resetForm();
@@ -139,6 +140,21 @@ const SessionsSection = () => {
     }
   };
 
+  const handleActivate = async (id: string, sessionName: string) => {
+    if (
+      !window.confirm(
+        `Activate "${sessionName}"?\n\nThis will mark it as the current session and close any open registration windows for other sessions.`,
+      )
+    )
+      return;
+    try {
+      await activateSession(id).unwrap();
+      toast.success(`"${sessionName}" is now the current session`);
+    } catch (err) {
+      toast.error(handleError(err));
+    }
+  };
+
   return (
     <PageCard
       title="Academic Sessions"
@@ -156,10 +172,6 @@ const SessionsSection = () => {
         icon
       >
         <div className="w-[min(440px,80vw)] mt-2 grid gap-4">
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-            This session will be set as the current academic session. Any
-            previously current session will be unmarked.
-          </div>
           <FormControl required>
             <FormLabel>Name</FormLabel>
             <Input
@@ -279,6 +291,16 @@ const SessionsSection = () => {
                 )}
               </div>
               <div className="flex items-center gap-1 shrink-0">
+                {!s.isCurrent && (
+                  <button
+                    onClick={() => handleActivate(s._id, s.name)}
+                    disabled={activating}
+                    className="text-[#15803D] hover:text-[#16A34A] transition-colors p-1 text-xs font-semibold"
+                    aria-label={`Activate ${s.name}`}
+                  >
+                    Activate
+                  </button>
+                )}
                 <button
                   onClick={() => openEdit(s)}
                   className="text-[#64748B] hover:text-[#001EC5] transition-colors p-1"

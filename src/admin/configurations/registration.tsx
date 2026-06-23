@@ -73,13 +73,6 @@ const RegistrationPage = () => {
   const statusKey = resolveWindowKey(currentWindow);
   const isSubmitting = creating || updating;
   const sessions = sessionsRes ?? [];
-  const currentSession = sessions.find((s: any) => s.isCurrent);
-  const lastWindowSessionId =
-    currentWindow && typeof currentWindow.sessionId === "object"
-      ? (currentWindow.sessionId as any)?._id
-      : currentWindow?.sessionId;
-  const canCreateNewWindow =
-    !currentWindow || (currentSession && currentSession._id !== lastWindowSessionId);
 
   const {
     control,
@@ -187,31 +180,19 @@ const RegistrationPage = () => {
             </div>
 
             <Stack direction="row" gap={2} flexShrink={0}>
-              {canCreateNewWindow ? (
-                <AppButton type="button" onClick={openCreateModal}>
-                  {currentWindow ? "New Window" : "Set Window"}
-                </AppButton>
-              ) : statusKey === "open" || statusKey === "upcoming" ? (
-                <AppButton type="button" onClick={openEditModal}>
-                  {statusKey === "upcoming"
-                    ? "Edit Upcoming Window"
-                    : "Edit Window"}
-                </AppButton>
-              ) : (
+              {currentWindow ? (
                 <>
-                  {currentWindow && (
-                    <AppButton
-                      type="button"
-                      variant="outlined"
-                      onClick={openEditModal}
-                    >
-                      Edit Window
-                    </AppButton>
-                  )}
+                  <AppButton type="button" variant="outlined" onClick={openEditModal}>
+                    Edit Window
+                  </AppButton>
                   <AppButton type="button" onClick={openCreateModal}>
-                    {currentWindow ? "New Window" : "Set Window"}
+                    New Window
                   </AppButton>
                 </>
+              ) : (
+                <AppButton type="button" onClick={openCreateModal}>
+                  Set Window
+                </AppButton>
               )}
             </Stack>
           </Stack>
@@ -324,16 +305,22 @@ const RegistrationPage = () => {
                         value={value}
                         onChange={(_, val) => onChange(val)}
                         placeholder="Select a session…"
-                        disabled={mode === "create"}
+                        disabled={mode === "edit"}
                       >
-                        {sessions
-                          .filter((s: any) => s.isCurrent)
-                          .map((s: any) => (
-                            <Option key={s._id} value={s._id}>
-                              {s.name}
-                              {s.isCurrent ? " · Current" : ""}
-                            </Option>
-                          ))}
+                        {mode === "edit"
+                          ? sessions
+                              .filter((s: any) => s._id === value)
+                              .map((s: any) => (
+                                <Option key={s._id} value={s._id}>
+                                  {s.name}
+                                </Option>
+                              ))
+                          : sessions.map((s: any) => (
+                              <Option key={s._id} value={s._id}>
+                                {s.name}
+                                {s.isCurrent ? " · Current" : ""}
+                              </Option>
+                            ))}
                       </Select>
                     </FormControl>
                   )}
