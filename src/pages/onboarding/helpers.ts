@@ -105,31 +105,6 @@ export const validateStep = (
     if (!isFilled(intakeForm.personalInfo?.email))
       missing.push("Email Address");
     if (!isFilled(intakeForm.personalInfo?.height)) missing.push("Height");
-    else {
-      // validate height format (feet and optional inches)
-      const raw = intakeForm.personalInfo!.height as string;
-      const re =
-        /^\s*(\d{1,2})(?:\s*(?:'|ft|feet)\s*)?(?:(\d{1,2})\s*(?:"|in|inches)?)?\s*$/i;
-      const m = raw.match(re);
-      if (!m) {
-        missing.push("Height (invalid format — use e.g. 5'11\")");
-      } else {
-        const feet = parseInt(m[1], 10);
-        const inches = m[2] ? parseInt(m[2], 10) : 0;
-        if (
-          isNaN(feet) ||
-          feet < 3 ||
-          feet > 8 ||
-          isNaN(inches) ||
-          inches < 0 ||
-          inches > 11
-        ) {
-          missing.push(
-            "Height (invalid value — use realistic ft/in, e.g. 5'11\")",
-          );
-        }
-      }
-    }
     // heightUnit is locked to ft; ensure it's present or defaulted elsewhere
   }
 

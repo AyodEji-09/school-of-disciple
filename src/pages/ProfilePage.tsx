@@ -10,6 +10,7 @@ import AppButton from "../components/Button/AppButton";
 import Input from "../components/input/input.component";
 import OtpComponent from "../components/otp-component/OtpComponent";
 import { handleError } from "../utils";
+import { HEIGHT_OPTIONS } from "../utils/intake";
 import { useAppDispatch, useAppSelector } from "../data/hooks";
 import { login } from "../data/reducers/userSlice";
 import { selectUser } from "../data/selectors/authSelector";
@@ -129,9 +130,6 @@ const ProfilePage = () => {
     });
   };
 
-  const heightPattern =
-    /^\s*(\d{1,2})(?:\s*(?:'|ft|feet)\s*)?(?:(\d{1,2})\s*(?:"|in|inches)?)?\s*$/i;
-
   const getMutationError = (error: unknown) => {
     const rtkError = error as { data?: { message?: string }; message?: string };
     return rtkError?.data?.message || rtkError?.message || "Request failed";
@@ -161,11 +159,6 @@ const ProfilePage = () => {
 
   const handleSave = async () => {
     if (!user?._id) return;
-
-    if (!isCoordinator && form.height && !heightPattern.test(form.height)) {
-      toast.error("Height must match the format 5'11\" or 5 ft 11 in");
-      return;
-    }
 
     setLoading(true);
     try {
@@ -478,12 +471,21 @@ const ProfilePage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      label="Height (ft/in)"
-                      value={form.height}
-                      onChange={(e) => onChange("height", e.target.value)}
-                      placeholder={"e.g. 5'11\""}
-                    />
+                    <label className="flex flex-col gap-1 text-sm text-[#001F54] font-medium">
+                      Height
+                      <select
+                        value={form.height}
+                        onChange={(e) => onChange("height", e.target.value)}
+                        className="rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none"
+                      >
+                        <option value="">Select height</option>
+                        {HEIGHT_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                 </>
               )}

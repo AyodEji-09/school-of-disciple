@@ -1,7 +1,7 @@
 import { Button } from "@mui/material";
 import { Card, Typography } from "@mui/joy";
 import Input from "../../../components/input/input.component";
-import type { IntakeFormData } from "../../../utils/intake";
+import { HEIGHT_OPTIONS, type IntakeFormData } from "../../../utils/intake";
 import type { EducationRow } from "../config";
 import SelectField from "./SelectField";
 
@@ -129,30 +129,12 @@ export const PersonalSectionView = ({
       value={intakeForm.personalInfo?.email || userEmail || ""}
       onChange={(e) => updateNested("personalInfo", "email", e.target.value)}
     />
-    <div className="flex gap-2">
-      <Input
-        label="Height"
-        className="flex-1"
-        value={intakeForm.personalInfo?.height || ""}
-        onChange={(e) => updateNested("personalInfo", "height", e.target.value)}
-        placeholder={"e.g. 5'11\""}
-        pattern={
-          "^\\s*(\\d{1,2})(?:\\s*(?:'|ft|feet)\\s*)?(?:(\\d{1,2})\\s*(?:\"|in|inches)?)?\\s*$"
-        }
-        title={"Enter height in feet and inches, e.g. 5'11 or 5 ft 11 in"}
-      />
-      <div className="flex flex-col gap-1 text-sm text-[#001F54] font-medium">
-        Unit
-        <select
-          className="rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none"
-          value={"ft"}
-          disabled
-        >
-          <option value="ft">ft/in</option>
-        </select>
-      </div>
-      <input type="hidden" value="ft" />
-    </div>
+    <SelectField
+      label="Height"
+      value={intakeForm.personalInfo?.height || ""}
+      onChange={(v) => updateNested("personalInfo", "height", v)}
+      options={HEIGHT_OPTIONS}
+    />
   </div>
 );
 
