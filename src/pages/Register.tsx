@@ -32,6 +32,13 @@ const getRegistrationWindowState = (
     };
   }
 
+  if (Date.now() < new Date(window.startDate).getTime()) {
+    return {
+      status: "closed",
+      message: `Registration opens on ${new Date(window.startDate).toLocaleDateString()}.`,
+    };
+  }
+
   if (Date.now() > new Date(window.endDate).getTime()) {
     return {
       status: "closed",
