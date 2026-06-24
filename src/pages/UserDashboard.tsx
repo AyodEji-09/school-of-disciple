@@ -133,7 +133,7 @@ const PendingPayments = () => {
         "/payment/registration-fee",
       );
       const url = res.data.data?.url;
-      if (url) window.open(url, "_blank");
+      if (url) window.location.href = url;
     } catch (error) {
       toast.error(handleError(error));
     } finally {
