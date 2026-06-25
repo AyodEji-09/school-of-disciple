@@ -50,6 +50,7 @@ import { COORDINATOR_STATUS } from "../../utils/status";
 interface FormType {
   name: string;
   shortCode: string;
+  region: string;
   province: string;
   zone: string;
   zoneShortCode: string;
@@ -58,6 +59,7 @@ interface FormType {
   state: string;
   postalCode: string;
   country: string;
+  landmark: string;
 }
 
 const Centers = () => {
@@ -159,6 +161,7 @@ const Centers = () => {
     defaultValues: {
       name: selectedCenter?.name || "",
       shortCode: selectedCenter?.shortCode || "",
+      region: selectedCenter?.region || "",
       province: selectedCenter?.province || "",
       zone: selectedCenter?.zone || "",
       zoneShortCode: selectedCenter?.zoneShortCode || "",
@@ -167,6 +170,7 @@ const Centers = () => {
       state: selectedCenter?.state || "",
       postalCode: selectedCenter?.postalCode || "",
       country: selectedCenter?.country || "",
+      landmark: selectedCenter?.landmark || "",
     },
   });
 
@@ -205,6 +209,7 @@ const Centers = () => {
     if (selectedCenter) {
       setValue("name", selectedCenter?.name);
       setValue("shortCode", selectedCenter?.shortCode || "");
+      setValue("region", selectedCenter?.region || "");
       setValue("province", selectedCenter?.province || "");
       setValue("zone", selectedCenter?.zone || "");
       setValue("zoneShortCode", selectedCenter?.zoneShortCode || "");
@@ -213,6 +218,7 @@ const Centers = () => {
       setValue("state", selectedCenter?.state || "");
       setValue("postalCode", selectedCenter?.postalCode || "");
       setValue("country", selectedCenter?.country || "");
+      setValue("landmark", selectedCenter?.landmark || "");
     }
   }, [selectedCenter, setValue]);
 
@@ -456,8 +462,26 @@ const Centers = () => {
                 </div>
                 <div>
                   <Controller
+                    name="region"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Input
+                        label="Region"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                  {errors.region && (
+                    <p className="text-[#dc2626] text-xs">This field is required.</p>
+                  )}
+                </div>
+                <div>
+                  <Controller
                     name="province"
                     control={control}
+                    rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <Input
                         label="Province"
@@ -466,11 +490,15 @@ const Centers = () => {
                       />
                     )}
                   />
+                  {errors.province && (
+                    <p className="text-[#dc2626] text-xs">This field is required.</p>
+                  )}
                 </div>
                 <div>
                   <Controller
                     name="zone"
                     control={control}
+                    rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <Input
                         label="Zone"
@@ -479,11 +507,15 @@ const Centers = () => {
                       />
                     )}
                   />
+                  {errors.zone && (
+                    <p className="text-[#dc2626] text-xs">This field is required.</p>
+                  )}
                 </div>
                 <div>
                   <Controller
                     name="zoneShortCode"
                     control={control}
+                    rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <>
                         <Input
@@ -497,6 +529,9 @@ const Centers = () => {
                       </>
                     )}
                   />
+                  {errors.zoneShortCode && (
+                    <p className="text-[#dc2626] text-xs">This field is required.</p>
+                  )}
                 </div>
                 <div className="md:col-span-2">
                   <Controller
@@ -592,6 +627,23 @@ const Centers = () => {
                       <p className="text-[#dc2626] text-xs">
                         This field is required.
                       </p>
+                    )}
+                  </div>
+                  <div>
+                    <Controller
+                      name="landmark"
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <Input
+                          label="Landmark"
+                          value={value}
+                          onChange={onChange}
+                        />
+                      )}
+                    />
+                    {errors.landmark && (
+                      <p className="text-[#dc2626] text-xs">This field is required.</p>
                     )}
                   </div>
                 </div>

@@ -126,15 +126,16 @@ type Center = {
   _id: string;
   name: string;
   shortCode: string;
-  province?: string;
-  zone?: string;
-  zoneShortCode?: string;
+  region: string;
+  province: string;
+  zone: string;
+  zoneShortCode: string;
   address: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-  landmark?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  landmark: string;
   manager?: User | string | null;
 };
 

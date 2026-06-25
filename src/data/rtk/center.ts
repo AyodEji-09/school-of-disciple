@@ -29,7 +29,7 @@ export const centerApi = createApi({
           params.set("search", search);
           params.set(
             "searchFields",
-            "name,shortCode,province,zone,zoneShortCode,address,city,state,postalCode,country,landmark",
+            "name,shortCode,region,province,zone,zoneShortCode,address,city,state,postalCode,country,landmark",
           );
         }
 
@@ -68,15 +68,16 @@ export const centerApi = createApi({
       {
         name: string;
         shortCode: string;
-        province?: string;
-        zone?: string;
-        zoneShortCode?: string;
+        region: string;
+        province: string;
+        zone: string;
+        zoneShortCode: string;
         address: string;
-        city?: string;
-        state?: string;
-        postalCode?: string;
-        country?: string;
-        landmark?: string;
+        city: string;
+        state: string;
+        postalCode: string;
+        country: string;
+        landmark: string;
       }
     >({
       query: (body) => ({
@@ -101,16 +102,17 @@ export const centerApi = createApi({
       {
         id: string;
         name: string;
-        shortCode?: string;
-        province?: string;
-        zone?: string;
-        zoneShortCode?: string;
+        shortCode: string;
+        region: string;
+        province: string;
+        zone: string;
+        zoneShortCode: string;
         address: string;
-        city?: string;
-        state?: string;
-        postalCode?: string;
-        country?: string;
-        landmark?: string;
+        city: string;
+        state: string;
+        postalCode: string;
+        country: string;
+        landmark: string;
       }
     >({
       query: ({ id, ...body }) => ({

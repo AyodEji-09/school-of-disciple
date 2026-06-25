@@ -12,6 +12,7 @@ import Frame from "../../components/frame/Frame";
 interface FormType {
   name: string;
   shortCode: string;
+  region: string;
   province: string;
   zone: string;
   zoneShortCode: string;
@@ -20,6 +21,7 @@ interface FormType {
   state: string;
   postalCode: string;
   country: string;
+  landmark: string;
 }
 
 const AddCenter = () => {
@@ -34,6 +36,7 @@ const AddCenter = () => {
     defaultValues: {
       name: "",
       shortCode: "",
+      region: "",
       province: "",
       zone: "",
       zoneShortCode: "",
@@ -42,6 +45,7 @@ const AddCenter = () => {
       state: "",
       postalCode: "",
       country: "",
+      landmark: "",
     },
   });
 
@@ -122,8 +126,26 @@ const AddCenter = () => {
                 </div>
                 <div>
                   <Controller
+                    name="region"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Input
+                        label="Region"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                  {errors.region && (
+                    <p className="text-[#dc2626] text-xs">This field is required.</p>
+                  )}
+                </div>
+                <div>
+                  <Controller
                     name="province"
                     control={control}
+                    rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <Input
                         label="Province"
@@ -132,11 +154,15 @@ const AddCenter = () => {
                       />
                     )}
                   />
+                  {errors.province && (
+                    <p className="text-[#dc2626] text-xs">This field is required.</p>
+                  )}
                 </div>
                 <div>
                   <Controller
                     name="zone"
                     control={control}
+                    rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <Input
                         label="Zone"
@@ -145,11 +171,15 @@ const AddCenter = () => {
                       />
                     )}
                   />
+                  {errors.zone && (
+                    <p className="text-[#dc2626] text-xs">This field is required.</p>
+                  )}
                 </div>
                 <div>
                   <Controller
                     name="zoneShortCode"
                     control={control}
+                    rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <>
                         <Input
@@ -163,6 +193,9 @@ const AddCenter = () => {
                       </>
                     )}
                   />
+                  {errors.zoneShortCode && (
+                    <p className="text-[#dc2626] text-xs">This field is required.</p>
+                  )}
                 </div>
                 <div>
                   <Controller
@@ -259,6 +292,23 @@ const AddCenter = () => {
                     <p className="text-[#dc2626] text-xs">
                       This field is required.
                     </p>
+                  )}
+                </div>
+                <div>
+                  <Controller
+                    name="landmark"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Input
+                        label="Landmark"
+                        value={value}
+                        onChange={onChange}
+                      />
+                    )}
+                  />
+                  {errors.landmark && (
+                    <p className="text-[#dc2626] text-xs">This field is required.</p>
                   )}
                 </div>
               </Stack>
