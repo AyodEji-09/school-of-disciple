@@ -56,6 +56,7 @@ const UploadResultPage = () => {
   const { data: studentsRes } = useGetUsersQuery({
     type: "user",
     ...(coordinatorCenterId ? { center: coordinatorCenterId } : {}),
+    ...(selSession ? { admissionSessionId: selSession } : {}),
   });
   const students = studentsRes?.data?.docs ?? [];
 
