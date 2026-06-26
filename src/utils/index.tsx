@@ -55,7 +55,6 @@ export const formatCenterAddress = (center?: Center | null): string => {
 
   const parts = [
     center.address,
-    center.landmark,
     center.city,
     center.state,
     center.postalCode,

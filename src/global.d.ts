@@ -135,7 +135,6 @@ type Center = {
   state: string;
   postalCode: string;
   country: string;
-  landmark: string;
   manager?: User | string | null;
 };
 

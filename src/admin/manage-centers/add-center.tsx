@@ -21,7 +21,6 @@ interface FormType {
   state: string;
   postalCode: string;
   country: string;
-  landmark: string;
 }
 
 const AddCenter = () => {
@@ -45,7 +44,6 @@ const AddCenter = () => {
       state: "",
       postalCode: "",
       country: "",
-      landmark: "",
     },
   });
 
@@ -292,23 +290,6 @@ const AddCenter = () => {
                     <p className="text-[#dc2626] text-xs">
                       This field is required.
                     </p>
-                  )}
-                </div>
-                <div>
-                  <Controller
-                    name="landmark"
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
-                      <Input
-                        label="Landmark"
-                        value={value}
-                        onChange={onChange}
-                      />
-                    )}
-                  />
-                  {errors.landmark && (
-                    <p className="text-[#dc2626] text-xs">This field is required.</p>
                   )}
                 </div>
               </Stack>

@@ -59,7 +59,6 @@ interface FormType {
   state: string;
   postalCode: string;
   country: string;
-  landmark: string;
 }
 
 const Centers = () => {
@@ -170,7 +169,6 @@ const Centers = () => {
       state: selectedCenter?.state || "",
       postalCode: selectedCenter?.postalCode || "",
       country: selectedCenter?.country || "",
-      landmark: selectedCenter?.landmark || "",
     },
   });
 
@@ -218,7 +216,6 @@ const Centers = () => {
       setValue("state", selectedCenter?.state || "");
       setValue("postalCode", selectedCenter?.postalCode || "");
       setValue("country", selectedCenter?.country || "");
-      setValue("landmark", selectedCenter?.landmark || "");
     }
   }, [selectedCenter, setValue]);
 
@@ -627,23 +624,6 @@ const Centers = () => {
                       <p className="text-[#dc2626] text-xs">
                         This field is required.
                       </p>
-                    )}
-                  </div>
-                  <div>
-                    <Controller
-                      name="landmark"
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Input
-                          label="Landmark"
-                          value={value}
-                          onChange={onChange}
-                        />
-                      )}
-                    />
-                    {errors.landmark && (
-                      <p className="text-[#dc2626] text-xs">This field is required.</p>
                     )}
                   </div>
                 </div>
