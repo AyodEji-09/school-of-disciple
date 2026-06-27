@@ -402,7 +402,12 @@ const CreditAdminPage = () => {
                   fullWidth
                   onClick={handleStripePayment}
                   loading={stripeLoading}
-                  disabled={!amount || Number(amount) <= 0}
+                  disabled={
+                    !amount ||
+                    Number(amount) <= 0 ||
+                    !description.trim() ||
+                    !remitSessionId
+                  }
                   sx={{
                     py: 2,
                     background:
@@ -422,7 +427,12 @@ const CreditAdminPage = () => {
                   variant="outlined"
                   onClick={openZelleModal}
                   loading={zelleLoading}
-                  disabled={!amount || Number(amount) <= 0}
+                  disabled={
+                    !amount ||
+                    Number(amount) <= 0 ||
+                    !description.trim() ||
+                    !remitSessionId
+                  }
                   sx={{
                     py: 2,
                     borderColor: "#6D28D9",
