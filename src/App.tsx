@@ -2,12 +2,10 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect } from "react";
-import { PulseLoader } from "react-spinners";
-
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Nav from "./components/nav/Nav";
-import { SetDefaultHeaders } from "./data/config";
+import { SetDefaultHeaders, TOKEN } from "./data/config";
 import Payment from "./pages/Payment";
 import Team from "./pages/Team";
 import About from "./pages/About";
@@ -42,6 +40,7 @@ import {
   PublicRoute,
   OnboardingRoute,
   SuperAdminRoute,
+  LoadingScreen,
 } from "./utils/private-route.component";
 import { hasCompletedIntake } from "./utils/intake";
 
@@ -84,14 +83,7 @@ const SmartRedirect = () => {
   const user = useAppSelector(selectUser);
   const loading = useAppSelector(selectLoading);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F5FAFF]">
-        <PulseLoader size={10} color="#001EC5" />
-      </div>
-    );
-  }
-
+  if (loading) return <LoadingScreen />;
   if (!auth) return <Home />;
   if (user?.type === "user") {
     const completed = hasCompletedIntake(user);
@@ -107,14 +99,7 @@ const ProfileRoute = () => {
   const user = useAppSelector(selectUser);
   const loading = useAppSelector(selectLoading);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F5FAFF]">
-        <PulseLoader size={10} color="#001EC5" />
-      </div>
-    );
-  }
-
+  if (loading) return <LoadingScreen />;
   if (!auth) return <Navigate to="/" replace />;
   if (user?.type === "user" && !hasCompletedIntake(user)) {
     return <Navigate to="/onboarding/1" replace />;
@@ -126,7 +111,9 @@ const App = () => {
   useNotificationSocket();
 
   useEffect(() => {
-    store.dispatch(loadUser());
+    if (localStorage.getItem(TOKEN)) {
+      store.dispatch(loadUser());
+    }
   }, []);
 
   return (

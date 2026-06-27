@@ -9,7 +9,7 @@ import {
 } from "../data/selectors/authSelector";
 import { hasCompletedIntake } from "./intake";
 
-const LoadingScreen = () => (
+export const LoadingScreen = () => (
   <div className="flex items-center justify-center min-h-screen bg-[#F5FAFF]">
     <PulseLoader size={10} color="#001EC5" />
   </div>

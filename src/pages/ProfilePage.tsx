@@ -87,8 +87,8 @@ const ProfilePage = () => {
     const personal = user.intakeFormData?.personalInfo || {};
 
     setForm({
-      firstName: user.firstName ? titleCase(user.firstName) : "",
-      lastName: user.lastName ? titleCase(user.lastName) : "",
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
       phone: user.phone || "",
       address: user.address || personal.residentialAddress || "",
       birthday: user.birthday
@@ -378,15 +378,11 @@ const ProfilePage = () => {
                   label="First Name"
                   value={form.firstName}
                   onChange={(e) => onChange("firstName", e.target.value)}
-                  onBlur={() =>
-                    onChange("firstName", titleCase(form.firstName))
-                  }
                 />
                 <Input
                   label="Last Name"
                   value={form.lastName}
                   onChange={(e) => onChange("lastName", e.target.value)}
-                  onBlur={() => onChange("lastName", titleCase(form.lastName))}
                 />
               </div>
 

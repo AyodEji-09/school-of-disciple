@@ -16,8 +16,6 @@ import { useAppDispatch } from "../data/hooks";
 import { login } from "../data/reducers/userSlice";
 import Onboarding from "./Onboarding";
 import { hasCompletedIntake } from "../utils/intake";
-import { titleCaseName } from "../utils";
-
 const getRegistrationWindowState = (
   window?: RegistrationWindow | null,
 ): {
@@ -238,9 +236,6 @@ const Register = () => {
                       label="First Name"
                       value={value}
                       onChange={onChange}
-                      onBlur={(e) =>
-                        onChange(titleCaseName(e.target.value || value))
-                      }
                     />
                   )}
                 />
@@ -262,9 +257,6 @@ const Register = () => {
                       label="Last Name"
                       value={value}
                       onChange={onChange}
-                      onBlur={(e) =>
-                        onChange(titleCaseName(e.target.value || value))
-                      }
                     />
                   )}
                 />

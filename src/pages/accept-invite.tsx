@@ -97,9 +97,6 @@ const AcceptInvite = () => {
                         label="First Name"
                         value={value}
                         onChange={onChange}
-                        onBlur={(e) =>
-                          onChange(titleCaseName(e.target.value || value))
-                        }
                       />
                     )}
                   />
@@ -121,9 +118,6 @@ const AcceptInvite = () => {
                         label="Last Name"
                         value={value}
                         onChange={onChange}
-                        onBlur={(e) =>
-                          onChange(titleCaseName(e.target.value || value))
-                        }
                       />
                     )}
                   />
