@@ -23,6 +23,7 @@ export interface AcademicSession {
   startYear: number;
   endYear: number;
   isCurrent: boolean;
+  activatedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

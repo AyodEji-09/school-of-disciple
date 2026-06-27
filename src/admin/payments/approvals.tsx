@@ -134,6 +134,7 @@ const PendingApprovalsPage = () => {
                   <TableHeaderCell>Type</TableHeaderCell>
                   <TableHeaderCell>Payer</TableHeaderCell>
                   <TableHeaderCell>Center</TableHeaderCell>
+                  <TableHeaderCell>Academic Session</TableHeaderCell>
                   <TableHeaderCell>Method</TableHeaderCell>
                   <TableHeaderCell>Amount</TableHeaderCell>
                   <TableHeaderCell>Description</TableHeaderCell>
@@ -144,8 +145,8 @@ const PendingApprovalsPage = () => {
               <TableBody>
                 {isLoading && !hasDocs ? (
                   <tr>
-                    <td colSpan={9}>
-                      <TableSkeleton columns={9} rows={3} />
+                    <td colSpan={10}>
+                      <TableSkeleton columns={10} rows={3} />
                     </td>
                   </tr>
                 ) : (
@@ -166,6 +167,9 @@ const PendingApprovalsPage = () => {
                       </TableCell>
                       <TableCell>
                         {getCenterName(t) ?? <EmptyValue />}
+                      </TableCell>
+                      <TableCell>
+                        {t.academicYear || <EmptyValue />}
                       </TableCell>
                       <TableCell>
                         <StatusBadge

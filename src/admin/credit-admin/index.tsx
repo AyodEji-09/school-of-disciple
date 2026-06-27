@@ -42,6 +42,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  EmptyValue,
 } from "../../components/feedback/TableShell";
 import { REMITTANCE_STATUS, METHOD_STATUS } from "../../utils/status";
 
@@ -58,8 +59,15 @@ const CreditAdminPage = () => {
   const [amount, setAmount] = useState<string>("");
   const [description, setDescription] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
+  const [remitSessionId, setRemitSessionId] = useState<string>("");
 
   const { data: sessions = [] } = useGetSessionsQuery();
+
+  useEffect(() => {
+    if (remitSessionId) return;
+    const current = sessions.find((s) => s.isCurrent);
+    if (current?._id) setRemitSessionId(current._id);
+  }, [sessions, remitSessionId]);
 
   useEffect(() => {
     if (selectedSessionId) return;
@@ -140,6 +148,7 @@ const CreditAdminPage = () => {
       const res = await createStripeRemittance({
         amount: amountCents,
         description: description.trim(),
+        ...(remitSessionId ? { sessionId: remitSessionId } : {}),
       }).unwrap();
 
       if (res.data?.url) {
@@ -176,6 +185,7 @@ const CreditAdminPage = () => {
       const result = await createZelleRemittance({
         amount: amountCents,
         description: description.trim(),
+        ...(remitSessionId ? { sessionId: remitSessionId } : {}),
       }).unwrap();
 
       // Upload receipt if coordinator attached one
@@ -329,7 +339,7 @@ const CreditAdminPage = () => {
           title="Credit Admin"
           icon
         >
-          <div className="w-[min(480px,85vw)] mt-2 max-h-[75vh] overflow-y-auto pr-1">
+          <div className="w-[min(480px,85vw)] mt-2">
             <Typography level="body-sm" sx={{ color: "text.tertiary", mb: 3 }}>
               Enter the amount you'd like to remit and choose a payment method.
             </Typography>
@@ -366,6 +376,23 @@ const CreditAdminPage = () => {
                   required
                   minRows={2}
                 />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Academic Session</FormLabel>
+                <Select
+                  value={remitSessionId}
+                  onChange={(_, v) => setRemitSessionId((v as string) ?? "")}
+                  placeholder="Select session"
+                >
+                  {sessions
+                    .filter((s) => s.isCurrent || s.activatedAt)
+                    .map((s) => (
+                      <Option key={s._id} value={s._id}>
+                        {s.name}{s.isCurrent ? " · Current" : ""}
+                      </Option>
+                    ))}
+                </Select>
               </FormControl>
 
               <Divider sx={{ my: 1 }}>Choose Payment Method</Divider>
@@ -691,6 +718,7 @@ const RemittanceTable = ({
           <tr>
             <TableHeaderCell>Date</TableHeaderCell>
             <TableHeaderCell>Description</TableHeaderCell>
+            <TableHeaderCell>Academic Session</TableHeaderCell>
             <TableHeaderCell>Method</TableHeaderCell>
             <TableHeaderCell>Amount</TableHeaderCell>
             <TableHeaderCell>Status</TableHeaderCell>
@@ -700,18 +728,21 @@ const RemittanceTable = ({
         <TableBody>
           {isLoading && docs.length === 0 ? (
             <tr>
-              <td colSpan={6}>
-                <TableSkeleton columns={6} rows={5} />
+              <td colSpan={7}>
+                <TableSkeleton columns={7} rows={5} />
               </td>
             </tr>
           ) : docs.length ? (
-            docs.map((r) => (
+              docs.map((r) => (
               <TableRow key={r._id}>
                 <TableCell>
                   {moment(r.createdAt).format("MM/DD/YYYY")}
                 </TableCell>
                 <TableCell>
                   {r.description || "School fees remittance"}
+                </TableCell>
+                <TableCell>
+                  {r.academicYear || <EmptyValue />}
                 </TableCell>
                 <TableCell>
                   <StatusBadge
