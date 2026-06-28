@@ -146,7 +146,10 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post<ApiResponseN<null>>("/auth/register", normalizedData);
+      const res = await axios.post<ApiResponseN<null>>(
+        "/auth/register",
+        normalizedData,
+      );
       toast.success(res.data.message);
 
       const credentials = {
@@ -218,7 +221,7 @@ const Register = () => {
     <div>
       <Hero
         title="Register for School of Disciples"
-        subtitle="Kindly complete your registration and make payment for SOD"
+        subtitle="Complete your registration and make payment for SOD"
       />
       <div className="container mx-auto py-16 px-4 md:px-0">
         {!showStepper ? (
@@ -418,7 +421,11 @@ const Register = () => {
               disabled={resendLoading || countdown > 0}
               className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
             >
-              {resendLoading ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
+              {resendLoading
+                ? "Sending..."
+                : countdown > 0
+                  ? `Resend in ${countdown}s`
+                  : "Resend"}
             </button>
           </p>
 

@@ -1,6 +1,6 @@
 import { Button } from "@mui/material";
 import Hero from "../components/hero/Hero";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import MatricCard from "../components/matrics/MatricCard";
@@ -15,6 +15,7 @@ import ParallaxSection from "../components/parallax-section/ParralaxSection";
 const Home = () => {
   const [searchParams] = useSearchParams();
   const paid = searchParams.get("success");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (paid === "true") {
@@ -54,7 +55,7 @@ const Home = () => {
       </section>
       <section className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-          <div className="h-80 overflow-hidden">
+          <div className="h-full overflow-hidden">
             <img
               src="/images/Pastor5.jpg"
               alt="Pastor E.A. Adeboye preaching"
@@ -123,7 +124,11 @@ const Home = () => {
             </p>
           </article>
           <div className="mt-8">
-            <Button sx={{ height: 40, borderRadius: 20 }} variant="contained">
+            <Button
+              sx={{ height: 40, borderRadius: 20 }}
+              variant="contained"
+              onClick={() => navigate("/team")}
+            >
               Read more
             </Button>
           </div>
