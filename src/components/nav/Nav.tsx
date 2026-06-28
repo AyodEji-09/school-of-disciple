@@ -53,7 +53,7 @@ const Nav = () => {
     <div className="">
       <div className="fixed inset-x-0 top-0 z-50 bg-linear-to-r from-cyan-500 to-blue-500">
         {location.pathname !== "/dashboard" && (
-          <nav className="container mx-auto py-2 text-white px-4">
+          <nav className="container mx-auto py-2 text-white">
             <div className="flex justify-between gap-4 items-center">
               <div className="logo">
                 <Link to={"/"}>
