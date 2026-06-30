@@ -63,55 +63,40 @@ const team: Team = [
     img: "p4.jpg",
   },
   {
-    id: 8,
+    id: 9,
     name: "Pastor Ademola Moses Olubode",
     title: "Director of Finance",
     desc: "Pastor Olubode is the Parish Pastor of RCCG International Chapel, Long Island (RCCGHHH). He is also an AWS/GRC and Cybersecurity Analyst. He enjoys playing music and sports.",
     img: "p7.jpg",
   },
   {
-    id: 9,
+    id: 10,
     name: "Pastor Enoch Badamosi",
     title: "Director of Exams, Records & Policy Issues",
     desc: "Pastor Enoch Badamosi is the Pastor in charge of PA Zone 2, The Americas 1. He is a senior health program Analyst with the City of Philadelphia. He is a trained attorney with LL.M Health Law & LL.M Corporate Law & Finance from Widener Law School, DE. He is a doctoral candidate in Public Policy & Administration at Walden University, MN, and a doctoral candidate in Transformational Leadership at Redeemer's University of North America.",
     img: "p8.jpg",
   },
   {
-    id: 10,
+    id: 11,
     name: "Pastor Emmanuel Ojuolape",
     title: "Asst. Director of Exams, Records & Policy Issues",
     desc: "Pastor Emmanuel O. Ojuolape is the Lead Pastor of RCCG Word of Life Center (WOLC), Silver Spring, Maryland. Pastor Emmanuel, a scholar of faith, holds a Master’s degree in Theology and is a distinguished graduate of the School of Disciples and School of Deliverance from Christ the Redeemer’s Ministry. He is happily married to his beloved wife, Elizabeth Ojuolape, and they are blessed with children.",
     img: "p9.jpeg",
   },
   {
-    id: 11,
+    id: 12,
     name: "Dr. Funto Oyewole",
     title: "Director of Publications",
     desc: "Dr. Oyewole is a clinical psychologist and an ordained minister. She is passionate about Christians living in good mental health. She is an educator, public speaker, and writer.",
     img: "p6.jpg",
   },
   {
-    id: 12,
+    id: 13,
     name: "Deacon Olusegun Oladipupo",
     title: "Assistant Director of Publications",
     desc: "Olusegun Blessing Oladipupo is a committed disciple of Christ with a heart for teaching and discipleship. As a civil engineer by profession, he brings a unique perspective to his understanding of God's Word. He is passionate about equipping others to grow in their faith and serve the Lord effectively.",
     img: "Dcn-Segun-Oladipupo.jpeg",
   },
-
-  // {
-  //   id: 3,
-  //   name: "Pastor-AIS-Adeleye",
-  //   title: "Intercontinental coordinator",
-  //   desc: "",
-  //   img: "p5.jpg",
-  // },
-  // {
-  //   id: 12,
-  //   name: "Pastor Segun Emmanuel",
-  //   title: "Asst. Director of Events and Programs",
-  //   desc: "",
-  //   img: "p4.jpg",
-  // },
 ];
 
 export default team;

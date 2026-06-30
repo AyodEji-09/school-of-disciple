@@ -16,6 +16,7 @@ const UseBox = ({
         <div className="overflow-hidden h-screen hidden md:block">
           <img
             src={`/images/${img}`}
+            loading="eager"
             alt=""
             className="w-full h-full object-cover object-center"
           />

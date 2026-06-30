@@ -26,6 +26,7 @@ const Hero = ({
         <img
           src={link || `/images/${bg}`}
           alt={`${title} hero background`}
+          loading="eager"
           className="object-cover w-full h-full"
         />
       </div>
