@@ -57,6 +57,13 @@ const team: Team = [
   },
   {
     id: 8,
+    name: "Pastor Segun Emmanuel",
+    title: "Director of Programs",
+    desc: "",
+    img: "p4.jpg",
+  },
+  {
+    id: 8,
     name: "Pastor Ademola Moses Olubode",
     title: "Director of Finance",
     desc: "Pastor Olubode is the Parish Pastor of RCCG International Chapel, Long Island (RCCGHHH). He is also an AWS/GRC and Cybersecurity Analyst. He enjoys playing music and sports.",
