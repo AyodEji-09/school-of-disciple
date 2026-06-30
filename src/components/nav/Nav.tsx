@@ -60,11 +60,13 @@ const Nav = () => {
                   <div className="flex items-center">
                     <img
                       src="/images/logo.png"
+                      loading="eager"
                       alt="School of Disciples Logo"
                       className="h-16"
                     />
                     <img
                       src="/images/rcg.png"
+                      loading="eager"
                       alt="RCCG Logo"
                       className="h-16"
                     />
