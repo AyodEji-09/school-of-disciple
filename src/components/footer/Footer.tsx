@@ -14,7 +14,7 @@ const Footer = () => {
             <Link to={"/"}>
               <div className="flex items-center">
                 <img src="/images/logo.png" alt="" className="h-16" />
-                <img src="/images/rcg.png" alt="" className="h-16" />
+                <img src="/images/sod-logo.png" alt="" className="h-16" />
               </div>
             </Link>
           </div>
@@ -39,16 +39,36 @@ const Footer = () => {
               Follow us on socials
             </h1>
             <div className="flex items-center gap-4 text-white">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+              >
                 <FaFacebookF />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+              >
                 <FaInstagram />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+              >
                 <GrLinkedinOption />
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
+              >
                 <FaYoutube />
               </a>
             </div>

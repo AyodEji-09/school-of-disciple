@@ -58,6 +58,12 @@ const Nav = () => {
               <div className="logo">
                 <Link to={"/"}>
                   <div className="flex items-center">
+                    {/* <img */}
+                    {/*   src="/images/rcg.png" */}
+                    {/*   loading="eager" */}
+                    {/*   alt="RCCG Logo" */}
+                    {/*   className="h-16" */}
+                    {/* /> */}
                     <img
                       src="/images/logo.png"
                       loading="eager"
@@ -65,9 +71,9 @@ const Nav = () => {
                       className="h-16"
                     />
                     <img
-                      src="/images/rcg.png"
+                      src="/images/sod-logo.png"
                       loading="eager"
-                      alt="RCCG Logo"
+                      alt="School of Disciples Logo"
                       className="h-16"
                     />
                   </div>
@@ -107,13 +113,13 @@ const Nav = () => {
                 <div className="logo">
                   <Link to={"/"}>
                     <div className="flex items-center">
+                      {/* <img */}
+                      {/*   src="/images/logo.png" */}
+                      {/*   alt="School of Disciples Logo" */}
+                      {/*   className="h-16" */}
+                      {/* /> */}
                       <img
-                        src="/images/logo.png"
-                        alt="School of Disciples Logo"
-                        className="h-16"
-                      />
-                      <img
-                        src="/images/rcg.png"
+                        src="/images/sod-logo.png"
                         alt="RCCG Logo"
                         className="h-16"
                       />
