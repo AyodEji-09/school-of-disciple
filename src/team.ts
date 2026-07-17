@@ -60,7 +60,7 @@ const team: Team = [
     name: "Pastor Segun Emmanuel",
     title: "Director of Programs",
     desc: "",
-    img: "p4.jpg",
+    img: "p4.jpeg",
   },
   {
     id: 9,
