@@ -25,6 +25,7 @@ export const userApi = createApi({
         admissionYear?: string | number;
         admissionSessionId?: string;
         academicYear?: string;
+        coordinatorStatus?: string;
       }
     >({
       query: ({
@@ -36,6 +37,7 @@ export const userApi = createApi({
         limit = 20,
         search,
         page = 1,
+        coordinatorStatus,
       }) => {
         const params = new URLSearchParams();
         params.set("type", type);
@@ -53,6 +55,8 @@ export const userApi = createApi({
           params.set("search", search);
           params.set("searchFields", "firstName,lastName");
         }
+
+        if (coordinatorStatus) params.set("coordinatorStatus", coordinatorStatus);
 
         return `/user/all?${params.toString()}`;
       },

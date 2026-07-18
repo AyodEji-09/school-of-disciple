@@ -1,12 +1,15 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   Dropdown,
+  FormControl,
   IconButton,
   Menu,
   MenuButton,
   MenuItem,
+  Option,
+  Select,
   Stack,
 } from "@mui/joy";
 import { MoreVert } from "@mui/icons-material";
@@ -33,12 +36,29 @@ import {
 import { useGetUsersQuery } from "../../data/rtk/user";
 import { getUserFullName, handleError } from "../../utils";
 import { COORDINATOR_STATUS } from "../../utils/status";
+import AppPagination from "../../components/pagination/Pagination";
 
 const Coordinators = () => {
   const navigate = useNavigate();
   const [searchVar, setSearchVar] = useState("");
+  const [filter, setFilter] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const prevFiltersRef = useRef({ searchVar, filter });
   const [resendInviteId, setResendInviteId] = useState<string | null>(null);
   const [deleteInviteId, setDeleteInviteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prev = prevFiltersRef.current;
+    if (prev.searchVar !== searchVar || prev.filter !== filter) {
+      prevFiltersRef.current = { searchVar, filter };
+      setSearchParams(prevParams => {
+        const next = new URLSearchParams(prevParams);
+        next.delete("page");
+        return next;
+      });
+    }
+  }, [searchVar, filter]);
 
   const {
     data: coordinators,
@@ -46,9 +66,25 @@ const Coordinators = () => {
     refetch,
   } = useGetUsersQuery({
     type: "coordinator",
+    page,
     ...(searchVar ? { search: searchVar } : {}),
+    ...(filter ? { coordinatorStatus: filter } : {}),
   });
   const coordinatorDocs = coordinators?.data?.docs || [];
+  const totalItems = coordinators?.data?.totalItems ?? 0;
+  const totalPages = Math.ceil(totalItems / 20);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   const getCenterName = (entry: User) => {
     if (!entry?.center || typeof entry.center === "string") return null;
@@ -124,10 +160,24 @@ const Coordinators = () => {
       <div className="mt-6">
         <PageCard
           title="Center Coordinators"
-          subtitle={`${coordinatorDocs.length} coordinator${coordinatorDocs.length === 1 ? "" : "s"} on file`}
+          subtitle={`${totalItems} coordinator${totalItems === 1 ? "" : "s"} on file`}
           action={
             <Stack direction="row" gap={1.5} alignItems="center">
               <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
+              {/* <FormControl size="sm" sx={{ minWidth: 160 }}>
+                <Select
+                  size="sm"
+                  value={filter}
+                  onChange={(_, val) => setFilter((val as string) ?? "")}
+                  placeholder="All statuses"
+                >
+                  <Option value="">All statuses</Option>
+                  <Option value="assigned">Assigned</Option>
+                  <Option value="unassigned">Unassigned</Option>
+                  <Option value="pending">Pending</Option>
+                  <Option value="deactivated">Deactivated</Option>
+                </Select>
+              </FormControl> */}
               <AppButton
                 type="button"
                 onClick={() => navigate("/dashboard/coordinators/invite")}
@@ -243,6 +293,16 @@ const Coordinators = () => {
               </TableBody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <Stack direction="row" justifyContent="center" sx={{ p: 3 }}>
+              <AppPagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </Stack>
+          )}
         </PageCard>
       </div>
     </Frame>
