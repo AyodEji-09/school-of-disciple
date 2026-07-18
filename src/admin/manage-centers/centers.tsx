@@ -1,18 +1,21 @@
 import {
   Box,
   Dropdown,
+  FormControl,
   IconButton,
   Menu,
   MenuButton,
   MenuItem,
+  Option,
+  Select,
   Stack,
   Typography,
 } from "@mui/joy";
 import Frame from "../../components/frame/Frame";
 import ReportCard from "../../components/card/ReportCard";
 import AppButton from "../../components/Button/AppButton";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MoreVert } from "@mui/icons-material";
 import AppModal from "../../components/modal/modal";
 import { Controller, useForm } from "react-hook-form";
@@ -46,6 +49,7 @@ import {
   EmptyValue,
 } from "../../components/feedback/TableShell";
 import { COORDINATOR_STATUS } from "../../utils/status";
+import AppPagination from "../../components/pagination/Pagination";
 
 interface FormType {
   name: string;
@@ -67,7 +71,24 @@ const Centers = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchVar, setSearchVar] = useState("");
+  const [filter, setFilter] = useState("");
   const [selectedCenter, setSelectedCenter] = useState<Center | null>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const prevFiltersRef = useRef({ searchVar, filter });
+
+  useEffect(() => {
+    const prev = prevFiltersRef.current;
+    if (prev.searchVar !== searchVar || prev.filter !== filter) {
+      prevFiltersRef.current = { searchVar, filter };
+      setSearchParams(prevParams => {
+        const next = new URLSearchParams(prevParams);
+        next.delete("page");
+        return next;
+      });
+    }
+  }, [searchVar, filter]);
+
   const [updateCenter] = useUpdateCenterMutation();
   const [deleteCenterMutation] = useDeleteCenterMutation();
 
@@ -78,8 +99,9 @@ const Centers = () => {
     isFetching,
   } = useGetCentersQuery({
     limit: 20,
-    page: 1,
+    page,
     ...(searchVar ? { search: searchVar } : {}),
+    ...(filter ? { managerStatus: filter } : {}),
   });
   const { data: allCenters } = useGetAllCenterQuery();
   const { data: coordinators } = useGetUsersQuery({ type: "coordinator" });
@@ -87,6 +109,19 @@ const Centers = () => {
   const totalCenters = centerData?.data?.totalItems ?? 0;
   const unassignedCenters =
     allCenters?.data?.docs?.filter((center) => !center.manager).length ?? 0;
+  const totalPages = Math.ceil(totalCenters / 20);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   const getManagerId = (manager?: User | string | null) => {
     if (!manager) return null;
@@ -245,7 +280,23 @@ const Centers = () => {
         <PageCard
           padded={false}
           title="Centers"
-          action={<AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />}
+          action={
+            <Stack direction="row" gap={2} alignItems="center">
+              <AppSearch searchVar={searchVar} setSearchVar={setSearchVar} />
+              <FormControl size="sm" sx={{ minWidth: 160 }}>
+                <Select
+                  size="sm"
+                  value={filter}
+                  onChange={(_, val) => setFilter((val as string) ?? "")}
+                  placeholder="All centers"
+                >
+                  <Option value="">All centers</Option>
+                  <Option value="assigned">Assigned</Option>
+                  <Option value="unassigned">Unassigned</Option>
+                </Select>
+              </FormControl>
+            </Stack>
+          }
         >
           <div className="overflow-x-auto min-h-[400px]">
             {isLoading || isFetching ? (
@@ -356,6 +407,16 @@ const Centers = () => {
               </table>
             )}
           </div>
+
+          {totalPages > 1 && (
+            <Stack direction="row" justifyContent="center" sx={{ p: 3 }}>
+              <AppPagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </Stack>
+          )}
         </PageCard>
       </div>
 

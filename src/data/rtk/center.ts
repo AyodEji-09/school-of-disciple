@@ -17,9 +17,9 @@ export const centerApi = createApi({
   endpoints: (builder) => ({
     getCenters: builder.query<
       ApiResponse<Center>,
-      { limit?: number; search?: string; page?: number | null }
+      { limit?: number; search?: string; page?: number | null; managerStatus?: string }
     >({
-      query: ({ limit = 20, search, page = 1 }) => {
+      query: ({ limit = 20, search, page = 1, managerStatus }) => {
         const params = new URLSearchParams();
 
         if (page != null) params.set("page", String(page));
@@ -32,6 +32,8 @@ export const centerApi = createApi({
             "name,shortCode,region,province,zone,zoneShortCode,address,city,state,postalCode,country",
           );
         }
+
+        if (managerStatus) params.set("managerStatus", managerStatus);
 
         return `/center?${params.toString()}`;
       },
