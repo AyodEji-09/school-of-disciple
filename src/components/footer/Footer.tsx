@@ -35,42 +35,45 @@ const Footer = () => {
             </div>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white mb-4">
-              Follow us on socials
-            </h1>
-            <div className="flex items-center gap-4 text-white">
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-              >
-                <FaFacebookF />
+            <h1 className="text-2xl font-bold text-white mb-4">Contact us</h1>
+            <div className="space-y-4">
+              <a href="mailto:info@rccgnasod.org" className="text-white block">
+                info@rccgnasod.org
               </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-              >
-                <FaInstagram />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
-              >
-                <GrLinkedinOption />
-              </a>
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-              >
-                <FaYoutube />
-              </a>
+              {/* <div className="flex items-center gap-4 text-white"> */}
+              {/*   <a */}
+              {/*     href="https://facebook.com" */}
+              {/*     target="_blank" */}
+              {/*     rel="noopener noreferrer" */}
+              {/*     aria-label="Facebook" */}
+              {/*   > */}
+              {/*     <FaFacebookF /> */}
+              {/*   </a> */}
+              {/*   <a */}
+              {/*     href="https://instagram.com" */}
+              {/*     target="_blank" */}
+              {/*     rel="noopener noreferrer" */}
+              {/*     aria-label="Instagram" */}
+              {/*   > */}
+              {/*     <FaInstagram /> */}
+              {/*   </a> */}
+              {/*   <a */}
+              {/*     href="https://linkedin.com" */}
+              {/*     target="_blank" */}
+              {/*     rel="noopener noreferrer" */}
+              {/*     aria-label="LinkedIn" */}
+              {/*   > */}
+              {/*     <GrLinkedinOption /> */}
+              {/*   </a> */}
+              {/*   <a */}
+              {/*     href="https://youtube.com" */}
+              {/*     target="_blank" */}
+              {/*     rel="noopener noreferrer" */}
+              {/*     aria-label="YouTube" */}
+              {/*   > */}
+              {/*     <FaYoutube /> */}
+              {/*   </a> */}
+              {/* </div> */}
             </div>
           </div>
         </div>
