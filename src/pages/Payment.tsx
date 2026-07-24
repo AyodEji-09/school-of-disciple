@@ -39,7 +39,7 @@ const Payment = () => {
         );
         const url = res.data.data?.url;
         if (url) {
-          window.open(url, "_blank");
+          window.location.href = url;
         }
       } catch (error: any) {
         const status = error?.response?.status;

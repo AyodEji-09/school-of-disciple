@@ -138,28 +138,22 @@ const Register = () => {
       return;
     }
 
-    const normalizedData = {
-      ...data,
-      firstName: titleCaseName(data.firstName),
-      lastName: titleCaseName(data.lastName),
-    };
-
     setLoading(true);
     try {
       const res = await axios.post<ApiResponseN<null>>(
         "/auth/register",
-        normalizedData,
+        data,
       );
       toast.success(res.data.message);
 
       const credentials = {
-        email: normalizedData.email,
-        password: normalizedData.password,
+        email: data.email,
+        password: data.password,
       };
       setPendingCredentials(credentials);
 
       try {
-        await sendVerificationOtp(normalizedData.email);
+        await sendVerificationOtp(data.email);
         setIsModalOpen(true);
         toast.info("A verification code has been sent to your email");
         setCountdown(60);
