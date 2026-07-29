@@ -166,7 +166,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <UseBox img="login-bg.png">
+    <UseBox img="manholding.jpg">
       <Stack mt={8}>
         <Typography level="h2">Forgot Password</Typography>
         <Typography level="body-sm" mt={1} textColor="#6B7280">
@@ -224,7 +224,11 @@ const ForgotPassword = () => {
                 onClick={onResendToken}
                 disabled={resendingToken || countdown > 0}
               >
-                {resendingToken ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend Code"}
+                {resendingToken
+                  ? "Sending..."
+                  : countdown > 0
+                    ? `Resend in ${countdown}s`
+                    : "Resend Code"}
               </AppButton>
             </Stack>
           </div>
@@ -316,10 +320,19 @@ const ForgotPassword = () => {
             <button
               type="button"
               onClick={onResendToken}
-              disabled={resendingToken || verifyingOtp || resettingPassword || countdown > 0}
+              disabled={
+                resendingToken ||
+                verifyingOtp ||
+                resettingPassword ||
+                countdown > 0
+              }
               className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
             >
-              {resendingToken ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend"}
+              {resendingToken
+                ? "Sending..."
+                : countdown > 0
+                  ? `Resend in ${countdown}s`
+                  : "Resend"}
             </button>
           </p>
 
