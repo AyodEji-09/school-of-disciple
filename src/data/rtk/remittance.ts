@@ -119,6 +119,13 @@ export const remittanceApi = createApi({
         { type: "RemittanceList", id: "LIST" },
       ],
     }),
+    deleteRemittance: builder.mutation<ApiResponseN<null>, string>({
+      query: (id) => ({
+        url: `/remittance/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "RemittanceList", id: "LIST" }],
+    }),
   }),
 });
 
@@ -130,4 +137,5 @@ export const {
   useConfirmRemittanceMutation,
   useRejectRemittanceMutation,
   useUploadRemittanceReceiptMutation,
+  useDeleteRemittanceMutation,
 } = remittanceApi;
