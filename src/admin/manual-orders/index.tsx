@@ -3,8 +3,13 @@ import {
   Box,
   Button,
   Card,
+  Dropdown,
   FormControl,
   FormLabel,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
   Option,
   Select,
   Stack,
@@ -12,7 +17,8 @@ import {
 } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
-import { RiCheckLine, RiEyeLine } from "react-icons/ri";
+import { RiCheckLine } from "react-icons/ri";
+import { MoreVert } from "@mui/icons-material";
 
 import Frame from "../../components/frame/Frame";
 import AppModal from "../../components/modal/modal";
@@ -22,7 +28,7 @@ import {
   MetricCardSkeleton,
   TableSkeleton,
 } from "../../components/query-state/QueryStates";
-import { useGetManualOrdersQuery } from "../../data/rtk/manual-order";
+import { useGetManualOrdersQuery, useDeleteManualOrderMutation } from "../../data/rtk/manual-order";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { getUserFullName } from "../../utils";
@@ -63,6 +69,7 @@ const PAYMENT_METHOD_OPTIONS: { value: string; label: string }[] = [
 const ManualOrdersAdminPage = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [deleteManualOrder] = useDeleteManualOrderMutation();
   const [status, setStatus] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [center, setCenter] = useState("");
@@ -127,6 +134,16 @@ const ManualOrdersAdminPage = () => {
     setPaymentMethod("");
     setCenter("");
     setSelectedSessionId("");
+  };
+
+  const handleDeleteManualOrder = async (id: string) => {
+    if (!window.confirm("Delete this manual order? The coordinator data and transaction history will be kept for audit.")) return;
+    try {
+      await deleteManualOrder(id).unwrap();
+      toast.success("Manual order deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete manual order");
+    }
   };
 
   const hasActiveFilters =
@@ -415,14 +432,24 @@ const ManualOrdersAdminPage = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <button
-                          type="button"
-                          onClick={() => setDetailsOrder(order)}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-[#001EC5] hover:underline"
-                        >
-                          <RiEyeLine size={14} />
-                          Details
-                        </button>
+                        <Dropdown>
+                          <MenuButton
+                            slots={{ root: IconButton }}
+                            slotProps={{
+                              root: { variant: "outlined", color: "neutral" },
+                            }}
+                          >
+                            <MoreVert />
+                          </MenuButton>
+                          <Menu>
+                            <MenuItem onClick={() => setDetailsOrder(order)}>
+                              Details
+                            </MenuItem>
+                            <MenuItem onClick={() => handleDeleteManualOrder(order._id)}>
+                              Delete
+                            </MenuItem>
+                          </Menu>
+                        </Dropdown>
                       </TableCell>
                     </TableRow>
                   ))
