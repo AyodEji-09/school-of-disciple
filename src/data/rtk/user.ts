@@ -188,6 +188,16 @@ export const userApi = createApi({
         }
       },
     }),
+    deleteUser: builder.mutation<ApiResponseN<null>, string>({
+      query: (id) => ({
+        url: `/admin/users/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, id) => [
+        { type: "UserList", id: "LIST" },
+        { type: "User", id },
+      ],
+    }),
   }),
 });
 
@@ -200,4 +210,5 @@ export const {
   useUploadProfileImageMutation,
   useUpdateCoordinatorAssignmentMutation,
   useUpdateCoordinatorDeactivationMutation,
+  useDeleteUserMutation,
 } = userApi;
