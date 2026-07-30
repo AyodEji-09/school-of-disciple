@@ -29,10 +29,15 @@ const FeesPage = () => {
 
   const [registrationFee, setRegistrationFee] = useState<number>(2000);
   const [manualOrderFee, setManualOrderFee] = useState<number>(7500);
+  const [stripeFeePercentage, setStripeFeePercentage] = useState<number>(2.9);
+  const [stripeFixedFee, setStripeFixedFee] = useState<number>(30);
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
   const [isManualOrderModalOpen, setIsManualOrderModalOpen] = useState(false);
+  const [isStripeFeeModalOpen, setIsStripeFeeModalOpen] = useState(false);
   const [registrationFeeInput, setRegistrationFeeInput] = useState("20.00");
   const [manualOrderFeeInput, setManualOrderFeeInput] = useState("75.00");
+  const [stripeFeePercentInput, setStripeFeePercentInput] = useState("2.9");
+  const [stripeFixedFeeInput, setStripeFixedFeeInput] = useState("0.30");
 
   useEffect(() => {
     if (settingsData?.data?.registrationFee !== undefined) {
@@ -46,6 +51,14 @@ const FeesPage = () => {
       setManualOrderFeeInput(
         (settingsData.data.manualOrderFee / 100).toFixed(2),
       );
+    }
+    if (settingsData?.data?.stripeFeePercentage !== undefined) {
+      setStripeFeePercentage(settingsData.data.stripeFeePercentage);
+      setStripeFeePercentInput(String(settingsData.data.stripeFeePercentage));
+    }
+    if (settingsData?.data?.stripeFixedFee !== undefined) {
+      setStripeFixedFee(settingsData.data.stripeFixedFee);
+      setStripeFixedFeeInput((settingsData.data.stripeFixedFee / 100).toFixed(2));
     }
   }, [settingsData]);
 
@@ -128,6 +141,49 @@ const FeesPage = () => {
       setManualOrderFeeInput((cents / 100).toFixed(2));
       toast.success("Manual order fee updated");
       setIsManualOrderModalOpen(false);
+    } catch (error) {
+      toast.error(handleError(error));
+    }
+  };
+
+  const parsedStripeFeePercent = parseFloat(stripeFeePercentInput);
+  const isValidStripeFeePercent =
+    stripeFeePercentInput.trim() !== "" &&
+    !isNaN(parsedStripeFeePercent) &&
+    parsedStripeFeePercent >= 0;
+  const parsedStripeFixedFee = parseFloat(stripeFixedFeeInput);
+  const isValidStripeFixedFee =
+    stripeFixedFeeInput.trim() !== "" &&
+    !isNaN(parsedStripeFixedFee) &&
+    parsedStripeFixedFee >= 0;
+  const isValidStripeFee = isValidStripeFeePercent && isValidStripeFixedFee;
+
+  const openStripeFeeModal = () => {
+    setStripeFeePercentInput(String(stripeFeePercentage));
+    setStripeFixedFeeInput((stripeFixedFee / 100).toFixed(2));
+    setIsStripeFeeModalOpen(true);
+  };
+  const closeStripeFeeModal = () => {
+    setStripeFeePercentInput(String(stripeFeePercentage));
+    setStripeFixedFeeInput((stripeFixedFee / 100).toFixed(2));
+    setIsStripeFeeModalOpen(false);
+  };
+
+  const handleSaveStripeFee = async () => {
+    if (!isValidStripeFee) {
+      toast.error("Enter valid values");
+      return;
+    }
+    const percent = parsedStripeFeePercent;
+    const fixedCents = Math.round(parsedStripeFixedFee * 100);
+    try {
+      await updateSettings({ stripeFeePercentage: percent, stripeFixedFee: fixedCents }).unwrap();
+      setStripeFeePercentage(percent);
+      setStripeFixedFee(fixedCents);
+      setStripeFeePercentInput(String(percent));
+      setStripeFixedFeeInput((fixedCents / 100).toFixed(2));
+      toast.success("Stripe fee updated");
+      setIsStripeFeeModalOpen(false);
     } catch (error) {
       toast.error(handleError(error));
     }
@@ -216,6 +272,44 @@ const FeesPage = () => {
             </Typography>
             <Typography level="body-xs" textColor="neutral.400" sx={{ mt: 0.5 }}>
               Charged per book unit ordered
+            </Typography>
+          </div>
+        </PageCard>
+
+        <PageCard
+          title="Stripe Processing Fee"
+          subtitle="Processing fee charged on all Stripe payments (registration, remittances, manual orders)"
+          action={
+            <AppButton
+              type="button"
+              variant="outlined"
+              onClick={openStripeFeeModal}
+            >
+              Set Stripe Fee
+            </AppButton>
+          }
+        >
+          <div>
+            <Typography
+              level="body-xs"
+              sx={{
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "#9CA3AF",
+                fontWeight: 600,
+                mb: 0.75,
+              }}
+            >
+              Current Fee
+            </Typography>
+            <Typography
+              level="h2"
+              sx={{ color: "#001F54", fontWeight: 800, lineHeight: 1 }}
+            >
+              {stripeFeePercentage}% + ${(stripeFixedFee / 100).toFixed(2)}
+            </Typography>
+            <Typography level="body-xs" textColor="neutral.400" sx={{ mt: 0.5 }}>
+              Applied as a separate line item on all Stripe checkout sessions
             </Typography>
           </div>
         </PageCard>
@@ -374,6 +468,98 @@ const FeesPage = () => {
                 onClick={handleSaveManualOrderFee}
                 loading={isUpdating}
                 disabled={!isValidManualOrderFee || isUpdating}
+                sx={{
+                  bgcolor: "#001F54",
+                  ":hover": { bgcolor: "#001EC5" },
+                  fontWeight: 600,
+                  px: 3,
+                }}
+              >
+                Save Fee
+              </Button>
+            </Stack>
+          </Stack>
+        </div>
+      </AppModal>
+
+      <AppModal
+        isOpen={isStripeFeeModalOpen}
+        close={closeStripeFeeModal}
+        title="Set Stripe Processing Fee"
+        icon
+      >
+        <div className="w-[min(440px,80vw)] mt-2">
+          <Stack spacing={2.5}>
+            <FormControl>
+              <FormLabel>Percentage Fee</FormLabel>
+              <Input
+                type="number"
+                value={stripeFeePercentInput}
+                onChange={(e) => setStripeFeePercentInput(e.target.value)}
+                placeholder="2.9"
+                endDecorator={
+                  <Typography sx={{ color: "#6B7280", fontWeight: 600 }}>
+                    %
+                  </Typography>
+                }
+                slotProps={{ input: { min: 0, step: "0.1" } }}
+                autoFocus
+              />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel>Fixed Fee (USD)</FormLabel>
+              <Input
+                type="number"
+                value={stripeFixedFeeInput}
+                onChange={(e) => setStripeFixedFeeInput(e.target.value)}
+                placeholder="0.30"
+                startDecorator={
+                  <Typography sx={{ color: "#6B7280", fontWeight: 600 }}>
+                    $
+                  </Typography>
+                }
+                slotProps={{ input: { min: 0, step: "0.01" } }}
+              />
+            </FormControl>
+
+            {isValidStripeFee && (
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: "10px",
+                  background: "#F0F4FF",
+                  border: "1px solid",
+                  borderColor: "#D4CAFE",
+                }}
+              >
+                <Typography
+                  level="body-sm"
+                  sx={{ color: "#001F54", fontWeight: 600 }}
+                >
+                  A {parsedStripeFeePercent}% + ${parsedStripeFixedFee.toFixed(2)}{" "}
+                  fee will be added to every Stripe transaction
+                </Typography>
+                <Typography level="body-xs" textColor="neutral.500">
+                  Stored internally as {parsedStripeFeePercent}% and{" "}
+                  {Math.round(parsedStripeFixedFee * 100)} cents fixed
+                </Typography>
+              </Box>
+            )}
+
+            <Stack direction="row" gap={1.5} justifyContent="flex-end">
+              <Button
+                variant="outlined"
+                onClick={closeStripeFeeModal}
+                disabled={isUpdating}
+                sx={{ fontWeight: 600 }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveStripeFee}
+                loading={isUpdating}
+                disabled={!isValidStripeFee || isUpdating}
                 sx={{
                   bgcolor: "#001F54",
                   ":hover": { bgcolor: "#001EC5" },

@@ -5,6 +5,8 @@ export interface GlobalSettings {
   _id: string;
   registrationFee: number;
   manualOrderFee: number;
+  stripeFeePercentage: number;
+  stripeFixedFee: number;
   zelleEmail?: string;
   zelleName?: string;
   manualOrderZelleEmail?: string;
@@ -29,7 +31,7 @@ export const settingsApi = createApi({
     }),
     updateSettings: builder.mutation<
       ApiResponseN<GlobalSettings>,
-      { registrationFee?: number; manualOrderFee?: number; zelleEmail?: string; zelleName?: string; manualOrderZelleEmail?: string; manualOrderZelleName?: string }
+      { registrationFee?: number; manualOrderFee?: number; stripeFeePercentage?: number; stripeFixedFee?: number; zelleEmail?: string; zelleName?: string; manualOrderZelleEmail?: string; manualOrderZelleName?: string }
     >({
       query: (body) => ({
         url: "/settings",
