@@ -1,8 +1,20 @@
 import { useEffect, useState } from "react";
-import { FormControl, FormLabel, Option, Select, Stack } from "@mui/joy";
+import {
+  Dropdown,
+  FormControl,
+  FormLabel,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  Option,
+  Select,
+  Stack,
+} from "@mui/joy";
 import moment from "moment";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { MoreVert } from "@mui/icons-material";
 
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
@@ -21,7 +33,7 @@ import {
   TableRow,
   EmptyValue,
 } from "../../components/feedback/TableShell";
-import { useGetRemittancesQuery } from "../../data/rtk/remittance";
+import { useGetRemittancesQuery, useDeleteRemittanceMutation } from "../../data/rtk/remittance";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import { useURL } from "../../data/config";
@@ -40,6 +52,7 @@ const RemittancesPage = () => {
   const [selectedCenter, setSelectedCenter] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [deleteRemittance] = useDeleteRemittanceMutation();
 
   const { data: sessions = [] } = useGetSessionsQuery();
   const { data: centersRes } = useGetCentersQuery({ limit: 100 });
@@ -109,6 +122,16 @@ const RemittancesPage = () => {
       toast.error(handleError(error));
     } finally {
       setIsGeneratingReport(false);
+    }
+  };
+
+  const handleDeleteRemittance = async (id: string) => {
+    if (!window.confirm("Delete this remittance record? The coordinator data and transaction history will be kept for audit.")) return;
+    try {
+      await deleteRemittance(id).unwrap();
+      toast.success("Remittance deleted successfully");
+    } catch (error) {
+      toast.error(handleError(error));
     }
   };
 
@@ -182,13 +205,16 @@ const RemittancesPage = () => {
                   <TableHeaderCell>Amount</TableHeaderCell>
                   <TableHeaderCell>Status</TableHeaderCell>
                   <TableHeaderCell>Receipt</TableHeaderCell>
+                  <TableHeaderCell className="text-right">
+                    Action
+                  </TableHeaderCell>
                 </tr>
               </TableHeader>
               <TableBody>
                 {isLoading && !hasDocs ? (
                   <tr>
-                    <td colSpan={7}>
-                      <TableSkeleton columns={7} rows={5} />
+                    <td colSpan={8}>
+                      <TableSkeleton columns={8} rows={5} />
                     </td>
                   </tr>
                 ) : hasDocs ? (
@@ -239,6 +265,23 @@ const RemittancesPage = () => {
                         ) : (
                           <EmptyValue />
                         )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Dropdown>
+                          <MenuButton
+                            slots={{ root: IconButton }}
+                            slotProps={{
+                              root: { variant: "outlined", color: "neutral" },
+                            }}
+                          >
+                            <MoreVert />
+                          </MenuButton>
+                          <Menu>
+                            <MenuItem onClick={() => handleDeleteRemittance(r._id)}>
+                              Delete
+                            </MenuItem>
+                          </Menu>
+                        </Dropdown>
                       </TableCell>
                     </TableRow>
                   ))
