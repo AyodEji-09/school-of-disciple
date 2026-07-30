@@ -1,9 +1,21 @@
 import { useEffect, useState } from "react";
-import { FormControl, FormLabel, Option, Select, Stack } from "@mui/joy";
+import {
+  Dropdown,
+  FormControl,
+  FormLabel,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  Option,
+  Select,
+  Stack,
+} from "@mui/joy";
 import moment from "moment";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../data/selectors/authSelector";
 import { useNavigate } from "react-router-dom";
+import { MoreVert } from "@mui/icons-material";
 import AppButton from "../../components/Button/AppButton";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -24,7 +36,7 @@ import {
   TableRow,
   EmptyValue,
 } from "../../components/feedback/TableShell";
-import { useGetPaymentsQuery } from "../../data/rtk/payment";
+import { useGetPaymentsQuery, useDeletePaymentMutation } from "../../data/rtk/payment";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import Frame from "../../components/frame/Frame";
@@ -52,6 +64,7 @@ const getCenterNameFromPayment = (payment: Payment): string | null => {
 
 const Payments = () => {
   const navigate = useNavigate();
+  const [deletePayment] = useDeletePaymentMutation();
   const user = useSelector(selectUser);
   const isAdmin = user?.type === "admin" || user?.type === "super";
   const isCoordinator = user?.type === "coordinator";
@@ -144,6 +157,16 @@ const Payments = () => {
       toast.error(handleError(error));
     } finally {
       setIsGeneratingReport(false);
+    }
+  };
+
+  const handleDeletePayment = async (paymentId: string) => {
+    if (!window.confirm("Delete this payment record? The student data and transaction history will be kept for audit.")) return;
+    try {
+      await deletePayment(paymentId).unwrap();
+      toast.success("Payment deleted successfully");
+    } catch (error) {
+      toast.error(handleError(error));
     }
   };
 
@@ -268,16 +291,38 @@ const Payments = () => {
                           />
                         </TableCell>
                         <TableCell className="text-right">
-                          <AppButton
-                            type="button"
-                            className="h-8 px-4 text-xs"
-                            disabled={!payerId}
-                            onClick={() =>
-                              navigate(`/dashboard/payments/users/${payerId}`)
-                            }
-                          >
-                            View
-                          </AppButton>
+                          <Dropdown>
+                            <MenuButton
+                              slots={{ root: IconButton }}
+                              slotProps={{
+                                root: { variant: "outlined", color: "neutral" },
+                              }}
+                            >
+                              <MoreVert />
+                            </MenuButton>
+                            <Menu>
+                              {payerId ? (
+                                <MenuItem
+                                  onClick={() =>
+                                    navigate(`/dashboard/payments/users/${payerId}`)
+                                  }
+                                >
+                                  View
+                                </MenuItem>
+                              ) : (
+                                <MenuItem disabled>
+                                  View
+                                </MenuItem>
+                              )}
+                              {isAdmin && (
+                                <MenuItem
+                                  onClick={() => handleDeletePayment(payment._id)}
+                                >
+                                  Delete
+                                </MenuItem>
+                              )}
+                            </Menu>
+                          </Dropdown>
                         </TableCell>
                       </TableRow>
                     );
