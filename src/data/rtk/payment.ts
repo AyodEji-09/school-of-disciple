@@ -73,7 +73,14 @@ export const paymentApi = createApi({
       query: (id) => `/payment/${id}`,
       providesTags: (_, __, id) => [{ type: "Payment", id }],
     }),
+    deletePayment: builder.mutation<ApiResponseN<null>, string>({
+      query: (id) => ({
+        url: `/payment/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "PaymentList", id: "LIST" }],
+    }),
   }),
 });
 
-export const { useGetPaymentsQuery, useGetUserPaymentsQuery } = paymentApi;
+export const { useGetPaymentsQuery, useGetUserPaymentsQuery, useDeletePaymentMutation } = paymentApi;
