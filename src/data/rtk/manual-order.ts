@@ -137,6 +137,13 @@ export const manualOrderApi = createApi({
         { type: "ManualOrderList", id: "LIST" },
       ],
     }),
+    deleteManualOrder: builder.mutation<ApiResponseN<null>, string>({
+      query: (id) => ({
+        url: `/manual-order/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "ManualOrderList", id: "LIST" }],
+    }),
   }),
 });
 
@@ -147,4 +154,5 @@ export const {
   useCreateZelleManualOrderMutation,
   useConfirmManualOrderMutation,
   useUploadManualOrderReceiptMutation,
+  useDeleteManualOrderMutation,
 } = manualOrderApi;
