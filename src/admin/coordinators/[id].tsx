@@ -6,6 +6,7 @@ import {
   useGetUserQuery,
   useUpdateCoordinatorAssignmentMutation,
   useUpdateCoordinatorDeactivationMutation,
+  useDeleteUserMutation,
 } from "../../data/rtk/user";
 import { useGetAllCenterQuery } from "../../data/rtk/center";
 import { useParams } from "react-router-dom";
@@ -35,6 +36,7 @@ const CenterManager = () => {
   const [deactivationLoading, setDeactivationLoading] = useState(false);
   const [updateAssignment] = useUpdateCoordinatorAssignmentMutation();
   const [updateDeactivation] = useUpdateCoordinatorDeactivationMutation();
+  const [deleteUser] = useDeleteUserMutation();
 
   const manager = user?.data;
   const personalInfo = manager?.intakeFormData?.personalInfo;
@@ -100,6 +102,19 @@ const CenterManager = () => {
       toast.error(handleError(error));
     } finally {
       setDeactivationLoading(false);
+    }
+  };
+
+  const handleDeleteCoordinator = async () => {
+    if (!manager?._id) return;
+    const name = getUserFullName(manager);
+    if (!window.confirm(`Delete ${name}? This coordinator will be permanently removed. Their assigned center(s) will have no manager. All past transactions, remittances, and orders will be kept for audit.`)) return;
+
+    try {
+      await deleteUser(manager._id).unwrap();
+      toast.success(`${name} deleted successfully`);
+    } catch (error) {
+      toast.error(handleError(error));
     }
   };
 
@@ -259,7 +274,7 @@ const CenterManager = () => {
                       <Typography level="title-md" mb={2}>
                         Administrative Actions
                       </Typography>
-                      <Stack direction="row" gap={2}>
+                      <Stack direction="row" gap={2} flexWrap="wrap">
                         {manager?.deactivated ? (
                           <AppButton
                             loading={deactivationLoading}
@@ -280,6 +295,13 @@ const CenterManager = () => {
                             Deactivate Coordinator Account
                           </AppButton>
                         )}
+                        <AppButton
+                          variant="red"
+                          className="h-10"
+                          onClick={handleDeleteCoordinator}
+                        >
+                          Delete Coordinator
+                        </AppButton>
                       </Stack>
                     </div>
                   )}
