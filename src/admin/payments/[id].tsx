@@ -1,6 +1,6 @@
 import { Box, Button, Card, Chip, Stack, Typography } from "@mui/joy";
 import { PulseLoader } from "react-spinners";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import moment from "moment";
 import { useState, useMemo } from "react";
 import { toast } from "react-toastify";
@@ -9,6 +9,7 @@ import Frame from "../../components/frame/Frame";
 import {
   useGetUserQuery,
   useUpdateCoordinatorDeactivationMutation,
+  useDeleteUserMutation,
 } from "../../data/rtk/user";
 import { formatCenterAddress, getUserFullName, handleError } from "../../utils";
 import { parseEducationRows } from "../../pages/onboarding/helpers";
@@ -17,6 +18,7 @@ import { selectUser } from "../../data/selectors/authSelector";
 
 const PaymentUser = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const viewer = useAppSelector(selectUser);
   const isAdmin = viewer?.type === "admin";
 
@@ -24,10 +26,12 @@ const PaymentUser = () => {
     data: user,
     isLoading,
     isFetching,
+    isError,
   } = useGetUserQuery(id ?? "", { skip: !id });
 
   const [deactivationLoading, setDeactivationLoading] = useState(false);
   const [updateDeactivation] = useUpdateCoordinatorDeactivationMutation();
+  const [deleteUser] = useDeleteUserMutation();
 
   const currentUser = user?.data;
   const intakeData = currentUser?.intakeFormData;
@@ -65,6 +69,19 @@ const PaymentUser = () => {
     }
   };
 
+  const handleDeleteStudent = async () => {
+    if (!currentUser?._id) return;
+    const name = getUserFullName(currentUser);
+    if (!window.confirm(`Delete ${name}? This will permanently remove this student. All associated payments, results, and transactions will be kept for audit but will no longer be linked to a user.`)) return;
+
+    try {
+      await deleteUser(currentUser._id).unwrap();
+      toast.success(`${name} deleted successfully`);
+    } catch (error) {
+      toast.error(handleError(error));
+    }
+  };
+
   return (
     <Frame text="User Details">
       <div className="mt-8 pb-8">
@@ -72,6 +89,22 @@ const PaymentUser = () => {
           {isLoading || isFetching ? (
             <div className="flex min-h-72 items-center justify-center">
               <PulseLoader className="mx-auto" size="large" />
+            </div>
+          ) : isError ? (
+            <div className="flex flex-col min-h-72 items-center justify-center gap-4">
+              <Typography level="h4" textColor="neutral.500">
+                User not found
+              </Typography>
+              <Typography level="body-sm" textColor="neutral.400">
+                This user may have been deleted.
+              </Typography>
+              <Button
+                variant="outlined"
+                color="neutral"
+                onClick={() => navigate(-1)}
+              >
+                Go Back
+              </Button>
             </div>
           ) : currentUser ? (
             <div className="grid md:grid-cols-3 gap-6 p-2">
@@ -209,7 +242,7 @@ const PaymentUser = () => {
                     <Typography level="title-md" mb={2}>
                       Administrative Actions
                     </Typography>
-                    <Stack direction="row" gap={2}>
+                      <Stack direction="row" gap={2} flexWrap="wrap">
                       {currentUser?.deactivated ? (
                         <Button
                           loading={deactivationLoading}
@@ -227,7 +260,14 @@ const PaymentUser = () => {
                           Deactivate User Account
                         </Button>
                       )}
-                    </Stack>
+                      <Button
+                        variant="outlined"
+                        color="danger"
+                        onClick={handleDeleteStudent}
+                      >
+                        Delete User
+                      </Button>
+                      </Stack>
                   </div>
                 )}
               </div>
