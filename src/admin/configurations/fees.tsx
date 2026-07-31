@@ -30,14 +30,14 @@ const FeesPage = () => {
   const [registrationFee, setRegistrationFee] = useState<number>(2000);
   const [manualOrderFee, setManualOrderFee] = useState<number>(7500);
   const [stripeFeePercentage, setStripeFeePercentage] = useState<number>(2.9);
-  const [stripeFixedFee, setStripeFixedFee] = useState<number>(30);
+  const [stripeFixedFee, setStripeFixedFee] = useState<number>(0);
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
   const [isManualOrderModalOpen, setIsManualOrderModalOpen] = useState(false);
   const [isStripeFeeModalOpen, setIsStripeFeeModalOpen] = useState(false);
   const [registrationFeeInput, setRegistrationFeeInput] = useState("20.00");
   const [manualOrderFeeInput, setManualOrderFeeInput] = useState("75.00");
   const [stripeFeePercentInput, setStripeFeePercentInput] = useState("2.9");
-  const [stripeFixedFeeInput, setStripeFixedFeeInput] = useState("0.30");
+  const [stripeFixedFeeInput, setStripeFixedFeeInput] = useState("0.00");
 
   useEffect(() => {
     if (settingsData?.data?.registrationFee !== undefined) {
@@ -513,7 +513,7 @@ const FeesPage = () => {
                 type="number"
                 value={stripeFixedFeeInput}
                 onChange={(e) => setStripeFixedFeeInput(e.target.value)}
-                placeholder="0.30"
+                placeholder="0.00"
                 startDecorator={
                   <Typography sx={{ color: "#6B7280", fontWeight: 600 }}>
                     $
