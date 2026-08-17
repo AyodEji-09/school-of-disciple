@@ -48,7 +48,6 @@ export type IntakeFormData = {
   };
   employmentStatus?: {
     status?: "Employed" | "Unemployed" | "Retired";
-    familyAnnualIncome?: string;
   };
   declaration?: {
     agreed?: boolean;
@@ -103,7 +102,6 @@ const EMPTY_FORM: IntakeFormData = {
   },
   employmentStatus: {
     status: undefined,
-    familyAnnualIncome: "",
   },
   declaration: {
     agreed: false,

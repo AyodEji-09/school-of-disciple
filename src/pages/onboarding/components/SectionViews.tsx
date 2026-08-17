@@ -434,15 +434,6 @@ export const EmploymentSectionView = ({
         { value: "Retired", label: "Retired" },
       ]}
     />
-    <div>
-      <Input
-        label="Family Annual Income"
-        value={intakeForm.employmentStatus?.familyAnnualIncome || ""}
-        onChange={(e) =>
-          updateNested("employmentStatus", "familyAnnualIncome", e.target.value)
-        }
-      />
-    </div>
   </div>
 );
 

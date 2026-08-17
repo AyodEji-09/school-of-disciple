@@ -18,7 +18,7 @@ export const onboardingSections = [
   {
     key: "employment",
     title: "Section 4: Employment Status",
-    subtitle: "Current employment and family annual income.",
+    subtitle: "Current employment status.",
   },
   {
     key: "declaration",

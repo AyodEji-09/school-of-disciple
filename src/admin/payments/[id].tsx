@@ -214,7 +214,6 @@ const PaymentUser = () => {
                     <Typography level="title-md" mb={2} color="primary">Employment Status</Typography>
                     <Stack spacing={1.5}>
                       <DetailRow label="Status" value={employment?.status || "N/A"} />
-                      <DetailRow label="Family Annual Income" value={employment?.familyAnnualIncome || "N/A"} />
                     </Stack>
                   </Box>
 

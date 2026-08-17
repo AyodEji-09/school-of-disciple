@@ -96,7 +96,6 @@ type User = {
     };
     employmentStatus?: {
       status?: "Employed" | "Unemployed" | "Retired";
-      familyAnnualIncome?: string;
     };
     declaration?: {
       agreed?: boolean;
