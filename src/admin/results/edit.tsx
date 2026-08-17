@@ -34,10 +34,13 @@ const EditResultPage = () => {
 
   useEffect(() => {
     if (result && years.length > 0 && !seededRef.current) {
+      const activeScores = (result as any).draftYearScores?.length
+        ? (result as any).draftYearScores
+        : result.yearScores ?? [];
       const next: Record<string, string> = {};
       years.forEach((y) => {
-        const existing = (result.yearScores ?? []).find(
-          (ys) => resolveId(ys.yearId) === y._id,
+        const existing = activeScores.find(
+          (ys: any) => resolveId(ys.yearId) === y._id,
         );
         next[y._id] = existing ? String(existing.score) : "";
       });

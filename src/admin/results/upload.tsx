@@ -173,7 +173,7 @@ const UploadResultPage = () => {
           </Stack>
           <Typography level="body-sm" textColor="neutral.500" mb={4}>
             Pick a student and session, then enter a score (0–100) for each
-            academic year. Leave a year blank to skip it.
+            academic year. Leave a year blank to remove its score.
           </Typography>
 
           <div className="grid gap-5">
