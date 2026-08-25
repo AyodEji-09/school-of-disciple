@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dropdown,
   FormControl,
@@ -15,6 +15,7 @@ import moment from "moment";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { MoreVert } from "@mui/icons-material";
+import { useSearchParams } from "react-router-dom";
 
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
@@ -47,12 +48,14 @@ const formatCurrency = (cents: number) =>
   })}`;
 
 const RemittancesPage = () => {
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [selectedCenter, setSelectedCenter] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [deleteRemittance] = useDeleteRemittanceMutation();
+  const prevFiltersRef = useRef({ selectedSessionId, selectedCenter });
 
   const { data: sessions = [] } = useGetSessionsQuery();
   const { data: centersRes } = useGetCentersQuery({ limit: 100 });
@@ -68,8 +71,31 @@ const RemittancesPage = () => {
   }, [sessions, initialized]);
 
   useEffect(() => {
-    setPage(1);
+    const prev = prevFiltersRef.current;
+    if (
+      prev.selectedSessionId !== selectedSessionId ||
+      prev.selectedCenter !== selectedCenter
+    ) {
+      prevFiltersRef.current = { selectedSessionId, selectedCenter };
+      setSearchParams((prevParams) => {
+        const next = new URLSearchParams(prevParams);
+        next.delete("page");
+        return next;
+      });
+    }
   }, [selectedSessionId, selectedCenter]);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   const centers = centersRes?.data?.docs ?? [];
 
@@ -297,13 +323,13 @@ const RemittancesPage = () => {
           </div>
 
           {totalPages > 1 && (
-            <Stack justifyContent="center" sx={{ p: 3 }}>
+            <div className="flex justify-center py-4">
               <AppPagination
                 currentPage={page}
                 totalPages={totalPages}
-                onPageChange={setPage}
+                onPageChange={handlePageChange}
               />
-            </Stack>
+            </div>
           )}
         </PageCard>
       </div>

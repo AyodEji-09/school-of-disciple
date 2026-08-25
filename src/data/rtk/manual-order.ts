@@ -65,6 +65,18 @@ export const manualOrderApi = createApi({
             ]
           : [{ type: "ManualOrderList", id: "LIST" }],
     }),
+    getManualOrdersSummary: builder.query<
+      ApiResponseN<{
+        totalItems: number;
+        paidCount: number;
+        totalRevenue: number;
+        pendingCount: number;
+        inFlightCount: number;
+      }>,
+      void
+    >({
+      query: () => "/manual-order/summary",
+    }),
     getManualOrderZelleDetails: builder.query<
       ApiResponseN<{ email: string; name: string }>,
       void
@@ -149,6 +161,7 @@ export const manualOrderApi = createApi({
 
 export const {
   useGetManualOrdersQuery,
+  useGetManualOrdersSummaryQuery,
   useGetManualOrderZelleDetailsQuery,
   useCreateStripeManualOrderMutation,
   useCreateZelleManualOrderMutation,

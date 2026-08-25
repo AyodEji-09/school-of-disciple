@@ -11,9 +11,11 @@ import { Controller, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import moment from "moment";
+import { useSearchParams } from "react-router-dom";
 
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
+import AppPagination from "../../components/pagination/Pagination";
 import InputField from "../../components/input/input.component";
 import AppModal from "../../components/modal/modal";
 import PageCard from "../../components/feedback/PageCard";
@@ -58,16 +60,30 @@ const resolveWindowKey = (win?: RegistrationWindow | null) => {
 const RegistrationPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<"create" | "edit">("create");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
 
   const { data: currentWindowRes, isLoading: loadingCurrent } =
     useGetRegistrationWindowQuery();
   const { data: allWindowsRes, isLoading: loadingAll } =
-    useGetAllRegistrationWindowsQuery({ page: 1, limit: 20 });
+    useGetAllRegistrationWindowsQuery({ page, limit: 20 });
   const [setWindow, { isLoading: creating }] =
     useSetRegistrationWindowMutation();
   const [updateWindow, { isLoading: updating }] =
     useUpdateRegistrationWindowMutation();
   const { data: sessionsRes } = useGetSessionsQuery();
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   const currentWindow = currentWindowRes?.data;
   const statusKey = resolveWindowKey(currentWindow);
@@ -224,8 +240,9 @@ const RegistrationPage = () => {
                 <PageLoader label="Loading history…" />
               </div>
             ) : allWindowsRes?.data?.docs?.length ? (
-              <div className="overflow-x-auto min-h-[400px]">
-                <table className="w-full text-sm text-left">
+              <>
+                <div className="overflow-x-auto min-h-[400px]">
+                  <table className="w-full text-sm text-left">
                   <TableHeader>
                     <tr>
                       <TableHeaderCell>Label</TableHeaderCell>
@@ -271,6 +288,16 @@ const RegistrationPage = () => {
                   </TableBody>
                 </table>
               </div>
+              {(allWindowsRes?.data?.totalPages ?? 1) > 1 && (
+                <div className="flex justify-center py-4">
+                  <AppPagination
+                    currentPage={page}
+                    totalPages={allWindowsRes?.data?.totalPages ?? 1}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
+              </>
             ) : (
               <div className="py-10">
                 <CenteredEmptyState description="No registration windows yet" />

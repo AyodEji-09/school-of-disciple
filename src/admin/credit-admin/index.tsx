@@ -22,6 +22,7 @@ import AppButton from "../../components/Button/AppButton";
 import { handleError } from "../../utils";
 import {
   useGetRemittancesQuery,
+  useGetRemittanceSummaryQuery,
   useCreateStripeRemittanceMutation,
   useCreateZelleRemittanceMutation,
   useGetZelleDetailsQuery,
@@ -45,6 +46,7 @@ import {
   EmptyValue,
 } from "../../components/feedback/TableShell";
 import { REMITTANCE_STATUS, METHOD_STATUS } from "../../utils/status";
+import AppPagination from "../../components/pagination/Pagination";
 
 const formatCurrency = (cents: number) =>
   `$${(cents / 100).toLocaleString(undefined, {
@@ -53,13 +55,15 @@ const formatCurrency = (cents: number) =>
   })}`;
 
 const CreditAdminPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [isZelleModalOpen, setIsZelleModalOpen] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [description, setDescription] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [remitSessionId, setRemitSessionId] = useState<string>("");
+  const prevSessionFilterRef = useRef<string | null>(null);
 
   const { data: sessions = [] } = useGetSessionsQuery();
 
@@ -75,10 +79,29 @@ const CreditAdminPage = () => {
     if (current?._id) setSelectedSessionId(current._id);
   }, [sessions, selectedSessionId]);
 
+  useEffect(() => {
+    if (prevSessionFilterRef.current === null) {
+      prevSessionFilterRef.current = selectedSessionId;
+      return;
+    }
+    if (prevSessionFilterRef.current !== selectedSessionId) {
+      prevSessionFilterRef.current = selectedSessionId;
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("page");
+        return next;
+      });
+    }
+  }, [selectedSessionId]);
+
   const { data: remittances, isLoading } = useGetRemittancesQuery({
+    page,
     limit: 50,
     ...(selectedSessionId ? { sessionId: selectedSessionId } : {}),
   });
+  const { data: summaryRes } = useGetRemittanceSummaryQuery(
+    selectedSessionId ? { sessionId: selectedSessionId } : undefined,
+  );
   const { data: zelleDetailsRes } = useGetZelleDetailsQuery(undefined, {
     // Skip if the modal isn't open to avoid unnecessary requests
     refetchOnFocus: false,
@@ -120,16 +143,24 @@ const CreditAdminPage = () => {
   }, [searchParams]);
 
   const docs = remittances?.data?.docs || [];
+  const totalPages = remittances?.data?.totalPages || 1;
 
-  const totalRemitted = docs
-    .filter((r) => r.status === "paid")
-    .reduce((sum, r) => sum + r.amount, 0);
-  const pendingCount = docs.filter(
-    (r) => r.status === "pending_confirmation",
-  ).length;
-  const pendingAmount = docs
-    .filter((r) => r.status === "pending_confirmation")
-    .reduce((sum, r) => sum + r.amount, 0);
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
+
+  const totalRemitted = summaryRes?.data?.totalRemitted ?? 0;
+  const pendingCount = summaryRes?.data?.pendingCount ?? 0;
+  const pendingAmount = summaryRes?.data?.pendingAmount ?? 0;
+  const totalTransactions = summaryRes?.data?.totalItems ?? docs.length;
 
   const amountCents = Math.round(Number(amount) * 100);
 
@@ -283,7 +314,7 @@ const CreditAdminPage = () => {
                     level="h2"
                     sx={{ mt: 0.5, fontWeight: 700, color: "#001F54" }}
                   >
-                    {docs.length}
+                    {totalTransactions}
                   </Typography>
                 </Card>
               </>
@@ -329,6 +360,15 @@ const CreditAdminPage = () => {
               onUpload={handleReceiptUpload}
               uploading={uploadingReceipt}
             />
+            {totalPages > 1 && (
+              <div className="flex justify-center py-4">
+                <AppPagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
           </PageCard>
         </Stack>
 

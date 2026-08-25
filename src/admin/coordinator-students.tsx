@@ -1,8 +1,9 @@
 import { FormControl, FormLabel, Option, Select, Stack } from "@mui/joy";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AppButton from "../components/Button/AppButton";
 import AppSearch from "../components/search/AppSearch";
+import AppPagination from "../components/pagination/Pagination";
 import Frame from "../components/frame/Frame";
 import AvatarText from "../components/avatar-text/AvatarText";
 import PageCard from "../components/feedback/PageCard";
@@ -33,6 +34,9 @@ const CoordinatorStudentsPage = () => {
   const [searchVar, setSearchVar] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const prevFiltersRef = useRef({ searchVar, selectedSessionId });
 
   const { data: sessions = [] } = useGetSessionsQuery();
 
@@ -46,9 +50,35 @@ const CoordinatorStudentsPage = () => {
     }
   }, [sessions, initialized]);
 
+  useEffect(() => {
+    const prev = prevFiltersRef.current;
+    if (prev.searchVar !== searchVar || prev.selectedSessionId !== selectedSessionId) {
+      prevFiltersRef.current = { searchVar, selectedSessionId };
+      setSearchParams((prevParams) => {
+        const next = new URLSearchParams(prevParams);
+        next.delete("page");
+        return next;
+      });
+    }
+  }, [searchVar, selectedSessionId]);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
+
   const { data: students, isLoading } = useGetUsersQuery(
     {
       type: "user",
+      page,
+      limit: 20,
       ...(coordinatorCenterId ? { center: coordinatorCenterId } : {}),
       ...(selectedSessionId ? { admissionSessionId: selectedSessionId } : {}),
       ...(searchVar ? { search: searchVar } : {}),
@@ -57,6 +87,8 @@ const CoordinatorStudentsPage = () => {
   );
 
   const studentDocs = students?.data?.docs || [];
+  const totalItems = students?.data?.totalItems ?? studentDocs.length;
+  const totalPages = students?.data?.totalPages || 1;
 
   const getCenterName = (entry: User) => {
     if (!entry?.center || typeof entry.center === "string") return "—";
@@ -73,7 +105,7 @@ const CoordinatorStudentsPage = () => {
             title="Students"
             subtitle={
               studentDocs.length
-                ? `${studentDocs.length} student${studentDocs.length === 1 ? "" : "s"} at your center`
+                ? `${totalItems} student${totalItems === 1 ? "" : "s"} at your center`
                 : undefined
             }
             action={
@@ -154,6 +186,15 @@ const CoordinatorStudentsPage = () => {
                 </TableBody>
               </table>
             </div>
+            {totalPages > 1 && (
+              <div className="flex justify-center py-4">
+                <AppPagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
           </PageCard>
         )}
       </div>

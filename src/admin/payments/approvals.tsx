@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Chip, Stack, Typography } from "@mui/joy";
 import moment from "moment";
 import { toast } from "react-toastify";
+import { useSearchParams } from "react-router-dom";
 
 import Frame from "../../components/frame/Frame";
 import { handleError, getUserFullName } from "../../utils";
@@ -22,6 +23,7 @@ import {
   useRejectTransactionMutation,
 } from "../../data/rtk/transaction";
 import { METHOD_STATUS, TX_TYPE_STATUS } from "../../utils/status";
+import AppPagination from "../../components/pagination/Pagination";
 
 const formatCurrency = (cents: number) =>
   `$${(cents / 100).toLocaleString(undefined, {
@@ -30,7 +32,10 @@ const formatCurrency = (cents: number) =>
   })}`;
 
 const PendingApprovalsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
   const { data: transactionsRes, isLoading } = useGetTransactionsQuery({
+    page,
     limit: 100,
     status: "pending",
   });
@@ -40,6 +45,20 @@ const PendingApprovalsPage = () => {
 
   const docs = transactionsRes?.data?.docs || [];
   const hasDocs = docs.length > 0;
+  const totalItems = transactionsRes?.data?.totalItems ?? docs.length;
+  const totalPages = transactionsRes?.data?.totalPages || 1;
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   const getPayerName = (t: any) => {
     if (!t.createdBy) return null;
@@ -75,7 +94,7 @@ const PendingApprovalsPage = () => {
     }
   };
 
-  if (!isLoading && !hasDocs) {
+  if (!isLoading && totalItems === 0) {
     return (
       <Frame text="Approvals">
         <div className="pb-16 mt-6">
@@ -120,7 +139,7 @@ const PendingApprovalsPage = () => {
           action={
             hasDocs ? (
               <Chip color="warning" variant="solid" size="md">
-                {docs.length} pending
+                {totalItems} pending
               </Chip>
             ) : null
           }
@@ -230,6 +249,15 @@ const PendingApprovalsPage = () => {
               </TableBody>
             </table>
           </div>
+          {totalPages > 1 && (
+            <div className="flex justify-center py-4">
+              <AppPagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </PageCard>
       </div>
     </Frame>

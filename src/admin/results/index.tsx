@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Modal,
   ModalDialog,
@@ -44,13 +44,19 @@ import {
   EmptyValue,
 } from "../../components/feedback/TableShell";
 import ActionLink from "../../components/feedback/ActionLink";
+import AppPagination from "../../components/pagination/Pagination";
 import { RESULT_STATUS, CENTER_RESULT_STATUS } from "../../utils/status";
+
+const RESULTS_PAGE_SIZE = 10;
 
 const ResultsPage = () => {
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
   const isCoordinator = user?.type === "coordinator";
   const isAdmin = user?.type === "admin" || user?.type === "super";
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
 
   const [sessionId, setSessionId] = useState("");
   const [status, setStatus] = useState<ResultStatus | "">("");
@@ -125,6 +131,28 @@ const ResultsPage = () => {
   const displayedResults = viewCenterId
     ? results.filter((r) => resolveId(r.centerId) === viewCenterId)
     : results;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(displayedResults.length / RESULTS_PAGE_SIZE),
+  );
+  const safePage = Math.min(page, totalPages);
+  const pageResults = displayedResults.slice(
+    (safePage - 1) * RESULTS_PAGE_SIZE,
+    safePage * RESULTS_PAGE_SIZE,
+  );
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   return (
     <Frame text="Academic Results">
@@ -230,6 +258,11 @@ const ResultsPage = () => {
                 onChange={(_, v) => {
                   setSessionId((v as string) ?? "");
                   setViewCenterId(null);
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.delete("page");
+                    return next;
+                  });
                 }}
                 placeholder="Select session"
               >
@@ -246,7 +279,14 @@ const ResultsPage = () => {
               <Select
                 size="sm"
                 value={status}
-                onChange={(_, v) => setStatus((v as ResultStatus | "") ?? "")}
+                onChange={(_, v) => {
+                  setStatus((v as ResultStatus | "") ?? "");
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.delete("page");
+                    return next;
+                  });
+                }}
                 placeholder="All statuses"
               >
                 <Option value="">All statuses</Option>
@@ -354,21 +394,22 @@ const ResultsPage = () => {
                 </TableBody>
               </table>
             ) : (
-              <table className="w-full text-sm text-left">
-                <TableHeader>
-                  <tr>
-                    <TableHeaderCell>Student</TableHeaderCell>
-                    <TableHeaderCell>Matric No.</TableHeaderCell>
-                    <TableHeaderCell>Centre</TableHeaderCell>
-                    <TableHeaderCell>Session</TableHeaderCell>
-                    <TableHeaderCell>Status</TableHeaderCell>
-                    <TableHeaderCell>Date</TableHeaderCell>
-                    <TableHeaderCell className="text-right">
-                      Action
-                    </TableHeaderCell>
-                  </tr>
-                </TableHeader>
-                <TableBody>
+              <>
+                <table className="w-full text-sm text-left">
+                  <TableHeader>
+                    <tr>
+                      <TableHeaderCell>Student</TableHeaderCell>
+                      <TableHeaderCell>Matric No.</TableHeaderCell>
+                      <TableHeaderCell>Centre</TableHeaderCell>
+                      <TableHeaderCell>Session</TableHeaderCell>
+                      <TableHeaderCell>Status</TableHeaderCell>
+                      <TableHeaderCell>Date</TableHeaderCell>
+                      <TableHeaderCell className="text-right">
+                        Action
+                      </TableHeaderCell>
+                    </tr>
+</TableHeader>
+                  <TableBody>
                   {isLoading ? (
                     <tr>
                       <td colSpan={7}>
@@ -382,7 +423,7 @@ const ResultsPage = () => {
                       </td>
                     </tr>
                   ) : (
-                    displayedResults.map((r) => {
+                    pageResults.map((r) => {
                       const student = r.studentId as any;
                       return (
                         <TableRow key={r._id}>
@@ -446,7 +487,17 @@ const ResultsPage = () => {
                     })
                   )}
                 </TableBody>
-              </table>
+                </table>
+                {totalPages > 1 && (
+                  <div className="flex justify-center py-4">
+                    <AppPagination
+                      currentPage={safePage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </PageCard>

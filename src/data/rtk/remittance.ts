@@ -46,6 +46,24 @@ export const remittanceApi = createApi({
             ]
           : [{ type: "RemittanceList", id: "LIST" }],
     }),
+    getRemittanceSummary: builder.query<
+      ApiResponseN<{
+        totalItems: number;
+        totalRemitted: number;
+        pendingCount: number;
+        pendingAmount: number;
+      }>,
+      { sessionId?: string } | void
+    >({
+      query: (params) => {
+        const q = new URLSearchParams();
+        if (params && (params as any).sessionId) {
+          q.set("sessionId", (params as any).sessionId);
+        }
+        const qs = q.toString();
+        return `/remittance/summary${qs ? `?${qs}` : ""}`;
+      },
+    }),
     createStripeRemittance: builder.mutation<
       ApiResponseN<{ url: string }>,
       { amount: number; description: string; sessionId?: string }
@@ -131,6 +149,7 @@ export const remittanceApi = createApi({
 
 export const {
   useGetRemittancesQuery,
+  useGetRemittanceSummaryQuery,
   useCreateStripeRemittanceMutation,
   useCreateZelleRemittanceMutation,
   useGetZelleDetailsQuery,

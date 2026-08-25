@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -15,7 +15,7 @@ import {
   Stack,
   Typography,
 } from "@mui/joy";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import moment from "moment";
 import { RiCheckLine } from "react-icons/ri";
 import { MoreVert } from "@mui/icons-material";
@@ -28,7 +28,7 @@ import {
   MetricCardSkeleton,
   TableSkeleton,
 } from "../../components/query-state/QueryStates";
-import { useGetManualOrdersQuery, useDeleteManualOrderMutation } from "../../data/rtk/manual-order";
+import { useGetManualOrdersQuery, useGetManualOrdersSummaryQuery, useDeleteManualOrderMutation } from "../../data/rtk/manual-order";
 import { useGetCentersQuery } from "../../data/rtk/center";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
 import { getUserFullName } from "../../utils";
@@ -68,13 +68,15 @@ const PAYMENT_METHOD_OPTIONS: { value: string; label: string }[] = [
 
 const ManualOrdersAdminPage = () => {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
   const [deleteManualOrder] = useDeleteManualOrderMutation();
   const [status, setStatus] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [center, setCenter] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [detailsOrder, setDetailsOrder] = useState<ManualOrder | null>(null);
+  const prevFiltersRef = useRef({ status, paymentMethod, center, selectedSessionId });
 
   const { data: centersRes } = useGetCentersQuery({ page: 1, limit: 100 });
   const centers = centersRes?.data?.docs ?? [];
@@ -88,8 +90,38 @@ const ManualOrdersAdminPage = () => {
   }, [sessions, selectedSessionId]);
 
   useEffect(() => {
-    setPage(1);
+    const prev = prevFiltersRef.current;
+    if (
+      prev.status !== status ||
+      prev.paymentMethod !== paymentMethod ||
+      prev.center !== center ||
+      prev.selectedSessionId !== selectedSessionId
+    ) {
+      prevFiltersRef.current = {
+        status,
+        paymentMethod,
+        center,
+        selectedSessionId,
+      };
+      setSearchParams((prevParams) => {
+        const next = new URLSearchParams(prevParams);
+        next.delete("page");
+        return next;
+      });
+    }
   }, [status, paymentMethod, center, selectedSessionId]);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   const {
     data: ordersRes,
@@ -103,31 +135,22 @@ const ManualOrdersAdminPage = () => {
     ...(center ? { center } : {}),
     ...(selectedSessionId ? { sessionId: selectedSessionId } : {}),
   });
+  const { data: summaryRes } = useGetManualOrdersSummaryQuery();
 
   const orders = useMemo(() => ordersRes?.data?.docs ?? [], [ordersRes]);
   const hasOrders = orders.length > 0;
   const totalPages = ordersRes?.data?.totalPages || 1;
 
   const metrics = useMemo(() => {
-    const paid = orders.filter(
-      (o) => o.status === "paid" || o.status === "completed",
-    );
-    const pending = orders.filter(
-      (o) =>
-        o.status === "pending_payment" || o.status === "pending_confirmation",
-    );
-    const inFlight = orders.filter(
-      (o) => o.status === "processing",
-    );
-    const totalRevenue = paid.reduce((sum, o) => sum + (o.amount || 0), 0);
+    const summary = summaryRes?.data;
     return {
-      total: orders.length,
-      paidCount: paid.length,
-      pendingCount: pending.length,
-      inFlightCount: inFlight.length,
-      totalRevenue,
+      total: summary?.totalItems ?? 0,
+      paidCount: summary?.paidCount ?? 0,
+      pendingCount: summary?.pendingCount ?? 0,
+      inFlightCount: summary?.inFlightCount ?? 0,
+      totalRevenue: summary?.totalRevenue ?? 0,
     };
-  }, [orders]);
+  }, [summaryRes]);
 
   const clearFilters = () => {
     setStatus("");
@@ -470,13 +493,13 @@ const ManualOrdersAdminPage = () => {
             </table>
           </div>
           {totalPages > 1 && (
-            <Stack justifyContent="center" sx={{ p: 3 }}>
+            <div className="flex justify-center py-4">
               <AppPagination
                 currentPage={page}
                 totalPages={totalPages}
-                onPageChange={setPage}
+                onPageChange={handlePageChange}
               />
-            </Stack>
+            </div>
           )}
           {(isFetching || isLoading) && hasOrders && (
             <Typography
