@@ -70,10 +70,11 @@ const ResultsPage = () => {
     typeof user?.center === "string" ? user.center : (user?.center as any)?._id;
 
   const { data: centersRes } = useGetCentersQuery(
-    { page: 1, limit: 100 },
+    { page, limit: 20 },
     { skip: !isAdmin },
   );
   const centers = centersRes?.data?.docs ?? [];
+  const centersTotalPages = centersRes?.data?.totalPages ?? 1;
 
   const { data, isLoading } = useGetResultsQuery({
     ...(sessionId ? { sessionId } : {}),
@@ -317,6 +318,7 @@ const ResultsPage = () => {
         <PageCard padded={false}>
           <div className="overflow-x-auto min-h-[400px]">
             {isAdmin && !viewCenterId ? (
+              <>
               <table className="w-full text-sm text-left">
                 <TableHeader>
                   <tr>
@@ -393,6 +395,16 @@ const ResultsPage = () => {
                   )}
                 </TableBody>
               </table>
+                {centersTotalPages > 1 && (
+                  <div className="flex justify-center py-4">
+                    <AppPagination
+                      currentPage={page}
+                      totalPages={centersTotalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  </div>
+                )}
+              </>
             ) : (
               <>
                 <table className="w-full text-sm text-left">
