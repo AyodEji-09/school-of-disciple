@@ -366,13 +366,13 @@ const Payments = () => {
           </div>
 
           {totalPages > 1 && (
-            <Stack justifyContent="center" sx={{ p: 3 }}>
+            <div className="flex justify-center py-4">
               <AppPagination
                 currentPage={page}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
               />
-            </Stack>
+            </div>
           )}
         </PageCard>
       </div>
