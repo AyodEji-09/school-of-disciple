@@ -55,6 +55,7 @@ const UploadResultPage = () => {
 
   const { data: studentsRes } = useGetUsersQuery({
     type: "user",
+    limit: 500,
     ...(coordinatorCenterId ? { center: coordinatorCenterId } : {}),
     ...(selSession ? { admissionSessionId: selSession } : {}),
   });

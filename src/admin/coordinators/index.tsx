@@ -67,12 +67,13 @@ const Coordinators = () => {
   } = useGetUsersQuery({
     type: "coordinator",
     page,
+    limit: 20,
     ...(searchVar ? { search: searchVar } : {}),
     ...(filter ? { coordinatorStatus: filter } : {}),
   });
   const coordinatorDocs = coordinators?.data?.docs || [];
   const totalItems = coordinators?.data?.totalItems ?? 0;
-  const totalPages = Math.ceil(totalItems / 20);
+  const totalPages = coordinators?.data?.totalPages || 1;
 
   const handlePageChange = (newPage: number) => {
     setSearchParams(prev => {

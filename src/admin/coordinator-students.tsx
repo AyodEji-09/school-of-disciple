@@ -45,12 +45,14 @@ const CoordinatorStudentsPage = () => {
       const current = sessions.find((s) => s.isCurrent);
       if (current?._id) {
         setSelectedSessionId(current._id);
+        prevFiltersRef.current.selectedSessionId = current._id;
         setInitialized(true);
       }
     }
   }, [sessions, initialized]);
 
   useEffect(() => {
+    if (!initialized) return;
     const prev = prevFiltersRef.current;
     if (prev.searchVar !== searchVar || prev.selectedSessionId !== selectedSessionId) {
       prevFiltersRef.current = { searchVar, selectedSessionId };
@@ -60,7 +62,7 @@ const CoordinatorStudentsPage = () => {
         return next;
       });
     }
-  }, [searchVar, selectedSessionId]);
+  }, [searchVar, selectedSessionId, initialized]);
 
   const handlePageChange = (newPage: number) => {
     setSearchParams((prev) => {

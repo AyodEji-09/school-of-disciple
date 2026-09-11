@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FormControl, FormLabel, Option, Select, Stack, Typography } from "@mui/joy";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { RiAddLine, RiCheckLine, RiUploadCloud2Line } from "react-icons/ri";
 
@@ -40,21 +40,50 @@ const formatCurrency = (cents: number) =>
 
 const ManualOrdersPage = () => {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
+  const [initialized, setInitialized] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const prevFiltersRef = useRef({ selectedSessionId });
 
   const { data: sessions = [] } = useGetSessionsQuery();
 
   useEffect(() => {
-    if (selectedSessionId) return;
-    const current = sessions.find((s) => s.isCurrent);
-    if (current?._id) setSelectedSessionId(current._id);
-  }, [sessions, selectedSessionId]);
+    if (!initialized) {
+      const current = sessions.find((s) => s.isCurrent);
+      if (current?._id) {
+        setSelectedSessionId(current._id);
+        prevFiltersRef.current.selectedSessionId = current._id;
+        setInitialized(true);
+      }
+    }
+  }, [sessions, initialized]);
 
   useEffect(() => {
-    setPage(1);
-  }, [selectedSessionId]);
+    if (!initialized) return;
+    const prev = prevFiltersRef.current;
+    if (prev.selectedSessionId !== selectedSessionId) {
+      prevFiltersRef.current = { selectedSessionId };
+      setSearchParams((prevParams) => {
+        const next = new URLSearchParams(prevParams);
+        next.delete("page");
+        return next;
+      });
+    }
+  }, [selectedSessionId, initialized]);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   const { data: manualOrdersRes, isLoading } = useGetManualOrdersQuery({
     limit: 10,
@@ -195,7 +224,7 @@ const ManualOrdersPage = () => {
               <AppPagination
                 currentPage={page}
                 totalPages={totalPages}
-                onPageChange={setPage}
+                onPageChange={handlePageChange}
               />
             </Stack>
           )}

@@ -17,6 +17,7 @@ import {
   SectionSkeleton,
   TableSkeleton,
 } from "../components/query-state/QueryStates";
+import AppPagination from "../components/pagination/Pagination";
 
 // ─── User Dashboard ───────────────────────────────────────────────────────────
 
@@ -244,17 +245,19 @@ const PendingPayments = () => {
 
 const PaymentHistory = () => {
   const user = useAppSelector(selectUser);
+  const [page, setPage] = useState(1);
   const { data: payments, isLoading } = useGetUserPaymentsQuery(
     {
       userId: user?._id || "",
-      limit: 20,
-      page: 1,
+      limit: 10,
+      page,
     },
     {
       skip: !user?._id,
     },
   );
   const paymentDocs = payments?.data?.docs || [];
+  const totalPages = payments?.data?.totalPages || 1;
   const hasPayments = paymentDocs.length > 0;
 
   return (
@@ -268,55 +271,66 @@ const PaymentHistory = () => {
             <TableSkeleton columns={5} rows={4} />
           </div>
         ) : hasPayments ? (
-          <div className="overflow-x-auto min-h-[400px]">
-            <table className="w-full text-sm text-left text-[#001F54]">
-              <thead className="text-xs bg-[#F8FAFC] border-b border-[#E5E7EB]">
-                <tr>
-                  <th className="px-6 py-4 font-semibold">Date</th>
-                  <th className="px-6 py-4 font-semibold">Reference</th>
-                  <th className="px-6 py-4 font-semibold">Description</th>
-                  <th className="px-6 py-4 font-semibold">Amount</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paymentDocs.map((payment) => (
-                  <tr
-                    key={payment._id}
-                    className="border-b border-[#F3F4F6] hover:bg-[#F8FAFC] transition"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {moment(payment.createdAt).format("MM/DD/YYYY, HH:mm")}
-                    </td>
-                    <td className="px-6 py-4 text-[#6B7280] text-xs font-mono">
-                      {payment._id}
-                    </td>
-                    <td className="px-6 py-4">
-                      {payment.description || "Registration Fee"}
-                    </td>
-                    <td className="px-6 py-4 font-semibold">
-                      ${(payment.amount / 100).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Chip
-                        color={
-                          payment.status === "paid"
-                            ? "success"
-                            : payment.status === "failed"
-                              ? "danger"
-                              : "warning"
-                        }
-                        variant="soft"
-                        size="sm"
-                      >
-                        {payment.status}
-                      </Chip>
-                    </td>
+          <>
+            <div className="overflow-x-auto min-h-[400px]">
+              <table className="w-full text-sm text-left text-[#001F54]">
+                <thead className="text-xs bg-[#F8FAFC] border-b border-[#E5E7EB]">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Date</th>
+                    <th className="px-6 py-4 font-semibold">Reference</th>
+                    <th className="px-6 py-4 font-semibold">Description</th>
+                    <th className="px-6 py-4 font-semibold">Amount</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paymentDocs.map((payment) => (
+                    <tr
+                      key={payment._id}
+                      className="border-b border-[#F3F4F6] hover:bg-[#F8FAFC] transition"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {moment(payment.createdAt).format("MM/DD/YYYY, HH:mm")}
+                      </td>
+                      <td className="px-6 py-4 text-[#6B7280] text-xs font-mono">
+                        {payment._id}
+                      </td>
+                      <td className="px-6 py-4">
+                        {payment.description || "Registration Fee"}
+                      </td>
+                      <td className="px-6 py-4 font-semibold">
+                        ${(payment.amount / 100).toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Chip
+                          color={
+                            payment.status === "paid"
+                              ? "success"
+                              : payment.status === "failed"
+                                ? "danger"
+                                : "warning"
+                          }
+                          variant="soft"
+                          size="sm"
+                        >
+                          {payment.status}
+                        </Chip>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex justify-center py-4">
+                <AppPagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
+              </div>
+            )}
+          </>
         ) : (
           <CenteredEmptyState description="No payments yet" />
         )}

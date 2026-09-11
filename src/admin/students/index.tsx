@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FormControl, FormLabel, Option, Select, Stack } from "@mui/joy";
 
 import AppSearch from "../../components/search/AppSearch";
@@ -31,8 +31,10 @@ const StudentsPage = () => {
   const [searchVar, setSearchVar] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [selectedCenter, setSelectedCenter] = useState("");
-  const [page, setPage] = useState(1);
   const [initialized, setInitialized] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const prevFiltersRef = useRef({ searchVar, selectedSessionId, selectedCenter });
 
   const { data: sessions = [] } = useGetSessionsQuery();
 
@@ -41,6 +43,7 @@ const StudentsPage = () => {
       const current = sessions.find((s) => s.isCurrent);
       if (current?._id) {
         setSelectedSessionId(current._id);
+        prevFiltersRef.current.selectedSessionId = current._id;
         setInitialized(true);
       }
     }
@@ -50,8 +53,33 @@ const StudentsPage = () => {
   const centers = centersRes?.data?.docs ?? [];
 
   useEffect(() => {
-    setPage(1);
-  }, [searchVar, selectedSessionId, selectedCenter]);
+    if (!initialized) return;
+    const prev = prevFiltersRef.current;
+    if (
+      prev.searchVar !== searchVar ||
+      prev.selectedSessionId !== selectedSessionId ||
+      prev.selectedCenter !== selectedCenter
+    ) {
+      prevFiltersRef.current = { searchVar, selectedSessionId, selectedCenter };
+      setSearchParams((prevParams) => {
+        const next = new URLSearchParams(prevParams);
+        next.delete("page");
+        return next;
+      });
+    }
+  }, [searchVar, selectedSessionId, selectedCenter, initialized]);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   const { data: students, isLoading } = useGetUsersQuery({
     type: "user",
@@ -198,7 +226,7 @@ const StudentsPage = () => {
               <AppPagination
                 currentPage={page}
                 totalPages={totalPages}
-                onPageChange={setPage}
+                onPageChange={handlePageChange}
               />
             </Stack>
           )}

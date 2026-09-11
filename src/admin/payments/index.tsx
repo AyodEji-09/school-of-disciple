@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dropdown,
   FormControl,
@@ -14,7 +14,7 @@ import {
 import moment from "moment";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../data/selectors/authSelector";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MoreVert } from "@mui/icons-material";
 import AppButton from "../../components/Button/AppButton";
 import axios from "axios";
@@ -76,10 +76,12 @@ const Payments = () => {
       : undefined;
 
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
   const [selectedSessionId, setSelectedSessionId] = useState<string>("");
   const [selectedCenter, setSelectedCenter] = useState<string>("");
   const [initialized, setInitialized] = useState(false);
+  const prevFiltersRef = useRef({ selectedSessionId, selectedCenter });
 
   const { data: sessions = [] } = useGetSessionsQuery();
   const { data: centersRes } = useGetCentersQuery(
@@ -92,14 +94,39 @@ const Payments = () => {
       const current = sessions.find((s) => s.isCurrent);
       if (current?._id) {
         setSelectedSessionId(current._id);
+        prevFiltersRef.current.selectedSessionId = current._id;
         setInitialized(true);
       }
     }
   }, [sessions, initialized]);
 
   useEffect(() => {
-    setPage(1);
-  }, [selectedSessionId, selectedCenter]);
+    if (!initialized) return;
+    const prev = prevFiltersRef.current;
+    if (
+      prev.selectedSessionId !== selectedSessionId ||
+      prev.selectedCenter !== selectedCenter
+    ) {
+      prevFiltersRef.current = { selectedSessionId, selectedCenter };
+      setSearchParams((prevParams) => {
+        const next = new URLSearchParams(prevParams);
+        next.delete("page");
+        return next;
+      });
+    }
+  }, [selectedSessionId, selectedCenter, initialized]);
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newPage <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(newPage));
+      }
+      return next;
+    });
+  };
 
   const centers = centersRes?.data?.docs ?? [];
 
@@ -343,7 +370,7 @@ const Payments = () => {
               <AppPagination
                 currentPage={page}
                 totalPages={totalPages}
-                onPageChange={setPage}
+                onPageChange={handlePageChange}
               />
             </Stack>
           )}
