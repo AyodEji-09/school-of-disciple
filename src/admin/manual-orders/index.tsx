@@ -29,8 +29,9 @@ import {
   TableSkeleton,
 } from "../../components/query-state/QueryStates";
 import { useGetManualOrdersQuery, useGetManualOrdersSummaryQuery, useDeleteManualOrderMutation } from "../../data/rtk/manual-order";
-import { useGetCentersQuery } from "../../data/rtk/center";
+import { useGetAllCenterQuery } from "../../data/rtk/center";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import { getUserFullName } from "../../utils";
 import PageCard from "../../components/feedback/PageCard";
 import StatusBadge from "../../components/feedback/StatusBadge";
@@ -78,7 +79,7 @@ const ManualOrdersAdminPage = () => {
   const [detailsOrder, setDetailsOrder] = useState<ManualOrder | null>(null);
   const prevFiltersRef = useRef({ status, paymentMethod, center, selectedSessionId });
 
-  const { data: centersRes } = useGetCentersQuery({ page: 1, limit: 100 });
+  const { data: centersRes } = useGetAllCenterQuery();
   const centers = centersRes?.data?.docs ?? [];
 
   const { data: sessions = [] } = useGetSessionsQuery();
@@ -331,19 +332,16 @@ const ManualOrdersAdminPage = () => {
 
                 <FormControl size="sm" sx={{ minWidth: 200 }}>
                   <FormLabel>Center</FormLabel>
-                  <Select
+                  <SearchableSelect
                     size="sm"
                     value={center}
-                    onChange={(_, val) => setCenter((val as string) ?? "")}
-                    placeholder="All centers"
-                  >
-                    <Option value="">All centers</Option>
-                    {centers.map((c) => (
-                      <Option key={c._id} value={c._id}>
-                        {c.name}
-                      </Option>
-                    ))}
-                  </Select>
+                    onChange={(val) => setCenter(val)}
+                    allOptionLabel="All centers"
+                    options={centers.map((c) => ({
+                      value: c._id,
+                      label: c.name,
+                    }))}
+                  />
                 </FormControl>
 
                 <FormControl size="sm" sx={{ minWidth: 200 }}>

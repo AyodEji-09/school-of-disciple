@@ -22,8 +22,9 @@ import {
   EmptyValue,
 } from "../../components/feedback/TableShell";
 import { useGetUsersQuery } from "../../data/rtk/user";
-import { useGetCentersQuery } from "../../data/rtk/center";
+import { useGetAllCenterQuery } from "../../data/rtk/center";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import { getUserFullName } from "../../utils";
 import { PAYMENT_STATUS } from "../../utils/status";
 
@@ -49,7 +50,7 @@ const StudentsPage = () => {
     }
   }, [sessions, initialized]);
 
-  const { data: centersRes } = useGetCentersQuery({ limit: 100 });
+  const { data: centersRes } = useGetAllCenterQuery();
   const centers = centersRes?.data?.docs ?? [];
 
   useEffect(() => {
@@ -137,19 +138,16 @@ const StudentsPage = () => {
             </FormControl>
             <FormControl size="sm" sx={{ minWidth: 200 }}>
               <FormLabel>Center</FormLabel>
-              <Select
+              <SearchableSelect
                 size="sm"
                 value={selectedCenter}
-                onChange={(_, val) => setSelectedCenter((val as string) ?? "")}
-                placeholder="All Centers"
-              >
-                <Option value="">All Centers</Option>
-                {centers.map((center) => (
-                  <Option key={center._id} value={center._id}>
-                    {center.name}
-                  </Option>
-                ))}
-              </Select>
+                onChange={(val) => setSelectedCenter(val)}
+                allOptionLabel="All Centers"
+                options={centers.map((center) => ({
+                  value: center._id,
+                  label: center.name,
+                }))}
+              />
             </FormControl>
           </div>
 

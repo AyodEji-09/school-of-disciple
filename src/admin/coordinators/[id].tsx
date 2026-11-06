@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import Frame from "../../components/frame/Frame";
-import { Box, Option, Select, Stack, Typography } from "@mui/joy";
+import { Box, Stack, Typography } from "@mui/joy";
 import AppButton from "../../components/Button/AppButton";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import {
   useGetUserQuery,
   useUpdateCoordinatorAssignmentMutation,
@@ -226,23 +227,24 @@ const CenterManager = () => {
                           flexWrap="wrap"
                           alignItems="center"
                         >
-                          <Select
+                          <SearchableSelect
+                            size="sm"
                             placeholder={
                               currentCenterId
                                 ? "Select new center"
                                 : "Select center"
                             }
                             value={selectedCenterId || currentCenterId || null}
-                            onChange={(_, value) => setSelectedCenterId(value)}
+                            onChange={(val) =>
+                              setSelectedCenterId(val || null)
+                            }
                             className="min-w-[200px]"
                             sx={{ bgcolor: "white" }}
-                          >
-                            {centerOptions.map((center) => (
-                              <Option key={center._id} value={center._id}>
-                                {center.name}
-                              </Option>
-                            ))}
-                          </Select>
+                            options={centerOptions.map((center) => ({
+                              value: center._id,
+                              label: center.name,
+                            }))}
+                          />
                           <Stack direction="row" gap={1} flexWrap="wrap">
                             <AppButton
                               loading={assignmentLoading}

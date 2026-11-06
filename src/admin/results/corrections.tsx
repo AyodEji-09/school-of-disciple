@@ -23,7 +23,8 @@ import {
   useResolveCorrectionMutation,
   useGetSessionsQuery,
 } from "../../data/rtk/academic";
-import { useGetCentersQuery } from "../../data/rtk/center";
+import { useGetAllCenterQuery } from "../../data/rtk/center";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import {
   CenteredEmptyState,
   TableSkeleton,
@@ -57,7 +58,7 @@ const CorrectionsPage = () => {
   const [actionId, setActionId] = useState<string | null>(null);
 
   const { data: sessionsRes } = useGetSessionsQuery();
-  const { data: centersRes } = useGetCentersQuery({ page: 1, limit: 100 });
+  const { data: centersRes } = useGetAllCenterQuery();
   const sessionsData = (sessionsRes ?? []) as unknown as AcademicSession[];
   const sessions = sessionsData;
   const centers = centersRes?.data?.docs ?? [];
@@ -197,18 +198,16 @@ const CorrectionsPage = () => {
               </FormControl>
               <FormControl size="sm" sx={{ minWidth: 200 }}>
                 <FormLabel>Centre</FormLabel>
-                <Select
+                <SearchableSelect
+                  size="sm"
                   value={centerId}
-                  onChange={(_, v) => setCenterId(v as string)}
-                  placeholder="All centres"
-                >
-                  <Option value="">All centres</Option>
-                  {centers.map((c) => (
-                    <Option key={c._id} value={c._id}>
-                      {c.name}
-                    </Option>
-                  ))}
-                </Select>
+                  onChange={(v) => setCenterId(v)}
+                  allOptionLabel="All centres"
+                  options={centers.map((c) => ({
+                    value: c._id,
+                    label: c.name,
+                  }))}
+                />
               </FormControl>
             </Stack>
           </div>

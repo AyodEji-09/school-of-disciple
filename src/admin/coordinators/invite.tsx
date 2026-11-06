@@ -1,7 +1,8 @@
 import { useState } from "react";
 import UseBox from "../../components/usebox/UseBox";
-import { Option, Select, Stack, Typography } from "@mui/joy";
+import { Stack, Typography } from "@mui/joy";
 import AppButton from "../../components/Button/AppButton";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
@@ -142,14 +143,19 @@ const AddCenterManager = () => {
               rules={{
                 required: true,
               }}
-              render={({ field: { onChange } }) => (
-                <Select onChange={(e, value) => onChange(value)}>
-                  {centers?.data?.docs?.map((item, idx) => (
-                    <Option key={idx} value={item?._id}>
-                      {item?.name}
-                    </Option>
-                  ))}
-                </Select>
+              render={({ field: { value, onChange } }) => (
+                <SearchableSelect
+                  size="md"
+                  value={value}
+                  onChange={(val) => onChange(val)}
+                  placeholder="Select a center"
+                  options={
+                    centers?.data?.docs?.map((item) => ({
+                      value: item._id,
+                      label: item.name,
+                    })) ?? []
+                  }
+                />
               )}
             />
             {errors.centerId && (

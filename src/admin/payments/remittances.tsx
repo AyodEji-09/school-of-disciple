@@ -36,7 +36,8 @@ import {
 } from "../../components/feedback/TableShell";
 import { useGetRemittancesQuery, useDeleteRemittanceMutation } from "../../data/rtk/remittance";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
-import { useGetCentersQuery } from "../../data/rtk/center";
+import { useGetAllCenterQuery } from "../../data/rtk/center";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import { useURL } from "../../data/config";
 import { getUserFullName, handleError } from "../../utils";
 import { METHOD_STATUS, REMITTANCE_STATUS } from "../../utils/status";
@@ -58,7 +59,7 @@ const RemittancesPage = () => {
   const prevFiltersRef = useRef({ selectedSessionId, selectedCenter });
 
   const { data: sessions = [] } = useGetSessionsQuery();
-  const { data: centersRes } = useGetCentersQuery({ limit: 100 });
+  const { data: centersRes } = useGetAllCenterQuery();
 
   useEffect(() => {
     if (!initialized) {
@@ -200,22 +201,17 @@ const RemittancesPage = () => {
               </FormControl>
               <FormControl size="sm">
                 <FormLabel>Center</FormLabel>
-                <Select
+                <SearchableSelect
                   size="sm"
                   value={selectedCenter}
-                  onChange={(_, val) =>
-                    setSelectedCenter((val as string) ?? "")
-                  }
-                  placeholder="All Centers"
+                  onChange={(val) => setSelectedCenter(val)}
+                  allOptionLabel="All Centers"
                   sx={{ minWidth: 200 }}
-                >
-                  <Option value="">All Centers</Option>
-                  {centers.map((c) => (
-                    <Option key={c._id} value={c._id}>
-                      {c.name}
-                    </Option>
-                  ))}
-                </Select>
+                  options={centers.map((c) => ({
+                    value: c._id,
+                    label: c.name,
+                  }))}
+                />
               </FormControl>
             </Stack>
           </div>

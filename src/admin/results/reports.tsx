@@ -12,7 +12,8 @@ import { PictureAsPdf, Download } from "@mui/icons-material";
 import Frame from "../../components/frame/Frame";
 import AppButton from "../../components/Button/AppButton";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
-import { useGetCentersQuery } from "../../data/rtk/center";
+import { useGetAllCenterQuery } from "../../data/rtk/center";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import { handleError } from "../../utils";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -29,7 +30,7 @@ const ReportsPage = () => {
   const [busy, setBusy] = useState<ReportKind | null>(null);
 
   const { data: sessionsData = [] } = useGetSessionsQuery();
-  const { data: centersRes } = useGetCentersQuery({ page: 1, limit: 100 });
+  const { data: centersRes } = useGetAllCenterQuery();
   const sessions = sessionsData as unknown as AcademicSession[];
   const centers = centersRes?.data?.docs ?? [];
 
@@ -122,18 +123,16 @@ const ReportsPage = () => {
 
             <FormControl size="sm" sx={{ minWidth: 240 }}>
               <FormLabel>Centre (for centre report)</FormLabel>
-              <Select
+              <SearchableSelect
+                size="sm"
                 placeholder="Pick a centre"
                 value={centerId}
-                onChange={(_, v) => setCenterId(v as string)}
-              >
-                <Option value="">— Select a centre —</Option>
-                {centers.map((c) => (
-                  <Option key={c._id} value={c._id}>
-                    {c.name}
-                  </Option>
-                ))}
-              </Select>
+                onChange={(v) => setCenterId(v)}
+                options={centers.map((c) => ({
+                  value: c._id,
+                  label: c.name,
+                }))}
+              />
             </FormControl>
           </Stack>
 

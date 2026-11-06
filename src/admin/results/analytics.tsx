@@ -16,7 +16,8 @@ import {
   useGetYearAnalyticsQuery,
   useGetSystemAnalyticsQuery,
 } from "../../data/rtk/academic";
-import { useGetCentersQuery } from "../../data/rtk/center";
+import { useGetAllCenterQuery } from "../../data/rtk/center";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import PageCard from "../../components/feedback/PageCard";
 import {
   TableHeader,
@@ -60,10 +61,9 @@ const AnalyticsPage = () => {
   const { data: sessionsData = [] } = useGetSessionsQuery();
   const sessions = sessionsData as unknown as AcademicSession[];
 
-  const { data: centersRes } = useGetCentersQuery(
-    { page: 1, limit: 100 },
-    { skip: !isAdmin },
-  );
+  const { data: centersRes } = useGetAllCenterQuery(undefined, {
+    skip: !isAdmin,
+  });
   const centers = centersRes?.data?.docs ?? [];
 
   useEffect(() => {
@@ -121,18 +121,16 @@ const AnalyticsPage = () => {
             {isAdmin && (
               <FormControl size="sm" sx={{ minWidth: 220 }}>
                 <FormLabel>Centre</FormLabel>
-                <Select
-                  placeholder="All centres"
+                <SearchableSelect
+                  size="sm"
                   value={centerId}
-                  onChange={(_, v) => setCenterId(v as string)}
-                >
-                  <Option value="">All centres</Option>
-                  {centers.map((c) => (
-                    <Option key={c._id} value={c._id}>
-                      {c.name}
-                    </Option>
-                  ))}
-                </Select>
+                  onChange={(v) => setCenterId(v)}
+                  allOptionLabel="All centres"
+                  options={centers.map((c) => ({
+                    value: c._id,
+                    label: c.name,
+                  }))}
+                />
               </FormControl>
             )}
           </Stack>

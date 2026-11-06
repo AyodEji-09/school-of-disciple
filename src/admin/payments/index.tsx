@@ -38,7 +38,8 @@ import {
 } from "../../components/feedback/TableShell";
 import { useGetPaymentsQuery, useDeletePaymentMutation } from "../../data/rtk/payment";
 import { useGetSessionsQuery } from "../../data/rtk/academic";
-import { useGetCentersQuery } from "../../data/rtk/center";
+import { useGetAllCenterQuery } from "../../data/rtk/center";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import Frame from "../../components/frame/Frame";
 import { PAYMENT_STATUS } from "../../utils/status";
 
@@ -84,10 +85,9 @@ const Payments = () => {
   const prevFiltersRef = useRef({ selectedSessionId, selectedCenter });
 
   const { data: sessions = [] } = useGetSessionsQuery();
-  const { data: centersRes } = useGetCentersQuery(
-    { limit: 100 },
-    { skip: !isAdmin },
-  );
+  const { data: centersRes } = useGetAllCenterQuery(undefined, {
+    skip: !isAdmin,
+  });
 
   useEffect(() => {
     if (!initialized) {
@@ -242,22 +242,17 @@ const Payments = () => {
               {isAdmin && (
                 <FormControl size="sm">
                   <FormLabel>Center</FormLabel>
-                  <Select
+                  <SearchableSelect
                     size="sm"
                     value={selectedCenter}
-                    onChange={(_, val) =>
-                      setSelectedCenter((val as string) ?? "")
-                    }
-                    placeholder="All Centers"
+                    onChange={(val) => setSelectedCenter(val)}
+                    allOptionLabel="All Centers"
                     sx={{ minWidth: 200 }}
-                  >
-                    <Option value="">All Centers</Option>
-                    {centers.map((c) => (
-                      <Option key={c._id} value={c._id}>
-                        {c.name}
-                      </Option>
-                    ))}
-                  </Select>
+                    options={centers.map((c) => ({
+                      value: c._id,
+                      label: c.name,
+                    }))}
+                  />
                 </FormControl>
               )}
             </Stack>

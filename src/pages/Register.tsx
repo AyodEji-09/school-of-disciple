@@ -6,8 +6,9 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { handleError } from "../utils";
 import Hero from "../components/hero/Hero";
-import { Option, Select, Stack, Typography } from "@mui/joy";
+import { Stack, Typography } from "@mui/joy";
 import { useGetAllCenterQuery } from "../data/rtk/center";
+import SearchableSelect from "../components/input/SearchableSelect";
 import { useGetRegistrationWindowQuery } from "../data/rtk/registration";
 import { useNavigate } from "react-router-dom";
 import AppModal from "../components/modal/modal";
@@ -317,21 +318,20 @@ const Register = () => {
                   rules={{
                     required: "Please select a center",
                   }}
-                  render={({ field: { onChange } }) => (
-                    <Select
-                      onChange={(_, value) => onChange(value)}
+                  render={({ field: { value, onChange } }) => (
+                    <SearchableSelect
+                      size="md"
+                      value={value}
+                      onChange={(val) => onChange(val)}
+                      placeholder="Select a center"
                       className="h-12"
-                    >
-                      {centers?.data.docs.length ? (
-                        centers?.data?.docs?.map((item) => (
-                          <Option key={item._id} value={item._id}>
-                            {item.name}
-                          </Option>
-                        ))
-                      ) : (
-                        <Option value={"mm"}>No Data</Option>
-                      )}
-                    </Select>
+                      options={
+                        centers?.data?.docs?.map((item) => ({
+                          value: item._id,
+                          label: item.name,
+                        })) ?? []
+                      }
+                    />
                   )}
                 />
                 {errors.centerId && (

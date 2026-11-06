@@ -23,6 +23,7 @@ import {
   useGetResultsQuery,
 } from "../../data/rtk/academic";
 import { useGetUsersQuery } from "../../data/rtk/user";
+import SearchableSelect from "../../components/input/SearchableSelect";
 import { handleError, getUserFullName } from "../../utils";
 import PageCard from "../../components/feedback/PageCard";
 
@@ -55,7 +56,7 @@ const UploadResultPage = () => {
 
   const { data: studentsRes } = useGetUsersQuery({
     type: "user",
-    limit: 500,
+    page: null,
     ...(coordinatorCenterId ? { center: coordinatorCenterId } : {}),
     ...(selSession ? { admissionSessionId: selSession } : {}),
   });
@@ -195,17 +196,16 @@ const UploadResultPage = () => {
 
             <FormControl required>
               <FormLabel>Student</FormLabel>
-              <Select
+              <SearchableSelect
+                size="md"
                 placeholder="Select student"
                 value={selStudent}
-                onChange={(_, v) => setSelStudent(v as string)}
-              >
-                {students.map((s) => (
-                  <Option key={s._id} value={s._id}>
-                    {getUserFullName(s)} — {s.matricNumber} {s.admissionYear ? `(admitted ${s.admissionYear})` : ""}
-                  </Option>
-                ))}
-              </Select>
+                onChange={(v) => setSelStudent(v)}
+                options={students.map((s) => ({
+                  value: s._id,
+                  label: `${getUserFullName(s)} — ${s.matricNumber}${s.admissionYear ? ` (admitted ${s.admissionYear})` : ""}`,
+                }))}
+              />
             </FormControl>
 
             <div>
