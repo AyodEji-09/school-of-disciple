@@ -145,18 +145,11 @@ const Centers = () => {
 
   const sortedCenters = useMemo(() => {
     const docs = centerData?.data?.docs || [];
-    return [...docs].sort((a, b) => {
-      const aManager = a.manager && typeof a.manager !== "string";
-      const bManager = b.manager && typeof b.manager !== "string";
-
-      if (!aManager && bManager) return 1;
-      if (aManager && !bManager) return -1;
-      if (!aManager && !bManager) return a.name.localeCompare(b.name);
-
-      const aName = getUserFullName(a.manager as User).toLowerCase();
-      const bName = getUserFullName(b.manager as User).toLowerCase();
-      return aName.localeCompare(bName);
-    });
+    return [...docs].sort((a, b) =>
+      (a.name || "").localeCompare(b.name || "", undefined, {
+        sensitivity: "base",
+      }),
+    );
   }, [centerData]);
 
   const toggleModal = (mode?: string) => {

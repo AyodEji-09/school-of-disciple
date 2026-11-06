@@ -2,6 +2,21 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { TOKEN, useURL } from "../config";
 import { userApi } from "./user";
 
+const sortCenterDocs = (response: ApiResponse<Center>): ApiResponse<Center> => {
+  if (!response?.data?.docs) return response;
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      docs: [...response.data.docs].sort((a, b) =>
+        (a?.name || "").localeCompare(b?.name || "", undefined, {
+          sensitivity: "base",
+        }),
+      ),
+    },
+  };
+};
+
 export const centerApi = createApi({
   reducerPath: "centerApi",
   tagTypes: ["Center", "CenterList"],
@@ -24,6 +39,8 @@ export const centerApi = createApi({
 
         if (page != null) params.set("page", String(page));
         if (limit != null) params.set("limit", String(limit));
+        params.set("sortBy", "name");
+        params.set("order", "asc");
 
         if (search) {
           params.set("search", search);
@@ -37,6 +54,7 @@ export const centerApi = createApi({
 
         return `/center?${params.toString()}`;
       },
+      transformResponse: sortCenterDocs,
       providesTags: (result) =>
         result?.data?.docs?.length
           ? [
@@ -49,7 +67,8 @@ export const centerApi = createApi({
           : [{ type: "CenterList", id: "LIST" }],
     }),
     getAllCenter: builder.query<ApiResponse<Center>, void>({
-      query: () => `/center`,
+      query: () => `/center?sortBy=name&order=asc`,
+      transformResponse: sortCenterDocs,
       providesTags: (result) =>
         result?.data?.docs?.length
           ? [
