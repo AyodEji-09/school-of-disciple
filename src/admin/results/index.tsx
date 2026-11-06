@@ -24,7 +24,9 @@ import {
   useGetSessionsQuery,
   usePublishSessionResultsMutation,
 } from "../../data/rtk/academic";
-import { useGetCentersQuery } from "../../data/rtk/center";
+import { useGetAllCenterQuery } from "../../data/rtk/center";
+import SearchableSelect from "../../components/input/SearchableSelect";
+import AppSearch from "../../components/search/AppSearch";
 import {
   CenteredEmptyState,
   TableSkeleton,
@@ -48,6 +50,9 @@ import AppPagination from "../../components/pagination/Pagination";
 import { RESULT_STATUS, CENTER_RESULT_STATUS } from "../../utils/status";
 
 const RESULTS_PAGE_SIZE = 10;
+const CENTERS_PAGE_SIZE = 20;
+
+type StatusFilterValue = ResultStatus | "not_uploaded" | "";
 
 const ResultsPage = () => {
   const navigate = useNavigate();
@@ -59,7 +64,9 @@ const ResultsPage = () => {
   const page = parseInt(searchParams.get("page") || "1", 10);
 
   const [sessionId, setSessionId] = useState("");
-  const [status, setStatus] = useState<ResultStatus | "">("");
+  const [status, setStatus] = useState<StatusFilterValue>("");
+  const [centerFilter, setCenterFilter] = useState("");
+  const [searchVar, setSearchVar] = useState("");
   const [viewCenterId, setViewCenterId] = useState<string | null>(null);
   const [confirmPublish, setConfirmPublish] = useState(false);
 
@@ -69,16 +76,14 @@ const ResultsPage = () => {
   const coordinatorCenterId =
     typeof user?.center === "string" ? user.center : (user?.center as any)?._id;
 
-  const { data: centersRes } = useGetCentersQuery(
-    { page, limit: 20 },
+  const { data: centersRes, isLoading: centersLoading } = useGetAllCenterQuery(
+    undefined,
     { skip: !isAdmin },
   );
   const centers = centersRes?.data?.docs ?? [];
-  const centersTotalPages = centersRes?.data?.totalPages ?? 1;
 
   const { data, isLoading } = useGetResultsQuery({
     ...(sessionId ? { sessionId } : {}),
-    ...(status ? { status } : {}),
     ...(isCoordinator && coordinatorCenterId
       ? { centerId: coordinatorCenterId }
       : {}),
@@ -95,10 +100,14 @@ const ResultsPage = () => {
     }
   }, [sessions, sessionId]);
 
-  const draftCount = useMemo(
-    () => results.filter((r) => r.status === "draft").length,
-    [results],
-  );
+  const resetPage = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("page");
+      return next;
+    });
+  };
+
   const pendingCount = useMemo(
     () =>
       results.filter(
@@ -129,9 +138,92 @@ const ResultsPage = () => {
     }
   };
 
-  const displayedResults = viewCenterId
-    ? results.filter((r) => resolveId(r.centerId) === viewCenterId)
-    : results;
+  const centersWithStats = useMemo(() => {
+    return centers.map((center) => {
+      const centerResults = results.filter(
+        (r) => resolveId(r.centerId) === center._id,
+      );
+      const totalUploaded = centerResults.length;
+
+      const centerStatus: keyof typeof CENTER_RESULT_STATUS =
+        totalUploaded === 0
+          ? "not_uploaded"
+          : centerResults.some((r) => r.status === "draft")
+            ? "draft"
+            : centerResults.some(
+                  (r) =>
+                    r.status === "published" &&
+                    ((r as any).draftYearScores?.length ?? 0) > 0,
+                )
+              ? "draft_pending"
+              : "published";
+
+      return {
+        center,
+        totalUploaded,
+        centerStatus,
+      };
+    });
+  }, [centers, results]);
+
+  const filteredCenters = useMemo(() => {
+    const query = searchVar.trim().toLowerCase();
+    return centersWithStats.filter(({ center, centerStatus }) => {
+      if (centerFilter && center._id !== centerFilter) return false;
+      if (query) {
+        const matchesName = (center.name || "").toLowerCase().includes(query);
+        const matchesCode = (center.shortCode || "")
+          .toLowerCase()
+          .includes(query);
+        if (!matchesName && !matchesCode) return false;
+      }
+      if (status === "draft") {
+        return centerStatus === "draft" || centerStatus === "draft_pending";
+      }
+      if (status === "published") {
+        return centerStatus === "published";
+      }
+      if (status === "not_uploaded") {
+        return centerStatus === "not_uploaded";
+      }
+      return true;
+    });
+  }, [centersWithStats, centerFilter, searchVar, status]);
+
+  const centersTotalPages = Math.max(
+    1,
+    Math.ceil(filteredCenters.length / CENTERS_PAGE_SIZE),
+  );
+  const safeCentersPage = Math.min(page, centersTotalPages);
+  const pageCenters = filteredCenters.slice(
+    (safeCentersPage - 1) * CENTERS_PAGE_SIZE,
+    safeCentersPage * CENTERS_PAGE_SIZE,
+  );
+
+  const displayedResults = useMemo(() => {
+    const query = searchVar.trim().toLowerCase();
+    return results.filter((r) => {
+      if (viewCenterId && resolveId(r.centerId) !== viewCenterId) return false;
+      if (status === "draft") {
+        const isDraftOrPending =
+          r.status === "draft" ||
+          ((r as any).draftYearScores?.length ?? 0) > 0;
+        if (!isDraftOrPending) return false;
+      } else if (status === "published") {
+        const isPurePublished =
+          r.status === "published" &&
+          !(((r as any).draftYearScores?.length ?? 0) > 0);
+        if (!isPurePublished) return false;
+      }
+      if (query) {
+        const student = r.studentId as any;
+        const fullName = getUserFullName(student).toLowerCase();
+        const matric = (student?.matricNumber || "").toLowerCase();
+        if (!fullName.includes(query) && !matric.includes(query)) return false;
+      }
+      return true;
+    });
+  }, [results, viewCenterId, status, searchVar]);
 
   const totalPages = Math.max(
     1,
@@ -259,11 +351,7 @@ const ResultsPage = () => {
                 onChange={(_, v) => {
                   setSessionId((v as string) ?? "");
                   setViewCenterId(null);
-                  setSearchParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.delete("page");
-                    return next;
-                  });
+                  resetPage();
                 }}
                 placeholder="Select session"
               >
@@ -275,26 +363,52 @@ const ResultsPage = () => {
               </Select>
             </FormControl>
 
+            {isAdmin && !viewCenterId && (
+              <FormControl size="sm" sx={{ minWidth: 220 }}>
+                <FormLabel>Centre</FormLabel>
+                <SearchableSelect
+                  size="sm"
+                  value={centerFilter}
+                  onChange={(val) => {
+                    setCenterFilter(val);
+                    resetPage();
+                  }}
+                  allOptionLabel="All centres"
+                  options={centers.map((c) => ({
+                    value: c._id,
+                    label: c.name,
+                  }))}
+                />
+              </FormControl>
+            )}
+
             <FormControl size="sm" sx={{ minWidth: 160 }}>
               <FormLabel>Status</FormLabel>
               <Select
                 size="sm"
                 value={status}
                 onChange={(_, v) => {
-                  setStatus((v as ResultStatus | "") ?? "");
-                  setSearchParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.delete("page");
-                    return next;
-                  });
+                  setStatus((v as StatusFilterValue) ?? "");
+                  resetPage();
                 }}
                 placeholder="All statuses"
               >
                 <Option value="">All statuses</Option>
                 <Option value="draft">Draft</Option>
                 <Option value="published">Published</Option>
+                {isAdmin && !viewCenterId && (
+                  <Option value="not_uploaded">Not Uploaded</Option>
+                )}
               </Select>
             </FormControl>
+
+            <AppSearch
+              searchVar={searchVar}
+              setSearchVar={(val) => {
+                setSearchVar(val);
+                resetPage();
+              }}
+            />
           </Stack>
         </PageCard>
 
@@ -303,7 +417,11 @@ const ResultsPage = () => {
             <AppButton
               size="sm"
               variant="outlined"
-              onClick={() => setViewCenterId(null)}
+              onClick={() => {
+                setViewCenterId(null);
+                setSearchVar("");
+                resetPage();
+              }}
             >
               ← Back to Centres
             </AppButton>
@@ -333,72 +451,56 @@ const ResultsPage = () => {
                   </tr>
                 </TableHeader>
                 <TableBody>
-                  {isLoading ? (
+                  {isLoading || centersLoading ? (
                     <tr>
                       <td colSpan={4}>
                         <TableSkeleton columns={4} rows={6} />
                       </td>
                     </tr>
-                  ) : centers.length === 0 ? (
+                  ) : pageCenters.length === 0 ? (
                     <tr>
                       <td colSpan={4}>
-                        <CenteredEmptyState description="No centres configured." />
+                        <CenteredEmptyState description="No centres found." />
                       </td>
                     </tr>
                   ) : (
-                    centers.map((center) => {
-                      const centerResults = results.filter(
-                        (r) => resolveId(r.centerId) === center._id,
-                      );
-                      const totalUploaded = centerResults.length;
-
-                      const centerStatus: keyof typeof CENTER_RESULT_STATUS =
-                        totalUploaded === 0
-                          ? "not_uploaded"
-                          : centerResults.some((r) => r.status === "draft")
-                            ? "draft"
-                            : centerResults.some(
-                                  (r) =>
-                                    r.status === "published" &&
-                                    ((r as any).draftYearScores?.length ?? 0) >
-                                      0,
-                                )
-                              ? "draft_pending"
-                              : "published";
-
-                      return (
-                        <TableRow key={center._id}>
-                          <TableCell>{center.name}</TableCell>
-                          <TableCell className="text-center font-semibold">
-                            {totalUploaded}
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge
-                              status={centerStatus}
-                              map={CENTER_RESULT_STATUS}
-                            />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {totalUploaded > 0 ? (
-                              <ActionLink
-                                onClick={() => setViewCenterId(center._id)}
-                              >
-                                View Results
-                              </ActionLink>
-                            ) : (
-                              <EmptyValue />
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                    pageCenters.map(({ center, totalUploaded, centerStatus }) => (
+                      <TableRow key={center._id}>
+                        <TableCell>{center.name}</TableCell>
+                        <TableCell className="text-center font-semibold">
+                          {totalUploaded}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge
+                            status={centerStatus}
+                            map={CENTER_RESULT_STATUS}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {totalUploaded > 0 ? (
+                            <ActionLink
+                              onClick={() => {
+                                setViewCenterId(center._id);
+                                setSearchVar("");
+                                if (status === "not_uploaded") setStatus("");
+                                resetPage();
+                              }}
+                            >
+                              View Results
+                            </ActionLink>
+                          ) : (
+                            <EmptyValue />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
               </table>
                 {centersTotalPages > 1 && (
                   <div className="flex justify-center py-4">
                     <AppPagination
-                      currentPage={page}
+                      currentPage={safeCentersPage}
                       totalPages={centersTotalPages}
                       onPageChange={handlePageChange}
                     />
