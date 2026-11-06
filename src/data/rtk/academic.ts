@@ -184,7 +184,18 @@ export const academicApi = createApi({
         Object.entries(params).forEach(([k, v]) => v && q.set(k, v));
         return `/academic/results?${q}`;
       },
-      transformResponse: (res: unknown) => unwrapList<StudentResult>(res),
+      transformResponse: (res: unknown) =>
+        [...unwrapList<StudentResult>(res)].sort((a, b) => {
+          const nameA =
+            a?.studentId && typeof a.studentId !== "string"
+              ? `${a.studentId.firstName ?? ""} ${a.studentId.lastName ?? ""}`.trim()
+              : "";
+          const nameB =
+            b?.studentId && typeof b.studentId !== "string"
+              ? `${b.studentId.firstName ?? ""} ${b.studentId.lastName ?? ""}`.trim()
+              : "";
+          return nameA.localeCompare(nameB, undefined, { sensitivity: "base" });
+        }),
       providesTags: ["ResultList"],
     }),
     getMyResults: builder.query<StudentResult[], void>({

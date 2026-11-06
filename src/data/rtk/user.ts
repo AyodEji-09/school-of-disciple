@@ -1,6 +1,26 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { TOKEN, useURL } from "../config";
 
+const getComparableUserName = (u?: Partial<User> | null) =>
+  `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim();
+
+const sortUserDocs = (response: ApiResponse<User>): ApiResponse<User> => {
+  if (!response?.data?.docs) return response;
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      docs: [...response.data.docs].sort((a, b) =>
+        getComparableUserName(a).localeCompare(
+          getComparableUserName(b),
+          undefined,
+          { sensitivity: "base" },
+        ),
+      ),
+    },
+  };
+};
+
 export const userApi = createApi({
   reducerPath: "userApi",
   tagTypes: ["User", "UserList", "CurrentUser"],
@@ -50,6 +70,8 @@ export const userApi = createApi({
         if (admissionSessionId) params.set("admissionSessionId", admissionSessionId);
         if (page != null) params.set("page", String(page));
         if (limit != null) params.set("limit", String(limit));
+        params.set("sortBy", "firstName");
+        params.set("order", "asc");
 
         if (search) {
           params.set("search", search);
@@ -60,6 +82,7 @@ export const userApi = createApi({
 
         return `/user/all?${params.toString()}`;
       },
+      transformResponse: sortUserDocs,
       providesTags: (result) =>
         result?.data?.docs?.length
           ? [
