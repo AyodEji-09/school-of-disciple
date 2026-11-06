@@ -167,16 +167,8 @@ const ResultsPage = () => {
   }, [centers, results]);
 
   const filteredCenters = useMemo(() => {
-    const query = searchVar.trim().toLowerCase();
     return centersWithStats.filter(({ center, centerStatus }) => {
       if (centerFilter && center._id !== centerFilter) return false;
-      if (query) {
-        const matchesName = (center.name || "").toLowerCase().includes(query);
-        const matchesCode = (center.shortCode || "")
-          .toLowerCase()
-          .includes(query);
-        if (!matchesName && !matchesCode) return false;
-      }
       if (status === "draft") {
         return centerStatus === "draft" || centerStatus === "draft_pending";
       }
@@ -188,7 +180,7 @@ const ResultsPage = () => {
       }
       return true;
     });
-  }, [centersWithStats, centerFilter, searchVar, status]);
+  }, [centersWithStats, centerFilter, status]);
 
   const centersTotalPages = Math.max(
     1,
@@ -402,13 +394,16 @@ const ResultsPage = () => {
               </Select>
             </FormControl>
 
-            <AppSearch
-              searchVar={searchVar}
-              setSearchVar={(val) => {
-                setSearchVar(val);
-                resetPage();
-              }}
-            />
+            {(!isAdmin || viewCenterId) && (
+              <AppSearch
+                placeholder="Search students"
+                searchVar={searchVar}
+                setSearchVar={(val) => {
+                  setSearchVar(val);
+                  resetPage();
+                }}
+              />
+            )}
           </Stack>
         </PageCard>
 

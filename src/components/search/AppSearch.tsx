@@ -3,9 +3,11 @@ import React from "react";
 const AppSearch = ({
   searchVar,
   setSearchVar,
+  placeholder = "Search",
 }: {
   searchVar?: string;
-  setSearchVar?: React.Dispatch<React.SetStateAction<string>>;
+  setSearchVar?: React.Dispatch<React.SetStateAction<string>> | ((val: string) => void);
+  placeholder?: string;
 }) => {
   return (
     <div className="w-full sm:max-w-xs text-[#001F54] flex items-center">
@@ -42,7 +44,7 @@ const AppSearch = ({
           }}
           value={searchVar ?? ""}
           className="block w-full px-4 h-10 ps-10 text-sm text-gray-900 border border-gray-300 rounded-full placeholder:text-[#001F54] focus:outline-none focus:ring-1 focus:ring-[#001EC5] focus:border-[#001EC5]"
-          placeholder="Search"
+          placeholder={placeholder}
         />
       </div>
     </div>
