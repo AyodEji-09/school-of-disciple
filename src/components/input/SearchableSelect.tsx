@@ -55,7 +55,15 @@ const SearchableSelect = ({
       clearOnBlur={false}
       disabled={disabled}
       className={className}
-      sx={sx}
+      sx={[
+        {
+          "& input::placeholder": {
+            color: "inherit",
+            opacity: 1,
+          },
+        },
+        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+      ]}
       slotProps={{
         listbox: {
           sx: { maxHeight: 280 },
