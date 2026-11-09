@@ -28,21 +28,79 @@ const Nav = () => {
   };
 
   const DrawerList = (
-    <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
+    <Box
+      sx={{ width: 260 }}
+      role="presentation"
+      onClick={toggleDrawer(false)}
+      className="font-sans text-charcoal"
+    >
       <List>
-        {routes.map((route) => (
-          <ListItem key={route.id} disablePadding>
-            <ListItemButton onClick={() => navigate(route.url)}>
-              <ListItemText primary={route.name} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-        <ListItem className="pl-0">
+        {routes.slice(0, 2).map((route) => {
+          const isActive = location.pathname === route.url;
+          return (
+            <ListItem key={route.id} disablePadding>
+              <ListItemButton onClick={() => navigate(route.url)}>
+                <ListItemText
+                  primary={route.name}
+                  slotProps={{
+                    primary: {
+                      className: isActive
+                        ? "font-sans font-semibold text-navy"
+                        : "font-sans font-medium text-charcoal/80",
+                    },
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+        <ListItem disablePadding>
           <ListItemButton
-            className="pl-0!"
+            component="a"
+            href="/#faq"
+          >
+            <ListItemText
+              primary="FAQ"
+              slotProps={{
+                primary: {
+                  className: "font-sans font-medium text-charcoal/80",
+                },
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+        {routes.slice(2).map((route) => {
+          const isActive = location.pathname === route.url;
+          return (
+            <ListItem key={route.id} disablePadding>
+              <ListItemButton onClick={() => navigate(route.url)}>
+                <ListItemText
+                  primary={route.name}
+                  slotProps={{
+                    primary: {
+                      className: isActive
+                        ? "font-sans font-semibold text-navy"
+                        : "font-sans font-medium text-charcoal/80",
+                    },
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+        <ListItem className="px-4 pt-2">
+          <ListItemButton
+            className="inline-flex items-center justify-center h-10 px-space-lg bg-navy! hover:bg-navy-light! text-on-primary! font-medium text-sm rounded-md tracking-wide transition-colors"
             onClick={() => navigate("/register")}
           >
-            <ListItemText primary={"Register"} />
+            <ListItemText
+              primary={"Register"}
+              slotProps={{
+                primary: {
+                  className: "text-center font-sans font-medium text-on-primary text-sm",
+                },
+              }}
+            />
           </ListItemButton>
         </ListItem>
       </List>
@@ -50,69 +108,105 @@ const Nav = () => {
   );
 
   return (
-    <div className="">
-      <div className="fixed inset-x-0 top-0 z-50 bg-linear-to-r from-cyan-500 to-blue-500">
-        {location.pathname !== "/dashboard" && (
-          <nav className="container mx-auto py-2 text-white">
-            <div className="flex justify-between gap-4 items-center">
-              <div className="logo">
-                <Link to={"/"}>
-                  <div className="flex items-center">
-                    {/* <img */}
-                    {/*   src="/images/rcg.png" */}
-                    {/*   loading="eager" */}
-                    {/*   alt="RCCG Logo" */}
-                    {/*   className="h-16" */}
-                    {/* /> */}
-                    <img
-                      src="/images/logo.png"
-                      loading="eager"
-                      alt="School of Disciples Logo"
-                      className="h-16"
-                    />
-                    <img
-                      src="/images/sod-logo.png"
-                      loading="eager"
-                      alt="School of Disciples Logo"
-                      className="h-16"
-                    />
-                  </div>
-                </Link>
-              </div>
-              <div className="md:hidden">
-                <Button onClick={toggleDrawer(true)}>
-                  <IoMdMenu size={32} color="#fff" />
-                </Button>
-              </div>
-              <div className="menu hidden md:flex gap-4 items-center">
-                {routes.map((route) => (
-                  <Link key={route.id} to={route.url} className="">
+    <div className="min-h-screen flex flex-col bg-surface-container-lowest text-charcoal antialiased selection:bg-gold selection:text-on-primary">
+      {location.pathname !== "/dashboard" && (
+        <header className="sticky top-0 z-50 bg-surface-container-lowest h-20 border-b border-bordergray transition-all duration-200">
+          <nav
+            aria-label="Primary Navigation"
+            className="relative max-w-custom mx-auto h-full px-space-lg lg:px-8 flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]"
+          >
+            <div className="logo justify-self-start">
+              <Link
+                to={"/"}
+                aria-label="RCCG The Americas-1 School of Disciples Home"
+                className="flex items-center group focus:outline-none focus:ring-2 focus:ring-navy rounded-lg py-1"
+              >
+                <div className="flex items-center">
+                  {/* <img */}
+                  {/*   src="/images/rcg.png" */}
+                  {/*   loading="eager" */}
+                  {/*   alt="RCCG Logo" */}
+                  {/*   className="h-16" */}
+                  {/* /> */}
+                  <img
+                    src="/images/logo.png"
+                    loading="eager"
+                    alt="School of Disciples Logo"
+                    className="h-11 sm:h-12 w-auto"
+                  />
+                  <img
+                    src="/images/sod-logo.png"
+                    loading="eager"
+                    alt="School of Disciples Logo"
+                    className="h-11 sm:h-12 w-auto"
+                  />
+                </div>
+              </Link>
+            </div>
+
+            <div className="menu hidden md:flex items-center justify-center justify-self-center space-x-8">
+              {routes.slice(0, 2).map((route) => {
+                const isActive = location.pathname === route.url;
+                return (
+                  <Link
+                    key={route.id}
+                    to={route.url}
+                    className={
+                      isActive
+                        ? "text-navy font-semibold text-label-lg py-1 border-b-2 border-navy transition-colors"
+                        : "text-charcoal/80 font-medium text-label-lg py-1 hover:text-navy transition-colors"
+                    }
+                  >
                     {route.name}
                   </Link>
-                ))}
-                <div>
-                  <Button
-                    variant="contained"
-                    sx={{
-                      background: "#FFC107",
-                      color: "#333",
-                      borderRadius: 20,
-                      fontSize: 12,
-                      minWidth: 150,
-                      height: 40,
-                    }}
-                    onClick={() => navigate("/register")}
+                );
+              })}
+              <a
+                href="/#faq"
+                className="text-charcoal/80 font-medium text-label-lg py-1 hover:text-navy transition-colors"
+              >
+                FAQ
+              </a>
+              {routes.slice(2).map((route) => {
+                const isActive = location.pathname === route.url;
+                return (
+                  <Link
+                    key={route.id}
+                    to={route.url}
+                    className={
+                      isActive
+                        ? "text-navy font-semibold text-label-lg py-1 border-b-2 border-navy transition-colors"
+                        : "text-charcoal/80 font-medium text-label-lg py-1 hover:text-navy transition-colors"
+                    }
                   >
-                    Register
-                  </Button>
-                </div>
+                    {route.name}
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-3 justify-self-end">
+              <div className="hidden md:block">
+                <button
+                  type="button"
+                  onClick={() => navigate("/register")}
+                  className="inline-flex items-center justify-center h-10 px-space-lg bg-navy hover:bg-navy-light text-on-primary font-medium text-sm rounded-md tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy cursor-pointer"
+                >
+                  Register
+                </button>
+              </div>
+              <div className="md:hidden">
+                <Button onClick={toggleDrawer(true)} aria-label="Open navigation menu">
+                  <IoMdMenu size={28} className="text-navy" />
+                </Button>
               </div>
             </div>
+
             <Drawer open={open} onClose={toggleDrawer(false)}>
-              <div className="py-4">
-                <div className="logo">
-                  <Link to={"/"}>
-                    <div className="flex items-center">
+              <div className="py-4 bg-surface-container-lowest h-full">
+                <div className="logo px-4 pb-3 border-b border-bordergray">
+                  <Link to={"/"} onClick={toggleDrawer(false)}>
+                    <div className="flex items-center gap-3 justify-self-end">
                       {/* <img */}
                       {/*   src="/images/logo.png" */}
                       {/*   alt="School of Disciples Logo" */}
@@ -121,7 +215,7 @@ const Nav = () => {
                       <img
                         src="/images/sod-logo.png"
                         alt="RCCG Logo"
-                        className="h-16"
+                        className="h-12"
                       />
                     </div>
                   </Link>
@@ -130,9 +224,11 @@ const Nav = () => {
               </div>
             </Drawer>
           </nav>
-        )}
-      </div>
-      <Outlet />
+        </header>
+      )}
+      <main className="flex-1">
+        <Outlet />
+      </main>
       <Footer />
     </div>
   );

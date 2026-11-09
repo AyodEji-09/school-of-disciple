@@ -1,13 +1,23 @@
-import type { JSX } from "react"
+import type { JSX } from "react";
 
-const Itinerary = ({title, text, icon}: {title: string, text: string, icon: JSX.Element}) => {
+const Itinerary = ({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon: JSX.Element;
+}) => {
   return (
-    <div className="bg-white p-8 text-center">
-        <span className="text-6xl text-[#0054a6] flex justify-center">{icon}</span>
-        <h4 className="font-medium text-[#333] text-xl uppercase">{title}</h4>
-        <p className="text-[#555] text-sm">{text}</p>
+    <div className="bg-surface-container-lowest rounded-card p-8 border border-bordergray flex flex-col justify-start text-left w-full h-full">
+      <span className="sr-only">{icon}</span>
+      <h3 className="font-serif text-xl font-bold text-navy mb-3 uppercase tracking-tight">
+        {title}
+      </h3>
+      <p className="text-charcoal/90 text-base leading-relaxed">{text}</p>
     </div>
-  )
-}
+  );
+};
 
-export default Itinerary
+export default Itinerary;

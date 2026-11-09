@@ -1,8 +1,262 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,600;1,8..60,700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import "tailwindcss";
 
-* {
-    font-family: "Poppins", sans-serif;
+:root {
+  /* Seminary Archive - Brand & Semantic Color Tokens (from .stitch/DESIGN.md) */
+  --color-navy: #1B2A5C;
+  --color-navy-dark: #131F43;
+  --color-navy-light: #253A7A;
+  --color-gold: #C99A2E;
+  --color-gold-hover: #B58723;
+  --color-ivory: #FAF7F2;
+  --color-coolgray: #F5F6F8;
+  --color-charcoal: #2B2F3A;
+  --color-slate-muted: #5B6170;
+  --color-mist: #E4E1DA;
+  --color-bordergray: #E5E7EB;
+
+  /* Seminary Archive - Material / Surface Tokens (from .stitch/DESIGN.md) */
+  --color-surface: #fcf9f4;
+  --color-surface-dim: #dcdad5;
+  --color-surface-bright: #fcf9f4;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3ee;
+  --color-surface-container: #f0ede9;
+  --color-surface-container-high: #ebe8e3;
+  --color-surface-container-highest: #e5e2dd;
+  --color-on-surface: #1c1c19;
+  --color-on-surface-variant: #45464f;
+  --color-inverse-surface: #31302d;
+  --color-inverse-on-surface: #f3f0eb;
+  --color-outline: #767680;
+  --color-outline-variant: #c6c5d0;
+  --color-surface-tint: #4e5c91;
+  --color-primary: #021447;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1b2a5c;
+  --color-on-primary-container: #8492cb;
+  --color-inverse-primary: #b6c4ff;
+  --color-secondary: #7a5900;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #feca5a;
+  --color-on-secondary-container: #745400;
+  --color-tertiary: #121925;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #272d3a;
+  --color-on-tertiary-container: #8e94a5;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-primary-fixed: #dce1ff;
+  --color-primary-fixed-dim: #b6c4ff;
+  --color-on-primary-fixed: #051749;
+  --color-on-primary-fixed-variant: #364477;
+  --color-secondary-fixed: #ffdea2;
+  --color-secondary-fixed-dim: #f2bf50;
+  --color-on-secondary-fixed: #261900;
+  --color-on-secondary-fixed-variant: #5c4200;
+  --color-tertiary-fixed: #dde2f4;
+  --color-tertiary-fixed-dim: #c1c6d8;
+  --color-on-tertiary-fixed: #151c28;
+  --color-on-tertiary-fixed-variant: #414755;
+  --color-background: #fcf9f4;
+  --color-on-background: #1c1c19;
+  --color-surface-variant: #e5e2dd;
+
+  /* Spacing & Layout Cadence Tokens */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --layout-gutter: 1.5rem;
+  --layout-gutter-mobile: 1rem;
+  --layout-margin: 2.5rem;
+  --layout-margin-mobile: 1rem;
+  --container-max: 1200px;
+
+  /* Shape & Elevation Tokens */
+  --radius-card: 0.75rem;
+  --radius-input: 0.625rem;
+  --radius-dialog: 1rem;
+  --shadow-ambient: 0 4px 20px rgba(27, 42, 92, 0.08);
+}
+
+@theme {
+  /* Fonts */
+  --font-serif: "Source Serif 4", Georgia, serif;
+  --font-sans: "DM Sans", sans-serif;
+  --font-heading: "Source Serif 4", Georgia, serif;
+  --font-display-lg: "Source Serif 4", Georgia, serif;
+  --font-display-lg-mobile: "Source Serif 4", Georgia, serif;
+  --font-headline-lg: "Source Serif 4", Georgia, serif;
+  --font-headline-lg-mobile: "Source Serif 4", Georgia, serif;
+  --font-headline-md: "Source Serif 4", Georgia, serif;
+  --font-headline-sm: "Source Serif 4", Georgia, serif;
+  --font-title-md: "DM Sans", sans-serif;
+  --font-body-lg: "DM Sans", sans-serif;
+  --font-body-md: "DM Sans", sans-serif;
+  --font-body-sm: "DM Sans", sans-serif;
+  --font-label-lg: "DM Sans", sans-serif;
+  --font-label-md: "DM Sans", sans-serif;
+  --font-label-sm: "DM Sans", sans-serif;
+
+  /* Typography Scale from DESIGN.md */
+  --text-display-lg: 48px;
+  --text-display-lg--line-height: 56px;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 700;
+
+  --text-display-lg-mobile: 32px;
+  --text-display-lg-mobile--line-height: 40px;
+  --text-display-lg-mobile--letter-spacing: -0.01em;
+  --text-display-lg-mobile--font-weight: 700;
+
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 40px;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-lg-mobile: 26px;
+  --text-headline-lg-mobile--line-height: 34px;
+  --text-headline-lg-mobile--letter-spacing: -0.01em;
+  --text-headline-lg-mobile--font-weight: 600;
+
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 32px;
+  --text-headline-md--font-weight: 600;
+
+  --text-headline-sm: 20px;
+  --text-headline-sm--line-height: 28px;
+  --text-headline-sm--font-weight: 600;
+
+  --text-title-md: 18px;
+  --text-title-md--line-height: 26px;
+  --text-title-md--font-weight: 500;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--font-weight: 400;
+
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--font-weight: 400;
+
+  --text-label-lg: 15px;
+  --text-label-lg--line-height: 20px;
+  --text-label-lg--letter-spacing: 0.01em;
+  --text-label-lg--font-weight: 500;
+
+  --text-label-md: 13px;
+  --text-label-md--line-height: 18px;
+  --text-label-md--letter-spacing: 0.02em;
+  --text-label-md--font-weight: 500;
+
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 16px;
+  --text-label-sm--letter-spacing: 0.04em;
+  --text-label-sm--font-weight: 500;
+
+  /* Colors */
+  --color-navy: #1B2A5C;
+  --color-navy-dark: #131F43;
+  --color-navy-light: #253A7A;
+  --color-gold: #C99A2E;
+  --color-gold-hover: #B58723;
+  --color-ivory: #FAF7F2;
+  --color-coolgray: #F5F6F8;
+  --color-charcoal: #2B2F3A;
+  --color-slate: #5B6170;
+  --color-mist: #E4E1DA;
+  --color-bordergray: #E5E7EB;
+
+  --color-surface: #fcf9f4;
+  --color-surface-dim: #dcdad5;
+  --color-surface-bright: #fcf9f4;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3ee;
+  --color-surface-container: #f0ede9;
+  --color-surface-container-high: #ebe8e3;
+  --color-surface-container-highest: #e5e2dd;
+  --color-on-surface: #1c1c19;
+  --color-on-surface-variant: #45464f;
+  --color-inverse-surface: #31302d;
+  --color-inverse-on-surface: #f3f0eb;
+  --color-outline: #767680;
+  --color-outline-variant: #c6c5d0;
+  --color-surface-tint: #4e5c91;
+  --color-primary: #021447;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1b2a5c;
+  --color-on-primary-container: #8492cb;
+  --color-inverse-primary: #b6c4ff;
+  --color-secondary: #7a5900;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #feca5a;
+  --color-on-secondary-container: #745400;
+  --color-tertiary: #121925;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #272d3a;
+  --color-on-tertiary-container: #8e94a5;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-primary-fixed: #dce1ff;
+  --color-primary-fixed-dim: #b6c4ff;
+  --color-on-primary-fixed: #051749;
+  --color-on-primary-fixed-variant: #364477;
+  --color-secondary-fixed: #ffdea2;
+  --color-secondary-fixed-dim: #f2bf50;
+  --color-on-secondary-fixed: #261900;
+  --color-on-secondary-fixed-variant: #5c4200;
+  --color-tertiary-fixed: #dde2f4;
+  --color-tertiary-fixed-dim: #c1c6d8;
+  --color-on-tertiary-fixed: #151c28;
+  --color-on-tertiary-fixed-variant: #414755;
+  --color-background: #fcf9f4;
+  --color-on-background: #1c1c19;
+  --color-surface-variant: #e5e2dd;
+
+  /* Spacing tokens from DESIGN.md */
+  --spacing-gutter: 1.5rem;
+  --spacing-gutter-mobile: 1rem;
+  --spacing-margin: 2.5rem;
+  --spacing-margin-mobile: 1rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2rem;
+
+  /* Max width & Shadows & Radius */
+  --container-custom: 1200px;
+  --shadow-ambient: 0 4px 20px rgba(27, 42, 92, 0.08);
+  --radius-card: 0.75rem;
+  --radius-input: 0.625rem;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family: var(--font-sans);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-charcoal);
+  background-color: var(--color-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
