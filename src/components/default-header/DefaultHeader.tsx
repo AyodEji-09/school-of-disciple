@@ -166,6 +166,12 @@ const navGroups: NavGroup[] = [
         role: ["admin", "coordinator"],
       },
       {
+        id: "exam-appointments",
+        name: "Exam Appointments",
+        url: "/dashboard/appointments",
+        role: ["admin", "coordinator"],
+      },
+      {
         id: "upload",
         name: "Upload Result",
         url: "/dashboard/results/upload",
@@ -530,6 +536,10 @@ const DefaultHeader = ({
                   transaction_rejected: "Payment Rejected",
                   results_published: "Results Published",
                   order_placed: "New Manual Order",
+                  appointment_created: "New Exam Appointment",
+                  appointment_approved: "Exam Appointment Approved",
+                  appointment_cancelled: "Exam Appointment Cancelled",
+                  appointment_rescheduled: "Exam Appointment Rescheduled",
                 };
 
                 return (
@@ -652,7 +662,27 @@ const DefaultHeader = ({
                         </Stack>
                       )}
 
-                      {!n.isRead && !isPendingTx && n.type !== "results_published" && (
+                      {String(n.type || "").startsWith("appointment_") && (
+                        <Stack direction="row" gap={1} sx={{ mt: 1.5 }}>
+                          <Button
+                            size="sm"
+                            color="primary"
+                            variant="outlined"
+                            onClick={() => {
+                              if (!n.isRead) markAsRead(n._id);
+                              navigate("/dashboard/appointments");
+                            }}
+                            sx={{ fontWeight: 600, flex: 1 }}
+                          >
+                            View Appointments →
+                          </Button>
+                        </Stack>
+                      )}
+
+                      {!n.isRead &&
+                        !isPendingTx &&
+                        n.type !== "results_published" &&
+                        !String(n.type || "").startsWith("appointment_") && (
                         <Stack
                           direction="row"
                           justifyContent="flex-end"
