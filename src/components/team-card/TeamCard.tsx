@@ -20,7 +20,7 @@ const TeamCard = ({
         />
       </div>
       <div className="content">
-        <span className="font-label-sm text-label-sm uppercase tracking-[0.12em] text-gold font-semibold block mb-1.5">
+        <span className="font-label-sm text-label-sm uppercase tracking-[0.12em] text-outline font-medium block mb-1.5">
           {title}
         </span>
         <h3 className="font-headline-sm text-headline-sm text-primary font-semibold tracking-tight mb-3">

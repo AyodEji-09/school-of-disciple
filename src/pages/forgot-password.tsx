@@ -168,23 +168,6 @@ const ForgotPassword = () => {
   return (
     <UseBox img="manholding.jpg">
       <Stack className="scrollbar-hide">
-        <div className="flex items-center justify-between pb-3">
-          <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">
-            {!hasRequestedToken
-              ? "Stage 1 • Request Reset"
-              : !otpVerified
-                ? "Stage 2 • Verify Code"
-                : "Stage 3 • New Password"}
-          </span>
-          <span className="font-label-sm text-label-sm text-primary font-medium bg-surface-container px-2.5 py-0.5 rounded-full">
-            {!hasRequestedToken
-              ? "Initial Form"
-              : !otpVerified
-                ? "Authentication"
-                : "Final Step"}
-          </span>
-        </div>
-
         <div className="w-full bg-surface-container-lowest rounded-xl p-6 sm:p-8 shadow-ambient border border-mist flex flex-col">
           <div className="mb-5">
             {!hasRequestedToken ? (

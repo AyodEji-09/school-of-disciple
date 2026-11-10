@@ -46,7 +46,7 @@ const MatricCard = ({
   const statHeadline = STAT_HEADLINES[title] ?? title;
 
   return (
-    <div className="flex flex-col items-center text-center min-w-[150px]">
+    <div className="flex flex-col items-start text-left min-w-[150px]">
       <span className="sr-only">{icon}</span>
       <p className="font-serif text-3xl sm:text-4xl font-bold text-navy mb-1.5">
         {statHeadline}

@@ -142,10 +142,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post<ApiResponseN<null>>(
-        "/auth/register",
-        data,
-      );
+      const res = await axios.post<ApiResponseN<null>>("/auth/register", data);
       toast.success(res.data.message);
 
       const credentials = {
@@ -395,7 +392,7 @@ const Register = () => {
 
             {registrationWindowState.status !== "open" && (
               <div className="pt-2">
-                <div className="bg-coolgray border border-mist rounded-input p-4 flex items-start gap-3">
+                <div className="bg-coolgray border border-mist rounded-input p-4 flex items-center gap-3">
                   <span className="material-symbols-outlined text-outline text-xl shrink-0 mt-0.5">
                     info
                   </span>

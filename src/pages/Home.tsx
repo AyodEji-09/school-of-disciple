@@ -66,8 +66,8 @@ const Home = () => {
       />
 
       <section className="bg-coolgray border-b border-bordergray py-12">
-        <div className="max-w-4xl mx-auto px-space-lg lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 justify-items-center text-center">
+        <div className="max-w-custom mx-auto px-space-lg lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 text-left">
             <MatricCard
               title="Session"
               text="1 year of extensive training"

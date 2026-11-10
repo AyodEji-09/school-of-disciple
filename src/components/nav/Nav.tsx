@@ -90,14 +90,14 @@ const Nav = () => {
         })}
         <ListItem className="px-4 pt-2">
           <ListItemButton
-            className="inline-flex items-center justify-center h-10 px-space-lg bg-navy! hover:bg-navy-light! text-on-primary! font-medium text-sm rounded-md tracking-wide transition-colors"
+            className="inline-flex items-center justify-center h-10 px-space-lg bg-gold! hover:bg-gold-hover! text-navy! font-semibold text-sm rounded-md tracking-wide transition-colors"
             onClick={() => navigate("/register")}
           >
             <ListItemText
               primary={"Register"}
               slotProps={{
                 primary: {
-                  className: "text-center font-sans font-medium text-on-primary text-sm",
+                  className: "text-center font-sans font-semibold text-navy text-sm",
                 },
               }}
             />
@@ -190,7 +190,7 @@ const Nav = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/register")}
-                  className="inline-flex items-center justify-center h-10 px-space-lg bg-navy hover:bg-navy-light text-on-primary font-medium text-sm rounded-md tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy cursor-pointer"
+                  className="inline-flex items-center justify-center h-10 px-space-lg bg-gold hover:bg-gold-hover text-navy font-semibold text-sm rounded-md tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold cursor-pointer"
                 >
                   Register
                 </button>
