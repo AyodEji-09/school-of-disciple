@@ -127,11 +127,19 @@ const Login = () => {
 
   return (
     <UseBox img="manholding.jpg">
-      <Stack mt={8} className="scrollbar-hide pt-10 md:pt-0">
-        <Typography level="h2">Login</Typography>
+      <Stack className="scrollbar-hide">
+        <h1 className="font-headline-lg text-headline-lg text-primary tracking-tight font-bold">
+          Login
+        </h1>
+        <p className="font-body-md text-body-md text-on-surface-variant mt-2 leading-relaxed">
+          Sign in to access your student portal and coursework
+        </p>
 
-        <form className="mt-10" onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-2 gap-4">
+        <form
+          className="mt-8 flex flex-col"
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <div className="grid grid-cols-2 gap-5">
             <div className="col-span-2">
               <Controller
                 name="email"
@@ -146,13 +154,14 @@ const Login = () => {
                 render={({ field: { value, onChange } }) => (
                   <Input
                     label="Email Address"
+                    placeholder="e.g. disciple@rccgnasod.org"
                     value={value}
                     onChange={onChange}
                   />
                 )}
               />
               {errors.email && (
-                <p className="text-[#dc2626] text-xs mt-1">
+                <p className="text-error text-xs mt-1">
                   {errors.email.message}
                 </p>
               )}
@@ -167,32 +176,46 @@ const Login = () => {
                   <Input
                     label="Password"
                     type="password"
+                    placeholder="••••••••••••"
                     value={value}
                     onChange={onChange}
                   />
                 )}
               />
               {errors.password && (
-                <p className="text-[#dc2626] text-xs mt-1">
+                <p className="text-error text-xs mt-1">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
-            <div className="col-span-2 px-2">
+            <div className="col-span-2">
               <Box
-                color="#000817"
                 justifyContent="space-between"
                 display="flex"
                 alignItems="center"
+                className="mt-1 mb-2"
               >
-                <Checkbox label="Remember Me" sx={{ fontSize: 14 }} />
+                <Checkbox
+                  label="Remember Me"
+                  sx={{
+                    fontSize: 14,
+                    fontFamily: '"DM Sans", sans-serif',
+                    color: "#45464f",
+                  }}
+                />
                 <Typography
                   component={Link}
                   to="/forgot-password"
                   level="body-xs"
-                  textColor="#404757"
-                  sx={{ cursor: "pointer", textDecoration: "underline" }}
+                  sx={{
+                    cursor: "pointer",
+                    fontFamily: '"DM Sans", sans-serif',
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    color: "#021447",
+                    "&:hover": { color: "#C99A2E", textDecoration: "underline" },
+                  }}
                 >
                   Forgot Password?
                 </Typography>
@@ -200,19 +223,29 @@ const Login = () => {
             </div>
           </div>
 
-          <Stack mt={6}>
-            <AppButton loading={loginLoading} disabled={loginLoading}>
-              Log In
+          <Stack mt={4}>
+            <AppButton
+              loading={loginLoading}
+              disabled={loginLoading}
+              className="w-full! h-12! rounded-full! bg-primary-container! hover:bg-primary! text-on-primary! font-label-lg! text-label-lg! font-medium! shadow-ambient! transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Log In</span>
+              <span className="material-symbols-outlined text-sm">
+                arrow_forward
+              </span>
             </AppButton>
           </Stack>
         </form>
 
-        <Typography level="body-xs" textAlign="center" mt={2}>
-          Don't have an account?{" "}
-          <Link to="/register" className="font-bold underline">
+        <p className="mt-8 text-center font-body-sm text-body-sm text-on-surface-variant">
+          Don&apos;t have an account?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-primary ml-1 transition-all underline decoration-gold decoration-2 underline-offset-4 hover:text-gold"
+          >
             Register
           </Link>
-        </Typography>
+        </p>
       </Stack>
 
       {/* ── Email verification modal ──────────────────────────────────────── */}
@@ -222,10 +255,13 @@ const Login = () => {
         title="Verify Your Email"
         icon
       >
-        <div className="w-[min(360px,80vw)] mt-2 space-y-5">
-          <Typography level="body-sm" textColor="#6B7280">
+        <div className="w-[min(360px,80vw)] mt-2 space-y-5 font-sans">
+          <Typography
+            level="body-sm"
+            sx={{ fontFamily: '"DM Sans", sans-serif', color: "#45464f" }}
+          >
             Enter the 6-digit code sent to{" "}
-            <span className="font-semibold text-[#001F54]">
+            <span className="font-semibold text-navy">
               {getValues().email}
             </span>
           </Typography>
@@ -234,13 +270,13 @@ const Login = () => {
             <OtpComponent onChange={setOtp} loading={verifyLoading} />
           </div>
 
-          <p className="text-xs text-center text-[#6B7280]">
-            Didn't get the code?{" "}
+          <p className="text-xs text-center text-on-surface-variant">
+            Didn&apos;t get the code?{" "}
             <button
               type="button"
               onClick={resendOtp}
               disabled={resendLoading || countdown > 0}
-              className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
+              className="font-semibold text-navy hover:text-gold underline decoration-gold underline-offset-4 disabled:opacity-50 cursor-pointer"
             >
               {resendLoading
                 ? "Sending…"
@@ -256,6 +292,7 @@ const Login = () => {
               loading={verifyLoading}
               disabled={verifyLoading}
               onClick={verifyOtp}
+              className="flex-1! h-11! rounded-full! bg-navy! hover:bg-navy-light! text-on-primary! cursor-pointer"
             >
               Verify
             </AppButton>
@@ -264,6 +301,7 @@ const Login = () => {
               variant="outlined"
               onClick={() => setIsModalOpen(false)}
               disabled={verifyLoading}
+              className="flex-1! h-11! rounded-full! border-navy! text-navy! hover:bg-coolgray! cursor-pointer"
             >
               Cancel
             </AppButton>

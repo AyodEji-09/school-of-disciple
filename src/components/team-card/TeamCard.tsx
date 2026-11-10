@@ -10,22 +10,29 @@ const TeamCard = ({
   img: string;
 }) => {
   return (
-    <div className="rounded-lg overflow-hidden border border-gray-300">
-      <div className="img h-[350px] overflow-hidden">
+    <article className="bg-surface-container-lowest rounded-xl p-space-lg border border-mist/80 shadow-ambient flex flex-col justify-start transition-transform duration-200 hover:-translate-y-1 h-full">
+      <div className="img w-full aspect-4/5 rounded-lg overflow-hidden bg-surface-container-high mb-space-lg relative">
         <img
           src={`/images/${img}`}
           className="h-full w-full object-cover object-top"
-          alt=""
+          alt={name}
+          loading="lazy"
         />
       </div>
-      <div className="content space-y-4 p-4">
-        <div>
-          <h2 className="text-xl font-bold capitalize">{name}</h2>
-          <h2 className="text-md font-bold capitalize">{title}</h2>
-        </div>
-        <p className="text-sm text-gray-800">{description}</p>
+      <div className="content">
+        <span className="font-label-sm text-label-sm uppercase tracking-[0.12em] text-gold font-semibold block mb-1.5">
+          {title}
+        </span>
+        <h3 className="font-headline-sm text-headline-sm text-primary font-semibold tracking-tight mb-3">
+          {name}
+        </h3>
+        {description && (
+          <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            {description}
+          </p>
+        )}
       </div>
-    </div>
+    </article>
   );
 };
 

@@ -94,20 +94,21 @@ const Home = () => {
         <div className="max-w-custom mx-auto px-space-lg lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             <div className="lg:col-span-5">
-              <div className="w-full h-64 sm:h-72 lg:h-80 rounded-card overflow-hidden border border-bordergray shadow-ambient bg-coolgray">
+              <div className="relative w-full h-80 sm:h-96 lg:h-[420px] rounded-card overflow-hidden border border-bordergray shadow-ambient bg-coolgray">
                 <img
                   src="/images/Pastor5.jpg"
                   alt="Pastor E.A. Adeboye preaching"
                   className="w-full h-full object-cover object-top"
                 />
-              </div>
-              <div className="mt-3">
-                <p className="text-navy font-serif font-bold text-base">
-                  Pastor E.A. Adeboye
-                </p>
-                <p className="text-slate text-sm">
-                  Founder &amp; General Overseer, RCCG
-                </p>
+                <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/30 to-transparent pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6 z-10">
+                  <p className="text-on-primary font-serif font-bold text-base sm:text-lg">
+                    Pastor E.A. Adeboye
+                  </p>
+                  <p className="text-inverse-on-surface/85 text-sm">
+                    Founder &amp; General Overseer, RCCG
+                  </p>
+                </div>
               </div>
             </div>
 
