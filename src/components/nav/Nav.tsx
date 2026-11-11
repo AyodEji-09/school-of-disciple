@@ -1,15 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  Box,
-  Button,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-} from "@mui/material";
-import { IoMdMenu } from "react-icons/io";
+import { Drawer } from "@mui/material";
+import { IoMdMenu, IoMdClose } from "react-icons/io";
 import Footer from "../footer/Footer";
 
 const routes = [
@@ -27,93 +19,106 @@ const Nav = () => {
     setOpen(newOpen);
   };
 
-  const DrawerList = (
-    <Box
-      sx={{ width: 260 }}
-      role="presentation"
-      onClick={toggleDrawer(false)}
-      className="font-sans text-charcoal"
-    >
-      <List>
-        {routes.slice(0, 2).map((route) => {
-          const isActive = location.pathname === route.url;
-          return (
-            <ListItem key={route.id} disablePadding>
-              <ListItemButton onClick={() => navigate(route.url)}>
-                <ListItemText
-                  primary={route.name}
-                  slotProps={{
-                    primary: {
-                      className: isActive
-                        ? "font-sans font-semibold text-navy"
-                        : "font-sans font-medium text-charcoal/80",
-                    },
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
-        <ListItem disablePadding>
-          <ListItemButton
-            component="a"
-            href="/#faq"
-          >
-            <ListItemText
-              primary="FAQ"
-              slotProps={{
-                primary: {
-                  className: "font-sans font-medium text-charcoal/80",
-                },
-              }}
-            />
-          </ListItemButton>
-        </ListItem>
-        {routes.slice(2).map((route) => {
-          const isActive = location.pathname === route.url;
-          return (
-            <ListItem key={route.id} disablePadding>
-              <ListItemButton onClick={() => navigate(route.url)}>
-                <ListItemText
-                  primary={route.name}
-                  slotProps={{
-                    primary: {
-                      className: isActive
-                        ? "font-sans font-semibold text-navy"
-                        : "font-sans font-medium text-charcoal/80",
-                    },
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
-        <ListItem className="px-4 pt-2">
-          <ListItemButton
-            className="inline-flex items-center justify-center h-10 px-space-lg bg-gold! hover:bg-gold-hover! text-navy! font-semibold text-sm rounded-md tracking-wide transition-colors"
-            onClick={() => navigate("/register")}
-          >
-            <ListItemText
-              primary={"Register"}
-              slotProps={{
-                primary: {
-                  className: "text-center font-sans font-semibold text-navy text-sm",
-                },
-              }}
-            />
-          </ListItemButton>
-        </ListItem>
-      </List>
-    </Box>
+  const DrawerContent = (
+    <div className="flex flex-col h-full bg-surface-container-lowest text-charcoal">
+      {/* Drawer Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-bordergray bg-surface-container-low/40">
+        <Link
+          to="/"
+          onClick={toggleDrawer(false)}
+          className="flex items-center gap-2 focus:outline-none"
+        >
+          <img
+            src="/images/logo.png"
+            alt="School of Disciples Logo"
+            className="h-8 w-auto"
+          />
+          <img
+            src="/images/sod-logo.png"
+            alt="RCCG Logo"
+            className="h-8 w-auto"
+          />
+        </Link>
+        <button
+          type="button"
+          onClick={toggleDrawer(false)}
+          aria-label="Close navigation menu"
+          className="p-1.5 rounded-lg text-charcoal/70 hover:text-navy hover:bg-coolgray transition-colors cursor-pointer"
+        >
+          <IoMdClose size={22} />
+        </button>
+      </div>
+
+      {/* Nav Links */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <Link
+          to="/"
+          onClick={toggleDrawer(false)}
+          className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+            location.pathname === "/"
+              ? "bg-navy/5 text-navy font-semibold"
+              : "text-charcoal/80 hover:bg-coolgray hover:text-navy"
+          }`}
+        >
+          Home
+        </Link>
+        <Link
+          to="/team"
+          onClick={toggleDrawer(false)}
+          className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+            location.pathname === "/team"
+              ? "bg-navy/5 text-navy font-semibold"
+              : "text-charcoal/80 hover:bg-coolgray hover:text-navy"
+          }`}
+        >
+          Team
+        </Link>
+        <a
+          href="/#faq"
+          onClick={toggleDrawer(false)}
+          className="flex items-center px-4 py-3 rounded-lg text-sm font-medium text-charcoal/80 hover:bg-coolgray hover:text-navy transition-colors"
+        >
+          FAQ
+        </a>
+        <Link
+          to="/login"
+          onClick={toggleDrawer(false)}
+          className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+            location.pathname === "/login"
+              ? "bg-navy/5 text-navy font-semibold"
+              : "text-charcoal/80 hover:bg-coolgray hover:text-navy"
+          }`}
+        >
+          Login
+        </Link>
+      </nav>
+
+      {/* Bottom CTA / Action */}
+      <div className="p-4 border-t border-bordergray bg-surface-container-low/30 flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            toggleDrawer(false)();
+            navigate("/register");
+          }}
+          className="w-full inline-flex items-center justify-center h-11 px-6 bg-gold hover:bg-gold-hover text-navy font-semibold text-sm rounded-md tracking-wider uppercase transition-colors shadow-sm cursor-pointer"
+        >
+          Register
+        </button>
+        <p className="text-center text-[11px] text-outline">
+          RCCG The Americas-1 • School of Disciples
+        </p>
+      </div>
+    </div>
   );
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-container-lowest text-charcoal antialiased selection:bg-gold selection:text-on-primary">
       {location.pathname !== "/dashboard" && (
-        <header className="sticky top-0 z-50 bg-surface-container-lowest h-20 border-b border-bordergray transition-all duration-200">
+        <header className="sticky top-0 z-50 bg-surface-container-lowest h-16 sm:h-20 border-b border-bordergray transition-all duration-200">
           <nav
             aria-label="Primary Navigation"
-            className="relative max-w-custom mx-auto h-full px-space-lg lg:px-8 flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]"
+            className="relative max-w-custom mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]"
           >
             <div className="logo justify-self-start">
               <Link
@@ -122,23 +127,17 @@ const Nav = () => {
                 className="flex items-center group focus:outline-none focus:ring-2 focus:ring-navy rounded-lg py-1"
               >
                 <div className="flex items-center">
-                  {/* <img */}
-                  {/*   src="/images/rcg.png" */}
-                  {/*   loading="eager" */}
-                  {/*   alt="RCCG Logo" */}
-                  {/*   className="h-16" */}
-                  {/* /> */}
                   <img
                     src="/images/logo.png"
                     loading="eager"
                     alt="School of Disciples Logo"
-                    className="h-11 sm:h-12 w-auto"
+                    className="h-9 sm:h-12 w-auto"
                   />
                   <img
                     src="/images/sod-logo.png"
                     loading="eager"
                     alt="School of Disciples Logo"
-                    className="h-11 sm:h-12 w-auto"
+                    className="h-9 sm:h-12 w-auto"
                   />
                 </div>
               </Link>
@@ -195,33 +194,34 @@ const Nav = () => {
                   Register
                 </button>
               </div>
-              <div className="md:hidden">
-                <Button onClick={toggleDrawer(true)} aria-label="Open navigation menu">
-                  <IoMdMenu size={28} className="text-navy" />
-                </Button>
+              <div className="md:hidden flex items-center">
+                <button
+                  type="button"
+                  onClick={toggleDrawer(true)}
+                  aria-label="Open navigation menu"
+                  className="p-2 -mr-1 rounded-lg text-navy hover:bg-coolgray transition-colors focus:outline-none focus:ring-2 focus:ring-navy/20 cursor-pointer"
+                >
+                  <IoMdMenu size={26} />
+                </button>
               </div>
             </div>
 
-            <Drawer open={open} onClose={toggleDrawer(false)}>
-              <div className="py-4 bg-surface-container-lowest h-full">
-                <div className="logo px-4 pb-3 border-b border-bordergray">
-                  <Link to={"/"} onClick={toggleDrawer(false)}>
-                    <div className="flex items-center gap-3 justify-self-end">
-                      {/* <img */}
-                      {/*   src="/images/logo.png" */}
-                      {/*   alt="School of Disciples Logo" */}
-                      {/*   className="h-16" */}
-                      {/* /> */}
-                      <img
-                        src="/images/sod-logo.png"
-                        alt="RCCG Logo"
-                        className="h-12"
-                      />
-                    </div>
-                  </Link>
-                </div>
-                {DrawerList}
-              </div>
+            <Drawer
+              anchor="right"
+              open={open}
+              onClose={toggleDrawer(false)}
+              slotProps={{
+                paper: {
+                  sx: {
+                    width: "min(300px, 82vw)",
+                    backgroundColor: "#FFFFFF",
+                    boxShadow:
+                      "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                  },
+                },
+              }}
+            >
+              {DrawerContent}
             </Drawer>
           </nav>
         </header>
