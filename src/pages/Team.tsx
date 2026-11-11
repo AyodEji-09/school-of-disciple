@@ -16,7 +16,7 @@ const Team = () => {
 
       <section className="w-full bg-surface-container-lowest py-20 lg:py-24">
         <div className="max-w-custom mx-auto px-space-lg lg:px-8">
-          <div className="pb-8 mb-12 border-b border-mist/70">
+          <div className="mb-8 lg:mb-10">
             <span className="font-label-sm text-label-sm uppercase tracking-[0.14em] text-outline font-medium block mb-2">
               Faculty &amp; Directors
             </span>
@@ -26,38 +26,15 @@ const Team = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
-            {team.map((member, index) => {
-              const isLastSingleRowItem =
-                index === team.length - 1 && team.length % 3 === 1;
-
-              if (isLastSingleRowItem) {
-                return (
-                  <div
-                    key={member.id}
-                    className="col-span-1 md:col-span-2 lg:col-span-3 flex justify-center"
-                  >
-                    <div className="w-full md:max-w-md lg:max-w-sm">
-                      <TeamCard
-                        name={member.name}
-                        title={member.title}
-                        description={member.desc}
-                        img={member.img}
-                      />
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <TeamCard
-                  key={member.id}
-                  name={member.name}
-                  title={member.title}
-                  description={member.desc}
-                  img={member.img}
-                />
-              );
-            })}
+            {team.map((member) => (
+              <TeamCard
+                key={member.id}
+                name={member.name}
+                title={member.title}
+                description={member.desc}
+                img={member.img}
+              />
+            ))}
           </div>
         </div>
       </section>

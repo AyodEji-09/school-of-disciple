@@ -85,7 +85,7 @@ const Home = () => {
         subtitle="Our mission is to nurture and develop future leaders who are grounded in biblical truth, filled with the Holy Spirit, and committed to serving their communities with excellence and compassion."
       />
 
-      <section className="bg-coolgray border-b border-bordergray py-12">
+      <section className="bg-[#fcfcfc] border-b border-bordergray py-12">
         <div className="max-w-custom mx-auto px-space-lg lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 text-left">
             <MatricCard
@@ -108,7 +108,7 @@ const Home = () => {
       </section>
 
       <section
-        className="py-20 lg:py-24 bg-surface-container-lowest border-b border-bordergray"
+        className="py-20 lg:py-24 bg-surface-container-lowest"
         id="about"
       >
         <div className="max-w-custom mx-auto px-space-lg lg:px-8">
@@ -174,7 +174,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="py-20 lg:py-24 bg-coolgray border-t border-b border-bordergray">
+      <section className="py-14 lg:py-16 bg-surface-container-lowest">
         <div className="max-w-custom mx-auto px-space-lg lg:px-8">
           <article className="max-w-2xl mb-12 text-left">
             <h1 className="text-2xl sm:text-3xl font-bold font-serif text-navy mb-3">
@@ -223,7 +223,7 @@ const Home = () => {
         </div>
       </ParallaxSection>
 
-      <section className="py-20 lg:py-24 bg-coolgray scroll-mt-16 sm:scroll-mt-20" id="faq">
+      <section className="py-20 lg:py-24 bg-[#fcfcfc] scroll-mt-16 sm:scroll-mt-20" id="faq">
         <div className="max-w-custom mx-auto px-space-lg lg:px-8">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
