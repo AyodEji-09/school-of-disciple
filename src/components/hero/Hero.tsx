@@ -48,9 +48,6 @@ const Hero = ({
         {/* Content */}
         <div className="relative z-10 w-full max-w-custom mx-auto px-space-lg lg:px-8 text-left">
           <div className="max-w-2xl">
-            <p className="text-on-primary text-xs sm:text-sm uppercase tracking-[0.25em] font-semibold mb-4">
-              {preTitle}
-            </p>
             <h1 className="text-on-primary text-3xl sm:text-4xl lg:text-[48px] font-bold font-serif leading-[1.2] mb-6 uppercase">
               {title}
             </h1>
@@ -80,7 +77,7 @@ const Hero = ({
   }
 
   return (
-    <div className="relative py-20 lg:py-24 bg-surface-container-low border-b border-bordergray overflow-hidden">
+    <div className="relative py-16 lg:py-20 bg-surface-container-lowest border-b border-bordergray overflow-hidden">
       {/* Background image */}
       <div className="absolute inset-0 overflow-hidden opacity-10">
         <img
@@ -99,12 +96,6 @@ const Hero = ({
 
       {/* Content */}
       <div className="relative max-w-custom mx-auto px-space-lg lg:px-8 text-left">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="w-8 h-[2px] bg-gold shrink-0" />
-          <span className="text-gold text-label-md uppercase tracking-widest font-medium">
-            {preTitle || "RCCG The Americas-1"}
-          </span>
-        </div>
         <h1
           className={`text-navy font-serif ${isMain ? "text-display-lg-mobile lg:text-display-lg" : "text-headline-lg lg:text-display-lg"} font-bold max-w-4xl leading-tight`}
         >

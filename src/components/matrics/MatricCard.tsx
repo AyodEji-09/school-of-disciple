@@ -21,11 +21,8 @@ const MatricCard = ({
       <div className="bg-navy rounded-card p-8 sm:p-10 lg:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-ambient">
         <div>
           <span className="sr-only">{icon}</span>
-          <p className="text-inverse-on-surface/75 text-xs uppercase tracking-widest font-semibold mb-1">
-            ENROLLMENT OPEN
-          </p>
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-on-primary mb-2">
-            {title}
+            Enrollment &amp; Registration
           </h2>
           <p className="text-inverse-on-surface/85 text-sm sm:text-base max-w-xl">
             {text} to secure your seat for the next cohort.

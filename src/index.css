@@ -28,7 +28,7 @@
   --color-on-surface-variant: #45464f;
   --color-inverse-surface: #31302d;
   --color-inverse-on-surface: #f3f0eb;
-  --color-outline: #767680;
+  --color-outline: #52525b;
   --color-outline-variant: #c6c5d0;
   --color-surface-tint: #4e5c91;
   --color-primary: #021447;
@@ -187,7 +187,7 @@
   --color-on-surface-variant: #45464f;
   --color-inverse-surface: #31302d;
   --color-inverse-on-surface: #f3f0eb;
-  --color-outline: #767680;
+  --color-outline: #52525b;
   --color-outline-variant: #c6c5d0;
   --color-surface-tint: #4e5c91;
   --color-primary: #021447;
@@ -249,9 +249,13 @@ html {
 body {
   font-family: var(--font-sans);
   color: var(--color-charcoal);
-  background-color: var(--color-surface);
+  background-color: #ffffff;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  text-wrap: pretty;
 }
 
 h1, h2, h3, h4, .font-heading {

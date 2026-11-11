@@ -139,8 +139,8 @@ const App = () => {
           <Route index element={<SmartRedirect />} />
 
           <Route element={<PublicRoute />}>
+            <Route path="/about" element={<About />} />
             <Route path="/team" element={<Team />} />
-            <Route path="/about-us" element={<About />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

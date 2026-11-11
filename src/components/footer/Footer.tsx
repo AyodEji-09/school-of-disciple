@@ -59,6 +59,14 @@ const Footer = () => {
               </li>
               <li>
                 <Link
+                  to="/about"
+                  className="text-inverse-on-surface/80 hover:text-on-primary transition-colors"
+                >
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link
                   to="/team"
                   className="text-inverse-on-surface/80 hover:text-on-primary transition-colors"
                 >

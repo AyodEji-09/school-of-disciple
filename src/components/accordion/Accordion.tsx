@@ -67,7 +67,10 @@ export default function ControlledAccordions({ items }: { items: ItemType[] }) {
               </span>
             </button>
             {isOpen && (
-              <div className="text-charcoal text-base leading-relaxed pt-4">
+              <div
+                className="text-charcoal text-base leading-relaxed pt-4 max-w-xl"
+                style={{ maxWidth: "560px" }}
+              >
                 {item.text}
               </div>
             )}

@@ -137,7 +137,10 @@ const Home = () => {
               <h2 className="text-2xl sm:text-3xl font-bold font-serif text-navy mb-6 leading-tight">
                 Learn more about us
               </h2>
-              <div className="space-y-4 text-charcoal text-base sm:text-[17px] leading-relaxed font-normal">
+              <div
+                className="space-y-4 text-charcoal text-base sm:text-[17px] leading-relaxed font-normal max-w-prose"
+                style={{ maxWidth: "65ch" }}
+              >
                 <p>
                   The School of Disciples, founded in 1985 by Pastor E.A.
                   Adeboye, is an initiative by Christ the Redeemer’s Ministries
@@ -174,12 +177,12 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="py-14 lg:py-16 bg-surface-container-lowest">
+      <section className="py-14 lg:py-16 bg-[#fcfcfc] border-y border-bordergray">
         <div className="max-w-custom mx-auto px-space-lg lg:px-8">
           <article className="max-w-2xl mb-12 text-left">
-            <h1 className="text-2xl sm:text-3xl font-bold font-serif text-navy mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold font-serif text-navy mb-3">
               School of Disciple itinerary
-            </h1>
+            </h2>
             <p className="text-slate text-base">
               Comprehensive structural pillars built to guide and support your
               spiritual development.

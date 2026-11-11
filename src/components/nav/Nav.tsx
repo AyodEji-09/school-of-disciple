@@ -6,7 +6,7 @@ import Footer from "../footer/Footer";
 
 const routes = [
   { id: 1, name: "Home", url: "/" },
-  // { id: 2, name: "Courses", url: "/courses" },
+  { id: 2, name: "About", url: "/about" },
   { id: 3, name: "Team", url: "/team" },
   { id: 4, name: "Login", url: "/login" },
 ];
@@ -75,6 +75,17 @@ const Nav = () => {
           }`}
         >
           Home
+        </Link>
+        <Link
+          to="/about"
+          onClick={toggleDrawer(false)}
+          className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+            location.pathname === "/about"
+              ? "bg-navy/5 text-navy font-semibold"
+              : "text-charcoal/80 hover:bg-coolgray hover:text-navy"
+          }`}
+        >
+          About
         </Link>
         <Link
           to="/team"
@@ -155,7 +166,7 @@ const Nav = () => {
             </div>
 
             <div className="menu hidden md:flex items-center justify-center justify-self-center space-x-8">
-              {routes.slice(0, 2).map((route) => {
+              {routes.slice(0, 3).map((route) => {
                 const isActive = location.pathname === route.url;
                 return (
                   <Link
@@ -178,7 +189,7 @@ const Nav = () => {
               >
                 FAQ
               </a>
-              {routes.slice(2).map((route) => {
+              {routes.slice(3).map((route) => {
                 const isActive = location.pathname === route.url;
                 return (
                   <Link

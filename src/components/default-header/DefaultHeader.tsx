@@ -358,10 +358,10 @@ const DefaultHeader = ({
                     navigate(item.url);
                     onNavigate?.();
                   }}
-                  className={`w-full text-left cursor-pointer capitalize h-9 pl-3 pr-3 flex items-center border-l-4 text-sm transition-colors ${
+                  className={`w-full text-left cursor-pointer capitalize h-9 px-3 rounded-md flex items-center text-sm transition-colors ${
                     active
-                      ? "text-[#001EC5] font-semibold border-[#001EC5]"
-                      : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:border-[#001EC5]"
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-charcoal hover:bg-coolgray hover:text-primary"
                   }`}
                 >
                   {item.name}
@@ -399,10 +399,10 @@ const DefaultHeader = ({
                         navigate(item.url);
                         onNavigate?.();
                       }}
-                      className={`w-full text-left cursor-pointer capitalize h-9 pl-3 pr-3 ml-3 flex items-center border-l-4 text-sm transition-colors ${
+                      className={`w-full text-left cursor-pointer capitalize h-9 px-3 ml-2 rounded-md flex items-center text-sm transition-colors ${
                         active
-                          ? "text-[#001EC5] font-semibold border-[#001EC5]"
-                          : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:border-[#001EC5]"
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-charcoal hover:bg-coolgray hover:text-primary"
                       }`}
                     >
                       {item.name}
@@ -505,7 +505,7 @@ const DefaultHeader = ({
             {notifications.filter((n: any) => !(n.type === "transaction_pending" && n.isRead)).length === 0 ? (
               <Box sx={{ py: 5, px: 3, textAlign: "center" }}>
                 <Typography level="body-sm" textColor="neutral.400">
-                  All caught up — no new notifications.
+                  All caught up. No new notifications.
                 </Typography>
               </Box>
             ) : (

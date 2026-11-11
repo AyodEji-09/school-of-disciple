@@ -10,7 +10,7 @@ const TeamCard = ({
   img: string;
 }) => {
   return (
-    <article className="bg-surface-container-lowest rounded-xl p-space-lg border border-mist/80 shadow-ambient flex flex-col justify-start transition-transform duration-200 hover:-translate-y-1 h-full">
+    <article className="bg-surface-container-lowest rounded-xl p-space-lg border border-mist/80 shadow-ambient flex flex-col justify-start h-full">
       <div className="img w-full aspect-4/5 rounded-lg overflow-hidden bg-surface-container-high mb-space-lg relative">
         <img
           src={`/images/${img}`}

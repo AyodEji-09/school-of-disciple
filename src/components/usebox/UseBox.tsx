@@ -30,14 +30,12 @@ const UseBox = ({
           >
             <div className="absolute inset-0 bg-primary opacity-[0.32]" />
             <div className="relative z-10 self-start" />
-            <div className="relative z-10 max-w-lg mt-auto">
-              <div className="bg-surface-container-lowest/95 rounded-xl p-6 sm:p-7 border border-mist/60 shadow-ambient">
-                <div className="w-12 h-1 bg-gold rounded-full mb-3.5" />
-                <blockquote className="font-headline-sm text-headline-sm text-primary font-semibold leading-snug">
-                  “Equipping disciples for fruitful ministry and spiritual
-                  maturity.”
-                </blockquote>
-              </div>
+            <div className="relative z-10 max-w-lg mt-auto text-on-primary">
+              <div className="w-12 h-1 bg-gold rounded-full mb-3.5" />
+              <blockquote className="font-headline-sm text-xl lg:text-2xl text-on-primary font-semibold leading-snug drop-shadow-sm">
+                “Equipping disciples for fruitful ministry and spiritual
+                maturity.”
+              </blockquote>
             </div>
           </div>
         </section>
