@@ -16,7 +16,12 @@ const NotFound = () => {
         temporarily unavailable.
       </p>
       <Link to="/">
-        <AppButton>Go Back Home</AppButton>
+        <AppButton
+          variant="primary"
+          className="h-11 px-8 tracking-wide uppercase font-semibold shadow-sm"
+        >
+          Go Back Home
+        </AppButton>
       </Link>
     </div>
   );
