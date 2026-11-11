@@ -22,7 +22,7 @@ const Nav = () => {
   const DrawerContent = (
     <div className="flex flex-col h-full bg-surface-container-lowest text-charcoal">
       {/* Drawer Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-bordergray bg-surface-container-low/40">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-bordergray">
         <Link
           to="/"
           onClick={toggleDrawer(false)}
@@ -94,7 +94,7 @@ const Nav = () => {
       </nav>
 
       {/* Bottom CTA / Action */}
-      <div className="p-4 border-t border-bordergray bg-surface-container-low/30 flex flex-col gap-3">
+      <div className="p-4 border-t border-bordergray">
         <button
           type="button"
           onClick={() => {
@@ -105,9 +105,6 @@ const Nav = () => {
         >
           Register
         </button>
-        <p className="text-center text-[11px] text-outline">
-          RCCG The Americas-1 • School of Disciples
-        </p>
       </div>
     </div>
   );
