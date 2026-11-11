@@ -19,11 +19,11 @@ const UseBox = ({
   return (
     <Box component={"div"} className="w-full bg-surface-container-lowest">
       <div className="w-full max-w-[1440px] mx-auto min-h-[calc(100vh-5rem)] flex flex-col lg:flex-row bg-surface-container-lowest">
-        <section className="w-full lg:w-1/2 flex items-center justify-center px-space-lg sm:px-margin py-12 lg:py-16 bg-surface-container-lowest">
-          <div className="w-full max-w-[480px] flex flex-col">{children}</div>
+        <section className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 bg-surface-container-lowest flex-1">
+          <div className="w-full max-w-[480px] flex flex-col mx-auto">{children}</div>
         </section>
 
-        <section className="w-full lg:w-1/2 p-4 sm:p-6 lg:p-8 flex bg-coolgray">
+        <section className="hidden lg:flex lg:w-1/2 p-4 sm:p-6 lg:p-8 bg-coolgray">
           <div
             className="relative w-full h-full min-h-[420px] lg:min-h-full rounded-xl overflow-hidden bg-cover bg-center flex flex-col justify-between p-8 lg:p-12 shadow-ambient"
             style={{ backgroundImage: `url("${imageSrc}")` }}

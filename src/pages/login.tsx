@@ -128,10 +128,10 @@ const Login = () => {
   return (
     <UseBox img="manholding.jpg">
       <Stack className="scrollbar-hide">
-        <h1 className="font-headline-lg text-headline-lg text-primary tracking-tight font-bold">
+        <h1 className="font-headline-lg text-2xl sm:text-3xl lg:text-headline-lg text-primary tracking-tight font-bold">
           Login
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant mt-2 leading-relaxed">
+        <p className="font-body-md text-sm sm:text-base text-on-surface-variant mt-1.5 sm:mt-2 leading-relaxed">
           Sign in to access your student portal and coursework
         </p>
 

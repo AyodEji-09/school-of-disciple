@@ -214,11 +214,11 @@ const Register = () => {
     <div className="flex flex-col min-h-[calc(100vh-5rem)] bg-surface-container-lowest text-charcoal">
       {!showStepper ? (
         <UseBox img="https://lh3.googleusercontent.com/aida-public/AB6AXuCWn-hGcxJUAwowmagapU2vRCmt3lf4DlP77ttjiVuC4JZ4oS1LPULYM0SGioIG-93R6YXsSXqAotfcCakU50hkzcndnunIbrQFzXy8npISY7Hh4QpKozMiFpC2wj-NFYD0oS9D5iHOUEMpU-QKbjc8AhOzZw2JPsWJjj3bahoCOQj_D7yyScaWB1Gcz-nXMQuIh_gDKZ9HFr6ZgfJPZZQjZIaO9CVDxx0-V95_hgw">
-          <div className="mb-8">
-            <h1 className="font-headline-lg text-headline-lg text-primary tracking-tight font-bold">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="font-headline-lg text-2xl sm:text-3xl lg:text-headline-lg text-primary tracking-tight font-bold">
               Register for School of Disciples
             </h1>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-2 leading-relaxed">
+            <p className="font-body-md text-sm sm:text-base text-on-surface-variant mt-1.5 sm:mt-2 leading-relaxed">
               Complete your registration and make payment for SOD
             </p>
           </div>
