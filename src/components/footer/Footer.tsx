@@ -1,7 +1,23 @@
 import { Box } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Footer = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleFaqClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname === "/") {
+      const elem = document.getElementById("faq");
+      if (elem) {
+        elem.scrollIntoView({ behavior: "smooth" });
+      }
+      window.history.pushState(null, "", "/#faq");
+    } else {
+      navigate("/#faq");
+    }
+  };
+
   return (
     <Box component={"footer"} className="bg-navy text-on-primary pt-16 pb-10 mt-auto">
       <div className="max-w-custom mx-auto px-space-lg lg:px-8">
@@ -52,7 +68,8 @@ const Footer = () => {
               <li>
                 <a
                   href="/#faq"
-                  className="text-inverse-on-surface/80 hover:text-on-primary transition-colors"
+                  onClick={handleFaqClick}
+                  className="text-inverse-on-surface/80 hover:text-on-primary transition-colors cursor-pointer"
                 >
                   FAQ
                 </a>

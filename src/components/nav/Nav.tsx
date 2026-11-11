@@ -19,6 +19,20 @@ const Nav = () => {
     setOpen(newOpen);
   };
 
+  const handleFaqClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setOpen(false);
+    if (location.pathname === "/") {
+      const elem = document.getElementById("faq");
+      if (elem) {
+        elem.scrollIntoView({ behavior: "smooth" });
+      }
+      window.history.pushState(null, "", "/#faq");
+    } else {
+      navigate("/#faq");
+    }
+  };
+
   const DrawerContent = (
     <div className="flex flex-col h-full bg-surface-container-lowest text-charcoal">
       {/* Drawer Header */}
@@ -75,8 +89,8 @@ const Nav = () => {
         </Link>
         <a
           href="/#faq"
-          onClick={toggleDrawer(false)}
-          className="flex items-center px-4 py-3 rounded-lg text-sm font-medium text-charcoal/80 hover:bg-coolgray hover:text-navy transition-colors"
+          onClick={handleFaqClick}
+          className="flex items-center px-4 py-3 rounded-lg text-sm font-medium text-charcoal/80 hover:bg-coolgray hover:text-navy transition-colors cursor-pointer"
         >
           FAQ
         </a>
@@ -159,7 +173,8 @@ const Nav = () => {
               })}
               <a
                 href="/#faq"
-                className="text-charcoal/80 font-medium text-label-lg py-1 hover:text-navy transition-colors"
+                onClick={handleFaqClick}
+                className="text-charcoal/80 font-medium text-label-lg py-1 hover:text-navy transition-colors cursor-pointer"
               >
                 FAQ
               </a>

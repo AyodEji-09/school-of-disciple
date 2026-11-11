@@ -1,5 +1,5 @@
 import Hero from "../components/hero/Hero";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import MatricCard from "../components/matrics/MatricCard";
@@ -48,6 +48,7 @@ const Home = () => {
   const [searchParams] = useSearchParams();
   const paid = searchParams.get("success");
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (paid === "true") {
@@ -56,6 +57,25 @@ const Home = () => {
       toast.error("Payment failed, contact website host");
     }
   }, [paid]);
+
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.replace("#", "");
+      const scrollToElement = () => {
+        const elem = document.getElementById(id);
+        if (elem) {
+          elem.scrollIntoView({ behavior: "smooth" });
+          return true;
+        }
+        return false;
+      };
+
+      if (!scrollToElement()) {
+        const timer = setTimeout(scrollToElement, 200);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [location.hash, location.key]);
 
   return (
     <div className="bg-surface-container-lowest text-charcoal">
@@ -203,7 +223,7 @@ const Home = () => {
         </div>
       </ParallaxSection>
 
-      <section className="py-20 lg:py-24 bg-coolgray" id="faq">
+      <section className="py-20 lg:py-24 bg-coolgray scroll-mt-16 sm:scroll-mt-20" id="faq">
         <div className="max-w-custom mx-auto px-space-lg lg:px-8">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
