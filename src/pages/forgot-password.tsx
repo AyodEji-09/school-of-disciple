@@ -5,7 +5,6 @@ import { Stack, Typography } from "@mui/joy";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-import UseBox from "../components/usebox/UseBox";
 import Input from "../components/input/input.component";
 import AppButton from "../components/Button/AppButton";
 import OtpComponent from "../components/otp-component/OtpComponent";
@@ -166,9 +165,9 @@ const ForgotPassword = () => {
   };
 
   return (
-    <UseBox img="manholding.jpg">
-      <Stack className="scrollbar-hide">
-        <div className="w-full bg-surface-container-lowest rounded-xl p-6 sm:p-8 shadow-ambient border border-mist flex flex-col">
+    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center py-6 sm:py-12 px-4 sm:px-6 bg-coolgray">
+      <div className="w-full max-w-lg flex flex-col">
+        <div className="w-full bg-surface-container-lowest rounded-xl p-5 sm:p-8 shadow-ambient border border-mist flex flex-col">
           <div className="mb-5">
             {!hasRequestedToken ? (
               <svg
@@ -220,14 +219,14 @@ const ForgotPassword = () => {
             )}
           </div>
 
-          <h1 className="font-headline-lg text-headline-sm sm:text-headline-md text-primary font-semibold tracking-tight">
+          <h1 className="font-headline-lg text-2xl sm:text-3xl text-primary font-bold sm:font-semibold tracking-tight">
             {!hasRequestedToken
               ? "Forgot Password?"
               : !otpVerified
                 ? "Enter Verification Code"
                 : "Set New Password"}
           </h1>
-          <p className="font-body-md text-body-sm sm:text-body-md text-on-surface-variant mt-2 leading-relaxed">
+          <p className="font-body-md text-sm sm:text-base text-on-surface-variant mt-1.5 sm:mt-2 leading-relaxed">
             {otpVerified
               ? `Create a new password for ${email}`
               : hasRequestedToken
@@ -267,15 +266,15 @@ const ForgotPassword = () => {
                 )}
               </div>
 
-              <Stack>
+              <div className="pt-1">
                 <AppButton
                   loading={requestingToken}
                   disabled={requestingToken}
-                  className="w-full! h-12! rounded-full! bg-primary! hover:bg-primary-container! text-on-primary! font-label-lg! text-label-lg! font-medium! tracking-wide! transition-all shadow-ambient! flex items-center justify-center cursor-pointer"
+                  className="w-full! h-12! rounded-full! bg-primary! hover:bg-primary-container! text-on-primary! font-label-lg! text-sm sm:text-base font-medium! tracking-wide! transition-all shadow-ambient! flex items-center justify-center cursor-pointer"
                 >
                   Send Reset Code
                 </AppButton>
-              </Stack>
+              </div>
             </form>
           )}
 
@@ -285,7 +284,7 @@ const ForgotPassword = () => {
                 Enter the code sent to{" "}
                 <b className="text-primary">{email}</b> to continue.
               </p>
-              <Stack direction="row" gap={2}>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <AppButton
                   type="button"
                   onClick={() => setIsOtpModalOpen(true)}
@@ -306,7 +305,7 @@ const ForgotPassword = () => {
                       ? `Resend in ${countdown}s`
                       : "Resend Code"}
                 </AppButton>
-              </Stack>
+              </div>
             </div>
           )}
 
@@ -359,22 +358,22 @@ const ForgotPassword = () => {
                 )}
               </div>
 
-              <Stack mt={2}>
+              <div className="pt-2">
                 <AppButton
                   loading={resettingPassword}
                   disabled={resettingPassword}
-                  className="w-full! h-12! rounded-full! bg-primary! hover:bg-primary-container! text-on-primary! font-label-lg! text-label-lg! font-medium! tracking-wide! transition-all shadow-ambient! flex items-center justify-center cursor-pointer"
+                  className="w-full! h-12! rounded-full! bg-primary! hover:bg-primary-container! text-on-primary! font-label-lg! text-sm sm:text-base font-medium! tracking-wide! transition-all shadow-ambient! flex items-center justify-center cursor-pointer"
                 >
                   Reset Password
                 </AppButton>
-              </Stack>
+              </div>
             </form>
           )}
 
           <div className="mt-6 pt-2 text-center">
             <Link
               to="/login"
-              className="inline-flex items-center gap-2 font-label-lg text-label-md sm:text-label-lg text-primary hover:text-gold font-medium transition-colors group"
+              className="inline-flex items-center gap-2 font-label-lg text-sm sm:text-base text-primary hover:text-gold font-medium transition-colors group"
             >
               <span className="transform group-hover:-translate-x-1 transition-transform">
                 ←
@@ -385,7 +384,7 @@ const ForgotPassword = () => {
         </div>
 
         <div className="mt-6 text-center">
-          <p className="font-body-sm text-body-sm text-on-surface-variant">
+          <p className="font-body-sm text-xs sm:text-sm text-on-surface-variant">
             Having trouble accessing your student portal? Reach the
             Registrar&apos;s office at{" "}
             <a
@@ -397,7 +396,7 @@ const ForgotPassword = () => {
             .
           </p>
         </div>
-      </Stack>
+      </div>
 
       <AppModal
         isOpen={isOtpModalOpen}
@@ -464,7 +463,7 @@ const ForgotPassword = () => {
           </Stack>
         </div>
       </AppModal>
-    </UseBox>
+    </div>
   );
 };
 
