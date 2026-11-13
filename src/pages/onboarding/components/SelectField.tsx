@@ -1,5 +1,5 @@
-const inputClassName =
-  "rounded-md border border-[#C9C9C9] p-3 font-medium text-[#22272F] outline-none placeholder:text-sm placeholder:text-[#C9C9C9]";
+const baseSelectClassName =
+  "w-full h-12 rounded-input border bg-surface-container-lowest px-4 font-body-md text-body-md text-charcoal outline-none transition-all focus:ring-2 disabled:bg-coolgray disabled:text-outline disabled:cursor-not-allowed cursor-pointer";
 
 type SelectFieldProps = {
   label: string;
@@ -7,6 +7,7 @@ type SelectFieldProps = {
   onChange: (value: string) => void;
   options: Array<{ label: string; value: string }>;
   disabled?: boolean;
+  error?: string;
 };
 
 const SelectField = ({
@@ -15,14 +16,20 @@ const SelectField = ({
   onChange,
   options,
   disabled,
+  error,
 }: SelectFieldProps) => (
-  <label className="flex flex-col gap-1 text-sm text-[#001F54] font-medium">
-    {label}
+  <label className="flex flex-col gap-1.5 font-label-md text-label-md font-medium text-charcoal">
+    <span>{label}</span>
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className={inputClassName}
+      aria-invalid={Boolean(error)}
+      className={`${baseSelectClassName} ${
+        error
+          ? "border-error focus:border-error focus:ring-error/15"
+          : "border-mist focus:border-navy focus:ring-navy/15"
+      }`}
     >
       <option value="">Select an option</option>
       {options.map((option) => (
@@ -31,6 +38,9 @@ const SelectField = ({
         </option>
       ))}
     </select>
+    {error && (
+      <span className="font-sans text-xs font-normal text-error">{error}</span>
+    )}
   </label>
 );
 

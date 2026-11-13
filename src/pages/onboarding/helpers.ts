@@ -50,138 +50,142 @@ export const rowsToEducationFields = (rows: EducationRow[]) => ({
     .join("\n"),
 });
 
-export const validateStep = (
+export const validateStepErrors = (
   key: OnboardingSectionKey,
   intakeForm: IntakeFormData,
   educationRows: EducationRow[],
-) => {
-  const missing: string[] = [];
+): Record<string, string> => {
+  const errors: Record<string, string> = {};
 
   if (key === "personal") {
     if (!isFilled(intakeForm.personalInfo?.mailingCity))
-      missing.push("Mailing City");
+      errors["personalInfo.mailingCity"] = "Mailing city is required";
     if (!isFilled(intakeForm.personalInfo?.mailingState))
-      missing.push("Mailing State");
-    if (!isFilled(intakeForm.personalInfo?.mailingZipCode)) {
-      missing.push("Mailing Zip Code");
-    }
-    if (!isFilled(intakeForm.personalInfo?.residentialAddress)) {
-      missing.push("Residential Address");
-    }
-    if (!isFilled(intakeForm.personalInfo?.dateOfBirth))
-      missing.push("Date of Birth");
-    else {
+      errors["personalInfo.mailingState"] = "Mailing state is required";
+    if (!isFilled(intakeForm.personalInfo?.mailingZipCode))
+      errors["personalInfo.mailingZipCode"] = "Mailing zip code is required";
+    if (!isFilled(intakeForm.personalInfo?.residentialAddress))
+      errors["personalInfo.residentialAddress"] =
+        "Residential address is required";
+    if (!isFilled(intakeForm.personalInfo?.dateOfBirth)) {
+      errors["personalInfo.dateOfBirth"] = "Date of birth is required";
+    } else {
       try {
         const dob = new Date(intakeForm.personalInfo!.dateOfBirth as string);
         if (!isNaN(dob.getTime())) {
           if (dob.getTime() >= Date.now()) {
-            missing.push("Date of Birth (cannot be in the future)");
+            errors["personalInfo.dateOfBirth"] =
+              "Date of birth cannot be in the future";
           } else {
             const ageDifMs = Date.now() - dob.getTime();
             const ageDate = new Date(ageDifMs);
             const age = Math.abs(ageDate.getUTCFullYear() - 1970);
             if (age < 15)
-              missing.push("Date of Birth (must be at least 15 years old)");
+              errors["personalInfo.dateOfBirth"] =
+                "Must be at least 15 years old";
             else if (age > 120)
-              missing.push("Date of Birth (age seems unrealistic)");
+              errors["personalInfo.dateOfBirth"] = "Please enter a valid date";
           }
         }
-      } catch (e) {
+      } catch {
         // ignore parsing errors
       }
     }
-    if (!isFilled(intakeForm.personalInfo?.gender)) missing.push("Gender");
-    if (!isFilled(intakeForm.personalInfo?.maritalStatus)) {
-      missing.push("Marital Status");
-    }
+    if (!isFilled(intakeForm.personalInfo?.gender))
+      errors["personalInfo.gender"] = "Please select a gender";
+    if (!isFilled(intakeForm.personalInfo?.maritalStatus))
+      errors["personalInfo.maritalStatus"] = "Please select a marital status";
     if (!isFilled(intakeForm.personalInfo?.nationality))
-      missing.push("Nationality");
+      errors["personalInfo.nationality"] = "Nationality is required";
     if (!isFilled(intakeForm.personalInfo?.ethnicOrigin))
-      missing.push("Ethnic Origin");
+      errors["personalInfo.ethnicOrigin"] = "Ethnic origin is required";
     if (!isFilled(intakeForm.personalInfo?.homePhone))
-      missing.push("Home Phone");
+      errors["personalInfo.homePhone"] = "Home phone is required";
     if (!isFilled(intakeForm.personalInfo?.officePhone))
-      missing.push("Office Phone");
+      errors["personalInfo.officePhone"] = "Office phone is required";
     if (!isFilled(intakeForm.personalInfo?.email))
-      missing.push("Email Address");
-    if (!isFilled(intakeForm.personalInfo?.height)) missing.push("Height");
-    // heightUnit is locked to ft; ensure it's present or defaulted elsewhere
+      errors["personalInfo.email"] = "Email address is required";
+    if (!isFilled(intakeForm.personalInfo?.height))
+      errors["personalInfo.height"] = "Please select your height";
   }
 
   if (key === "spiritual") {
     if (!isFilled(intakeForm.spiritualExperience?.bornAgain))
-      missing.push("Born Again");
+      errors["spiritualExperience.bornAgain"] = "Please select an option";
     if (
       intakeForm.spiritualExperience?.bornAgain === "yes" &&
       !isFilled(intakeForm.spiritualExperience?.bornAgainWhen)
     ) {
-      missing.push("Born Again - When");
+      errors["spiritualExperience.bornAgainWhen"] = "Please specify when";
     }
     if (
       intakeForm.spiritualExperience?.bornAgain === "yes" &&
       !isFilled(intakeForm.spiritualExperience?.bornAgainWhere)
     ) {
-      missing.push("Born Again - Where");
+      errors["spiritualExperience.bornAgainWhere"] = "Please specify where";
     }
-    if (!isFilled(intakeForm.spiritualExperience?.holyGhostBaptized)) {
-      missing.push("Holy Ghost Baptized");
-    }
+    if (!isFilled(intakeForm.spiritualExperience?.holyGhostBaptized))
+      errors["spiritualExperience.holyGhostBaptized"] =
+        "Please select an option";
     if (
       intakeForm.spiritualExperience?.holyGhostBaptized === "yes" &&
       !isFilled(intakeForm.spiritualExperience?.holyGhostWhen)
     ) {
-      missing.push("Holy Ghost Baptized - When");
+      errors["spiritualExperience.holyGhostWhen"] = "Please specify when";
     }
     if (
       intakeForm.spiritualExperience?.holyGhostBaptized === "yes" &&
       !isFilled(intakeForm.spiritualExperience?.holyGhostWhere)
     ) {
-      missing.push("Holy Ghost Baptized - Where");
+      errors["spiritualExperience.holyGhostWhere"] = "Please specify where";
     }
-    if (!isFilled(intakeForm.spiritualExperience?.waterImmersionBaptized)) {
-      missing.push("Water Immersion Baptized");
-    }
+    if (!isFilled(intakeForm.spiritualExperience?.waterImmersionBaptized))
+      errors["spiritualExperience.waterImmersionBaptized"] =
+        "Please select an option";
     if (
       intakeForm.spiritualExperience?.waterImmersionBaptized === "yes" &&
       !isFilled(intakeForm.spiritualExperience?.waterImmersionWhen)
     ) {
-      missing.push("Water Immersion - When");
+      errors["spiritualExperience.waterImmersionWhen"] = "Please specify when";
     }
     if (
       intakeForm.spiritualExperience?.waterImmersionBaptized === "yes" &&
       !isFilled(intakeForm.spiritualExperience?.waterImmersionWhere)
     ) {
-      missing.push("Water Immersion - Where");
+      errors["spiritualExperience.waterImmersionWhere"] =
+        "Please specify where";
     }
     if (!isFilled(intakeForm.spiritualExperience?.churchName))
-      missing.push("Church Name");
-    if (!isFilled(intakeForm.spiritualExperience?.churchLocation)) {
-      missing.push("Church Location");
-    }
-    if (!isFilled(intakeForm.spiritualExperience?.pastorName)) {
-      missing.push("Pastor's Name");
-    }
+      errors["spiritualExperience.churchName"] = "Church name is required";
+    if (!isFilled(intakeForm.spiritualExperience?.churchLocation))
+      errors["spiritualExperience.churchLocation"] =
+        "Church location is required";
+    if (!isFilled(intakeForm.spiritualExperience?.pastorName))
+      errors["spiritualExperience.pastorName"] = "Pastor's name is required";
   }
 
   if (key === "education") {
     educationRows.forEach((row, idx) => {
-      if (!isFilled(row.school)) missing.push(`School ${idx + 1}`);
-      if (!isFilled(row.date)) missing.push(`Date ${idx + 1}`);
+      if (!isFilled(row.school))
+        errors[`education.${idx}.school`] = "School name is required";
+      if (!isFilled(row.date))
+        errors[`education.${idx}.date`] = "Date is required";
       if (!isFilled(row.qualification))
-        missing.push(`Qualification ${idx + 1}`);
+        errors[`education.${idx}.qualification`] = "Qualification is required";
     });
   }
 
   if (key === "employment") {
     if (!isFilled(intakeForm.employmentStatus?.status))
-      missing.push("Employment Status");
-    // Family annual income is optional
+      errors["employmentStatus.status"] =
+        "Please select your employment status";
   }
 
   if (key === "declaration") {
     if (!isFilled(intakeForm.declaration?.agreed))
-      missing.push("Declaration Agreement");
+      errors["declaration.agreed"] =
+        "You must agree to the declaration to submit";
   }
 
-  return missing;
+  return errors;
 };

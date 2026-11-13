@@ -5,9 +5,10 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   type?: "text" | "email" | "password" | "number" | "date" | "datetime-local";
+  error?: string;
 };
 
-const Input = ({ label, type, ...otherProps }: InputFieldProps) => {
+const Input = ({ label, type, error, ...otherProps }: InputFieldProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
   const resolvedType = isPassword && showPassword ? "text" : type;
@@ -18,9 +19,13 @@ const Input = ({ label, type, ...otherProps }: InputFieldProps) => {
       <div className="relative">
         <input
           type={resolvedType}
+          aria-invalid={Boolean(error)}
           {...otherProps}
           className={[
-            "normal-case w-full h-12 rounded-input border border-mist bg-surface-container-lowest px-4 font-body-md text-body-md text-charcoal outline-none transition-all placeholder:text-outline focus:border-navy focus:ring-2 focus:ring-navy/15 disabled:bg-coolgray disabled:text-outline disabled:cursor-not-allowed",
+            "normal-case w-full h-12 rounded-input border bg-surface-container-lowest px-4 font-body-md text-body-md text-charcoal outline-none transition-all placeholder:text-outline focus:ring-2 disabled:bg-coolgray disabled:text-outline disabled:cursor-not-allowed",
+            error
+              ? "border-error focus:border-error focus:ring-error/15"
+              : "border-mist focus:border-navy focus:ring-navy/15",
             isPassword ? "pr-11" : "",
           ]
             .filter(Boolean)
@@ -42,6 +47,11 @@ const Input = ({ label, type, ...otherProps }: InputFieldProps) => {
           </button>
         )}
       </div>
+      {error && (
+        <span className="font-sans text-xs font-normal text-error">
+          {error}
+        </span>
+      )}
     </label>
   );
 };

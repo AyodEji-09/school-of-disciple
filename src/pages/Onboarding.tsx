@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Button } from "@mui/material";
 import { toast } from "react-toastify";
 import AppButton from "../components/Button/AppButton";
 import { handleError } from "../utils";
@@ -19,7 +18,7 @@ import { onboardingSections, type EducationRow } from "./onboarding/config";
 import {
   parseEducationRows,
   rowsToEducationFields,
-  validateStep,
+  validateStepErrors,
 } from "./onboarding/helpers";
 import SectionCard from "./onboarding/components/SectionCard";
 import OnboardingNavbar from "./onboarding/components/OnboardingNavbar";
@@ -40,7 +39,7 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
   const [updateUser] = useUpdateUserMutation();
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState(0);
-  const [stepError, setStepError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [intakeForm, setIntakeForm] =
     useState<IntakeFormData>(cloneIntakeForm());
   const [educationRows, setEducationRows] = useState<EducationRow[]>([
@@ -101,6 +100,13 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
         [key]: value,
       },
     }));
+    const errorKey = `${String(section)}.${String(key)}`;
+    setFieldErrors((prev) => {
+      if (!prev[errorKey]) return prev;
+      const nextErrors = { ...prev };
+      delete nextErrors[errorKey];
+      return nextErrors;
+    });
   };
 
   const updateEducationRow = (
@@ -120,6 +126,13 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
         },
       }));
       return next;
+    });
+    const errorKey = `education.${index}.${key}`;
+    setFieldErrors((prev) => {
+      if (!prev[errorKey]) return prev;
+      const nextErrors = { ...prev };
+      delete nextErrors[errorKey];
+      return nextErrors;
     });
   };
 
@@ -146,18 +159,29 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
       }));
       return safe;
     });
+    setFieldErrors({});
+  };
+
+  const scrollToFirstError = () => {
+    setTimeout(() => {
+      const firstInvalid = document.querySelector('[aria-invalid="true"]');
+      firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
   };
 
   const next = () => {
     const currentSection = onboardingSections[step];
-    const missing = validateStep(currentSection.key, intakeForm, educationRows);
-    if (missing.length) {
-      setStepError(
-        `Please complete: ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? " ..." : ""}`,
-      );
+    const errors = validateStepErrors(
+      currentSection.key,
+      intakeForm,
+      educationRows,
+    );
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      scrollToFirstError();
       return;
     }
-    setStepError("");
+    setFieldErrors({});
     if (step < onboardingSections.length - 1) {
       navigate(`/onboarding/${step + 2}`);
     }
@@ -165,17 +189,16 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
 
   const submit = async () => {
     for (let i = 0; i < onboardingSections.length; i += 1) {
-      const missing = validateStep(
+      const errors = validateStepErrors(
         onboardingSections[i].key,
         intakeForm,
         educationRows,
       );
-      if (missing.length) {
+      if (Object.keys(errors).length > 0) {
         setStep(i);
         navigate(`/onboarding/${i + 1}`);
-        setStepError(
-          `Please complete: ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? " ..." : ""}`,
-        );
+        setFieldErrors(errors);
+        scrollToFirstError();
         return;
       }
     }
@@ -183,7 +206,7 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
     if (!user?._id) return;
 
     setSaving(true);
-    setStepError("");
+    setFieldErrors({});
     try {
       const computedProgress = calculateProgress(intakeForm);
       const isComplete = computedProgress >= 100;
@@ -218,8 +241,8 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
   };
 
   const containerClass = embedded
-    ? "mx-auto mt-6 max-w-6xl pb-16 space-y-6"
-    : "mx-auto mt-6 max-w-6xl pb-16 space-y-6 px-4";
+    ? "mx-auto mt-4 max-w-5xl pb-12 space-y-6"
+    : "mx-auto mt-4 max-w-5xl pb-16 space-y-6 px-4 sm:px-6 lg:px-8";
 
   const activeSection = onboardingSections[step];
   const handleLogout = (message = "You have been logged out.") => {
@@ -229,7 +252,13 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
   };
 
   return (
-    <div className={embedded ? "" : "min-h-screen bg-[#F5FAFF] pt-16 md:pt-20"}>
+    <div
+      className={
+        embedded
+          ? "font-sans text-charcoal"
+          : "min-h-screen bg-surface-container-lowest font-sans text-charcoal pt-20 sm:pt-24"
+      }
+    >
       {!embedded && (
         <OnboardingNavbar
           onLogout={() =>
@@ -240,11 +269,12 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
         />
       )}
       <div className={containerClass}>
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <StepProgressBar steps={onboardingSections} currentStep={step} />
-          <div className="text-xs text-[#94A3B8] text-center mt-2">
-            Your progress is saved automatically. You can log out and continue anytime.
-          </div>
+          <p className="text-xs sm:text-sm text-[#52525B] text-center mt-2">
+            Your progress is saved automatically. You can log out and continue
+            anytime.
+          </p>
         </div>
 
         <SectionCard
@@ -256,6 +286,7 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
               intakeForm={intakeForm}
               updateNested={updateNested}
               userEmail={user?.email}
+              errors={fieldErrors}
             />
           )}
 
@@ -263,6 +294,7 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
             <SpiritualSectionView
               intakeForm={intakeForm}
               updateNested={updateNested}
+              errors={fieldErrors}
             />
           )}
 
@@ -272,6 +304,7 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
               updateEducationRow={updateEducationRow}
               removeEducationRow={removeEducationRow}
               addEducationRow={addEducationRow}
+              errors={fieldErrors}
             />
           )}
 
@@ -279,6 +312,7 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
             <EmploymentSectionView
               intakeForm={intakeForm}
               updateNested={updateNested}
+              errors={fieldErrors}
             />
           )}
 
@@ -286,42 +320,45 @@ const Onboarding = ({ embedded = false }: { embedded?: boolean }) => {
             <DeclarationSectionView
               intakeForm={intakeForm}
               updateNested={updateNested}
+              errors={fieldErrors}
             />
           )}
         </SectionCard>
 
-        {stepError && <p className="text-sm text-[#C62828]">{stepError}</p>}
-
-        <div className="flex gap-3 mt-2 pb-6">
-          <Button
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 pb-6">
+          <AppButton
             type="button"
             variant="outlined"
             onClick={() => {
-              setStepError("");
+              setFieldErrors({});
               if (step > 0) navigate(`/onboarding/${step}`);
             }}
             disabled={step === 0 || saving}
+            className="w-full sm:w-auto h-11 px-8 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Back
-          </Button>
+          </AppButton>
 
           {step < onboardingSections.length - 1 ? (
-            <Button
+            <AppButton
               type="button"
-              variant="contained"
+              variant="primary"
               onClick={next}
               disabled={saving}
+              className="w-full sm:w-auto h-11 px-8"
             >
-              Next
-            </Button>
+              Next Step
+            </AppButton>
           ) : (
             <AppButton
               type="button"
+              variant="gold"
               onClick={submit}
               loading={saving}
               disabled={saving}
+              className="w-full sm:w-auto h-11 px-8"
             >
-              Submit
+              Submit Application
             </AppButton>
           )}
         </div>

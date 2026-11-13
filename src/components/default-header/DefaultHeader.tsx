@@ -333,13 +333,17 @@ const DefaultHeader = ({
 
   const renderBrand = () => (
     <Link to="/">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center">
         <img
           src="/images/logo.png"
           alt="School of Disciples Logo"
-          className="h-10"
+          className="h-9 sm:h-11 w-auto"
         />
-        <img src="/images/rcg.png" alt="RCCG Logo" className="h-10" />
+        <img
+          src="/images/sod-logo.png"
+          alt="School of Disciples Logo"
+          className="h-9 sm:h-11 w-auto"
+        />
       </div>
     </Link>
   );
@@ -784,7 +788,10 @@ const DefaultHeader = ({
                     color: "white",
                     borderRadius: "25px",
                     border: "none",
-                    background: "#001EC5",
+                    background: "#1B2A5C",
+                    "&:hover": {
+                      background: "#253A7A",
+                    },
                   }}
                   onClick={() => setMobileOpen((v) => !v)}
                   aria-label="Toggle navigation"
@@ -793,8 +800,10 @@ const DefaultHeader = ({
                 </IconButton>
                 <Typography
                   level="title-lg"
-                  textColor="#001F54"
+                  textColor="#1B2A5C"
                   sx={{
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 700,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
