@@ -2,7 +2,7 @@ import { CircularProgress } from "@mui/joy";
 import type { MouseEventHandler, PropsWithChildren } from "react";
 
 type ButtonProps = {
-  variant?: "primary" | "outlined" | "plain" | "red" | "link";
+  variant?: "primary" | "gold" | "outlined" | "plain" | "red" | "link";
   onClick?: MouseEventHandler<HTMLButtonElement>;
   className?: string;
   loading?: boolean;
@@ -11,12 +11,14 @@ type ButtonProps = {
 };
 
 const BUTTON_TYPES = {
-  primary: "bg-[#001EC5] text-white text-sm",
+  primary:
+    "bg-navy hover:bg-navy-light text-on-primary text-sm transition-colors cursor-pointer",
+  gold: "bg-gold hover:bg-gold-hover text-navy text-sm font-semibold tracking-wide uppercase transition-colors shadow-sm cursor-pointer",
   outlined:
-    "border border-[#001EC5] rounded-md text-[#001EC5] active:bg-[#001EC51A] active:border-transparent",
-  plain: "text-[#15141D]",
-  red: "bg-[#FF3739] text-white",
-  link: "underline",
+    "border border-navy rounded-md text-navy hover:bg-coolgray active:bg-navy/10 transition-colors cursor-pointer",
+  plain: "text-[#15141D] cursor-pointer",
+  red: "bg-[#FF3739] text-white cursor-pointer",
+  link: "underline cursor-pointer",
 };
 
 const AppButton = ({

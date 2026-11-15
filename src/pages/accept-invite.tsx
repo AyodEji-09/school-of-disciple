@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Controller, useForm } from "react-hook-form";
-import { Box, Button, Container, Stack, Typography } from "@mui/joy";
 import Input from "../components/input/input.component";
+import AppButton from "../components/Button/AppButton";
 import { toast } from "react-toastify";
-import { handleError } from "../utils";
+import { handleError, titleCaseName } from "../utils";
 import axios from "axios";
-import { titleCaseName } from "../utils";
 
 type FormType = {
   firstName: string;
@@ -30,7 +29,7 @@ const AcceptInvite = () => {
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm({
+  } = useForm<FormType>({
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -45,6 +44,7 @@ const AcceptInvite = () => {
     if (invitedFirstName) setValue("firstName", titleCaseName(invitedFirstName));
     if (invitedLastName) setValue("lastName", titleCaseName(invitedLastName));
   }, [invitedEmail, invitedFirstName, invitedLastName, setValue]);
+
   const onSubmit = async (data: FormType) => {
     setLoading(true);
     try {
@@ -67,127 +67,129 @@ const AcceptInvite = () => {
   };
 
   return (
-    <Box pb={4}>
-      <Container>
-        <div className="max-w-lg mx-auto border mt-28 rounded-md p-4">
-          <Box>
-            <Stack>
-              <Typography level="h3" textAlign={"center"}>
-                Center Coordinator
-              </Typography>
-              <Typography textAlign={"center"} level="body-sm">
-                Lets get to know you more
-              </Typography>
-            </Stack>
-
-            <form
-              className="max-w-sm mx-auto mt-8"
-              onSubmit={handleSubmit(onSubmit)}
-            >
-              <div className="space-y-4 mt-8">
-                <div>
-                  <Controller
-                    name="firstName"
-                    control={control}
-                    rules={{
-                      required: true,
-                    }}
-                    render={({ field: { value, onChange } }) => (
-                      <Input
-                        label="First Name"
-                        value={value}
-                        onChange={onChange}
-                      />
-                    )}
-                  />
-                  {errors.firstName && (
-                    <p className="text-[#dc2626] text-xs">
-                      This field is required.
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Controller
-                    name="lastName"
-                    control={control}
-                    rules={{
-                      required: true,
-                    }}
-                    render={({ field: { value, onChange } }) => (
-                      <Input
-                        label="Last Name"
-                        value={value}
-                        onChange={onChange}
-                      />
-                    )}
-                  />
-                  {errors.lastName && (
-                    <p className="text-[#dc2626] text-xs">
-                      This field is required.
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Controller
-                    name="email"
-                    control={control}
-                    rules={{
-                      required: "This field is required",
-                    }}
-                    render={({ field: { value, onChange } }) => (
-                      <Input
-                        label="Email Address"
-                        value={value}
-                        onChange={onChange}
-                        disabled={Boolean(invitedEmail)}
-                      />
-                    )}
-                  />
-                  {errors.email && (
-                    <p className="text-[#dc2626] text-xs">
-                      {errors.email.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Controller
-                    name="password"
-                    control={control}
-                    rules={{
-                      required: true,
-                    }}
-                    render={({ field: { value, onChange } }) => (
-                      <Input
-                        label="Create Password"
-                        type="password"
-                        value={value}
-                        onChange={onChange}
-                      />
-                    )}
-                  />
-                  {errors.password && (
-                    <p className="text-[#dc2626] text-xs">
-                      This field is required.
-                    </p>
-                  )}
-                </div>
-              </div>
-              <Stack marginTop={8}>
-                <Button type="submit" loading={loading} disabled={loading}>
-                  Complete Registration
-                </Button>
-              </Stack>
-            </form>
-            {/* <Typography level="body-xs" textAlign={"center"} mt={2}>
-              Have an account?{" "}
-              <Link to={"/login"} className="font-bold underline">
-                Log In
-              </Link>
-            </Typography> */}
-          </Box>
+    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center py-6 sm:py-12 px-4 sm:px-6 bg-coolgray">
+      <div className="w-full max-w-lg bg-surface-container-lowest rounded-xl p-5 sm:p-8 shadow-ambient border border-mist flex flex-col">
+        <div className="text-left">
+          <h1 className="font-headline-lg text-2xl sm:text-3xl text-primary font-bold sm:font-semibold tracking-tight">
+            Center Coordinator
+          </h1>
+          <p className="font-body-md text-sm sm:text-base text-on-surface-variant mt-1.5 sm:mt-2 leading-relaxed">
+            Let&apos;s get to know you more
+          </p>
         </div>
-      </Container>
-    </Box>
+
+        <form className="mt-6 sm:mt-8 space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          <div>
+            <Controller
+              name="firstName"
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  label="First Name"
+                  placeholder="Enter first name"
+                  value={value}
+                  onChange={onChange}
+                />
+              )}
+            />
+            {errors.firstName && (
+              <p className="text-error text-xs mt-1">This field is required.</p>
+            )}
+          </div>
+
+          <div>
+            <Controller
+              name="lastName"
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  label="Last Name"
+                  placeholder="Enter last name"
+                  value={value}
+                  onChange={onChange}
+                />
+              )}
+            />
+            {errors.lastName && (
+              <p className="text-error text-xs mt-1">This field is required.</p>
+            )}
+          </div>
+
+          <div>
+            <Controller
+              name="email"
+              control={control}
+              rules={{
+                required: "This field is required",
+              }}
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  label="Email Address"
+                  type="email"
+                  placeholder="e.g. coordinator@rccgnasod.org"
+                  value={value}
+                  onChange={onChange}
+                  disabled={Boolean(invitedEmail)}
+                />
+              )}
+            />
+            {errors.email && (
+              <p className="text-error text-xs mt-1">
+                {errors.email.message || "This field is required."}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Controller
+              name="password"
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  label="Create Password"
+                  type="password"
+                  placeholder="••••••••••••"
+                  value={value}
+                  onChange={onChange}
+                />
+              )}
+            />
+            {errors.password && (
+              <p className="text-error text-xs mt-1">This field is required.</p>
+            )}
+          </div>
+
+          <div className="pt-2 sm:pt-3">
+            <AppButton
+              loading={loading}
+              disabled={loading}
+              className="w-full! h-12! rounded-full! bg-primary! hover:bg-primary-container! text-on-primary! font-label-lg! text-sm sm:text-base font-medium! tracking-wide! transition-all shadow-ambient! flex items-center justify-center cursor-pointer"
+            >
+              Complete Registration
+            </AppButton>
+          </div>
+        </form>
+
+        <p className="mt-5 sm:mt-6 text-center text-xs sm:text-sm text-on-surface-variant">
+          Have an account?{" "}
+          <Link
+            to="/login"
+            className="font-medium text-primary ml-1 transition-all underline decoration-gold decoration-2 underline-offset-4 hover:text-gold"
+          >
+            Log In
+          </Link>
+        </p>
+      </div>
+    </div>
   );
 };
 

@@ -5,7 +5,6 @@ import { Stack, Typography } from "@mui/joy";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-import UseBox from "../components/usebox/UseBox";
 import Input from "../components/input/input.component";
 import AppButton from "../components/Button/AppButton";
 import OtpComponent from "../components/otp-component/OtpComponent";
@@ -166,135 +165,238 @@ const ForgotPassword = () => {
   };
 
   return (
-    <UseBox img="manholding.jpg">
-      <Stack mt={8}>
-        <Typography level="h2">Forgot Password</Typography>
-        <Typography level="body-sm" mt={1} textColor="#6B7280">
-          {otpVerified
-            ? `Create a new password for ${email}`
-            : "Enter your email and we will send a reset code."}
-        </Typography>
-
-        {!hasRequestedToken && (
-          <form className="mt-8" onSubmit={handleEmailSubmit(onRequestToken)}>
-            <Controller
-              name="email"
-              control={emailControl}
-              rules={{
-                required: "Email is required",
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Invalid email format",
-                },
-              }}
-              render={({ field: { value, onChange } }) => (
-                <Input
-                  label="Email Address"
-                  value={value}
-                  onChange={onChange}
-                />
-              )}
-            />
-            {emailErrors.email && (
-              <p className="text-[#dc2626] text-xs mt-1">
-                {emailErrors.email.message}
-              </p>
-            )}
-
-            <Stack mt={4}>
-              <AppButton loading={requestingToken} disabled={requestingToken}>
-                Send Reset Code
-              </AppButton>
-            </Stack>
-          </form>
-        )}
-
-        {hasRequestedToken && !otpVerified && (
-          <div className="mt-8 space-y-3">
-            <Typography level="body-sm" textColor="#6B7280">
-              Enter the code sent to <b>{email}</b> to continue.
-            </Typography>
-            <Stack direction="row" gap={2}>
-              <AppButton type="button" onClick={() => setIsOtpModalOpen(true)}>
-                Enter Code
-              </AppButton>
-              <AppButton
-                type="button"
-                variant="outlined"
-                onClick={onResendToken}
-                disabled={resendingToken || countdown > 0}
+    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center py-6 sm:py-12 px-4 sm:px-6 bg-coolgray">
+      <div className="w-full max-w-lg flex flex-col">
+        <div className="w-full bg-surface-container-lowest rounded-xl p-5 sm:p-8 shadow-ambient border border-mist flex flex-col">
+          <div className="mb-5">
+            {!hasRequestedToken ? (
+              <svg
+                aria-hidden="true"
+                className="w-11 h-11 text-gold"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.2"
+                viewBox="0 0 48 48"
               >
-                {resendingToken
-                  ? "Sending..."
-                  : countdown > 0
-                    ? `Resend in ${countdown}s`
-                    : "Resend Code"}
-              </AppButton>
-            </Stack>
+                <circle cx="19" cy="20" r="10" />
+                <path d="M26.5 27.5L41 42" />
+                <path d="M34 35L38.5 39.5" />
+                <path d="M38 31L42.5 35.5" />
+              </svg>
+            ) : !otpVerified ? (
+              <svg
+                aria-hidden="true"
+                className="w-11 h-11 text-gold"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.2"
+                viewBox="0 0 48 48"
+              >
+                <rect x="8" y="10" width="32" height="28" rx="4" />
+                <path d="M8 16L24 26L40 16" />
+                <circle cx="24" cy="24" r="3" fill="currentColor" />
+              </svg>
+            ) : (
+              <svg
+                aria-hidden="true"
+                className="w-11 h-11 text-gold"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.2"
+                viewBox="0 0 48 48"
+              >
+                <rect x="10" y="18" width="28" height="24" rx="4" />
+                <path d="M16 18V12C16 7.58 19.58 4 24 4C28.42 4 32 7.58 32 12V18" />
+                <circle cx="24" cy="29" r="3" />
+                <path d="M24 32V36" />
+              </svg>
+            )}
           </div>
-        )}
 
-        {hasRequestedToken && otpVerified && (
-          <form
-            className="mt-8 space-y-4"
-            onSubmit={handleResetSubmit(onResetPassword)}
-          >
-            <Controller
-              name="password"
-              control={resetControl}
-              rules={{ required: "New password is required" }}
-              render={({ field: { value, onChange } }) => (
-                <Input
-                  label="New Password"
-                  type="password"
-                  value={value}
-                  onChange={onChange}
+          <h1 className="font-headline-lg text-2xl sm:text-3xl text-primary font-bold sm:font-semibold tracking-tight">
+            {!hasRequestedToken
+              ? "Forgot Password?"
+              : !otpVerified
+                ? "Enter Verification Code"
+                : "Set New Password"}
+          </h1>
+          <p className="font-body-md text-sm sm:text-base text-on-surface-variant mt-1.5 sm:mt-2 leading-relaxed">
+            {otpVerified
+              ? `Create a new password for ${email}`
+              : hasRequestedToken
+                ? `Enter the 6-digit verification code sent to ${email}`
+                : "Enter your email and we will send a reset code."}
+          </p>
+
+          {!hasRequestedToken && (
+            <form
+              className="mt-6 space-y-5"
+              onSubmit={handleEmailSubmit(onRequestToken)}
+            >
+              <div>
+                <Controller
+                  name="email"
+                  control={emailControl}
+                  rules={{
+                    required: "Email is required",
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: "Invalid email format",
+                    },
+                  }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input
+                      label="Email Address"
+                      placeholder="disciple@rccgnasod.org"
+                      value={value}
+                      onChange={onChange}
+                    />
+                  )}
                 />
-              )}
-            />
-            {resetErrors.password && (
-              <p className="text-[#dc2626] text-xs -mt-2">
-                {resetErrors.password.message}
-              </p>
-            )}
+                {emailErrors.email && (
+                  <p className="text-error text-xs mt-1">
+                    {emailErrors.email.message}
+                  </p>
+                )}
+              </div>
 
-            <Controller
-              name="confirmPassword"
-              control={resetControl}
-              rules={{ required: "Confirm your password" }}
-              render={({ field: { value, onChange } }) => (
-                <Input
-                  label="Confirm Password"
-                  type="password"
-                  value={value}
-                  onChange={onChange}
+              <div className="pt-1">
+                <AppButton
+                  loading={requestingToken}
+                  disabled={requestingToken}
+                  className="w-full! h-12! rounded-full! bg-primary! hover:bg-primary-container! text-on-primary! font-label-lg! text-sm sm:text-base font-medium! tracking-wide! transition-all shadow-ambient! flex items-center justify-center cursor-pointer"
+                >
+                  Send Reset Code
+                </AppButton>
+              </div>
+            </form>
+          )}
+
+          {hasRequestedToken && !otpVerified && (
+            <div className="mt-6 space-y-4">
+              <p className="font-body-sm text-body-sm text-on-surface-variant">
+                Enter the code sent to{" "}
+                <b className="text-primary">{email}</b> to continue.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <AppButton
+                  type="button"
+                  onClick={() => setIsOtpModalOpen(true)}
+                  className="flex-1! h-12! rounded-full! bg-primary! hover:bg-primary-container! text-on-primary! font-label-lg! shadow-ambient! cursor-pointer"
+                >
+                  Enter Code
+                </AppButton>
+                <AppButton
+                  type="button"
+                  variant="outlined"
+                  onClick={onResendToken}
+                  disabled={resendingToken || countdown > 0}
+                  className="flex-1! h-12! rounded-full! border-navy! text-navy! hover:bg-coolgray! font-label-lg! cursor-pointer"
+                >
+                  {resendingToken
+                    ? "Sending..."
+                    : countdown > 0
+                      ? `Resend in ${countdown}s`
+                      : "Resend Code"}
+                </AppButton>
+              </div>
+            </div>
+          )}
+
+          {hasRequestedToken && otpVerified && (
+            <form
+              className="mt-6 space-y-4"
+              onSubmit={handleResetSubmit(onResetPassword)}
+            >
+              <div>
+                <Controller
+                  name="password"
+                  control={resetControl}
+                  rules={{ required: "New password is required" }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input
+                      label="New Password"
+                      type="password"
+                      placeholder="••••••••••••"
+                      value={value}
+                      onChange={onChange}
+                    />
+                  )}
                 />
-              )}
-            />
-            {resetErrors.confirmPassword && (
-              <p className="text-[#dc2626] text-xs -mt-2">
-                {resetErrors.confirmPassword.message}
-              </p>
-            )}
+                {resetErrors.password && (
+                  <p className="text-error text-xs mt-1">
+                    {resetErrors.password.message}
+                  </p>
+                )}
+              </div>
 
-            <Stack mt={2}>
-              <AppButton
-                loading={resettingPassword}
-                disabled={resettingPassword}
-              >
-                Reset Password
-              </AppButton>
-            </Stack>
-          </form>
-        )}
+              <div>
+                <Controller
+                  name="confirmPassword"
+                  control={resetControl}
+                  rules={{ required: "Confirm your password" }}
+                  render={({ field: { value, onChange } }) => (
+                    <Input
+                      label="Confirm Password"
+                      type="password"
+                      placeholder="••••••••••••"
+                      value={value}
+                      onChange={onChange}
+                    />
+                  )}
+                />
+                {resetErrors.confirmPassword && (
+                  <p className="text-error text-xs mt-1">
+                    {resetErrors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
 
-        <Typography level="body-xs" textAlign="center" mt={3}>
-          Back to{" "}
-          <Link to="/login" className="font-bold underline">
-            Login
-          </Link>
-        </Typography>
-      </Stack>
+              <div className="pt-2">
+                <AppButton
+                  loading={resettingPassword}
+                  disabled={resettingPassword}
+                  className="w-full! h-12! rounded-full! bg-primary! hover:bg-primary-container! text-on-primary! font-label-lg! text-sm sm:text-base font-medium! tracking-wide! transition-all shadow-ambient! flex items-center justify-center cursor-pointer"
+                >
+                  Reset Password
+                </AppButton>
+              </div>
+            </form>
+          )}
+
+          <div className="mt-6 pt-2 text-center">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 font-label-lg text-sm sm:text-base text-primary hover:text-gold font-medium transition-colors group"
+            >
+              <span className="transform group-hover:-translate-x-1 transition-transform">
+                ←
+              </span>
+              <span>Back to Login</span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <p className="font-body-sm text-xs sm:text-sm text-on-surface-variant">
+            Having trouble accessing your student portal? Reach the
+            Registrar&apos;s office at{" "}
+            <a
+              className="text-primary font-medium hover:underline"
+              href="mailto:info@rccgnasod.org"
+            >
+              info@rccgnasod.org
+            </a>
+            .
+          </p>
+        </div>
+      </div>
 
       <AppModal
         isOpen={isOtpModalOpen}
@@ -302,10 +404,13 @@ const ForgotPassword = () => {
         title="Verify Reset Code"
         icon
       >
-        <div className="w-[min(360px,80vw)] mt-2 space-y-5">
-          <Typography level="body-sm" textColor="#6B7280">
+        <div className="w-[min(360px,80vw)] mt-2 space-y-5 font-sans">
+          <Typography
+            level="body-sm"
+            sx={{ fontFamily: '"DM Sans", sans-serif', color: "#45464f" }}
+          >
             Enter the 6-digit code sent to{" "}
-            <span className="font-semibold text-[#001F54]">{email}</span>
+            <span className="font-semibold text-navy">{email}</span>
           </Typography>
 
           <div className="flex justify-center py-2">
@@ -315,8 +420,8 @@ const ForgotPassword = () => {
             />
           </div>
 
-          <p className="text-xs text-center text-[#6B7280]">
-            Didn't get the code?{" "}
+          <p className="text-xs text-center text-on-surface-variant">
+            Didn&apos;t get the code?{" "}
             <button
               type="button"
               onClick={onResendToken}
@@ -326,7 +431,7 @@ const ForgotPassword = () => {
                 resettingPassword ||
                 countdown > 0
               }
-              className="font-semibold text-[#001EC5] hover:underline disabled:opacity-50"
+              className="font-semibold text-navy hover:text-gold underline decoration-gold underline-offset-4 disabled:opacity-50 cursor-pointer"
             >
               {resendingToken
                 ? "Sending..."
@@ -342,6 +447,7 @@ const ForgotPassword = () => {
               loading={verifyingOtp}
               disabled={verifyingOtp || resettingPassword}
               onClick={verifyOtp}
+              className="flex-1! h-11! rounded-full! bg-navy! hover:bg-navy-light! text-on-primary! cursor-pointer"
             >
               Verify Code
             </AppButton>
@@ -350,13 +456,14 @@ const ForgotPassword = () => {
               variant="outlined"
               onClick={() => setIsOtpModalOpen(false)}
               disabled={verifyingOtp || resettingPassword}
+              className="flex-1! h-11! rounded-full! border-navy! text-navy! hover:bg-coolgray! cursor-pointer"
             >
               Cancel
             </AppButton>
           </Stack>
         </div>
       </AppModal>
-    </UseBox>
+    </div>
   );
 };
 

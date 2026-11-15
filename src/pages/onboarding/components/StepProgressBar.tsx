@@ -1,4 +1,3 @@
-import { Box, Typography } from "@mui/joy";
 import { useNavigate } from "react-router-dom";
 
 interface Step {
@@ -13,80 +12,129 @@ interface StepProgressBarProps {
 
 const StepProgressBar = ({ steps, currentStep }: StepProgressBarProps) => {
   const navigate = useNavigate();
+  const formatTitle = (title?: string) =>
+    (title || "").replace(/^Section\s\d+:\s/, "");
+
+  const activeTitle = formatTitle(steps[currentStep]?.title);
+  const nextTitle =
+    currentStep < steps.length - 1
+      ? formatTitle(steps[currentStep + 1]?.title)
+      : null;
+
+  const radius = 26;
+  const circumference = 2 * Math.PI * radius;
+  const progressFraction = (currentStep + 1) / steps.length;
+  const strokeDashoffset = circumference * (1 - progressFraction);
 
   return (
-    <Box className="w-full py-6">
-      <div className="mb-10 text-center px-4">
-        <Typography
-          level="h3"
-          textColor="#001F54"
-          sx={{ fontWeight: 700, fontSize: { xs: "1.5rem", md: "2rem" } }}
-        >
+    <div className="w-full py-4 sm:py-6">
+      <div className="mb-6 sm:mb-10 text-center px-2">
+        <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-navy tracking-tight">
           Admission Intake Form
-        </Typography>
-        <Typography
-          level="body-sm"
-          textColor="#6B7280"
-          sx={{ mt: 1, maxWidth: "500px", mx: "auto" }}
-        >
+        </h1>
+        <p className="font-sans text-slate text-sm sm:text-base mt-2 max-w-xl mx-auto leading-relaxed">
           Complete all sections of the form to finalize your registration and
           access the student dashboard.
-        </Typography>
+        </p>
       </div>
 
-      <Box className="w-full overflow-x-auto py-4 scrollbar-hide">
-        <div className="flex items-start min-w-max px-8 md:px-0 md:justify-center">
-          {steps.map((step, index) => {
-            const isActive = index === currentStep;
-            const isCompleted = index < currentStep;
+      {/* Mobile circular progress stepper */}
+      <div className="sm:hidden bg-surface-container-lowest border border-bordergray rounded-card p-4 shadow-sm flex items-center gap-4">
+        <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
+          <svg
+            className="w-16 h-16 -rotate-90"
+            viewBox="0 0 64 64"
+            aria-hidden="true"
+          >
+            <circle
+              cx="32"
+              cy="32"
+              r={radius}
+              fill="none"
+              stroke="#E5E7EB"
+              strokeWidth="5"
+            />
+            <circle
+              cx="32"
+              cy="32"
+              r={radius}
+              fill="none"
+              stroke="#1B2A5C"
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              className="transition-all duration-300"
+            />
+          </svg>
+          <span className="absolute font-sans font-bold text-xs text-navy">
+            {currentStep + 1} of {steps.length}
+          </span>
+        </div>
 
-            return (
-              <div key={step.key} className="flex items-start">
+        <div className="min-w-0 flex-1 text-left">
+          <p className="font-serif font-bold text-navy text-lg leading-snug truncate">
+            {activeTitle}
+          </p>
+          <p className="font-sans text-xs text-[#52525B] mt-1 truncate">
+            {nextTitle ? `Next: ${nextTitle}` : "Final step: Review & Submit"}
+          </p>
+        </div>
+      </div>
+
+      {/* Tablet & Desktop horizontal stepper */}
+      <div className="hidden sm:flex items-start justify-center w-full py-2">
+        {steps.map((step, index) => {
+          const isActive = index === currentStep;
+          const isCompleted = index < currentStep;
+          const shortTitle = step.title.replace(/^Section\s\d+:\s/, "");
+
+          return (
+            <div key={step.key} className="flex items-start">
+              <button
+                type="button"
+                onClick={() => navigate(`/onboarding/${index + 1}`)}
+                className="flex flex-col items-center group cursor-pointer focus:outline-none"
+              >
                 <div
-                  className="flex flex-col items-center group cursor-pointer"
-                  onClick={() => navigate(`/onboarding/${index + 1}`)}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 font-sans text-sm font-bold transition-colors ${
+                    isActive
+                      ? "bg-navy border-navy text-on-primary shadow-sm"
+                      : isCompleted
+                        ? "bg-gold/15 border-gold text-navy"
+                        : "bg-surface-container-lowest border-bordergray text-slate group-hover:border-navy/40 group-hover:text-navy"
+                  }`}
                 >
-                  {/* Circle with Number */}
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${
-                      isActive
-                        ? "bg-[#001EC5] border-[#001EC5] text-white shadow-md scale-110"
-                        : isCompleted
-                          ? "bg-[#E0E7FF] border-[#001EC5] text-[#001EC5]"
-                          : "bg-white border-gray-300 text-gray-400 group-hover:border-gray-400"
-                    }`}
-                  >
-                    <Typography level="title-md" textColor="inherit">
-                      {index + 1}
-                    </Typography>
-                  </div>
-
-                  {/* Title below */}
-                  <div className="mt-3 w-24 md:w-32 text-center">
-                    <Typography
-                      level="body-xs"
-                      className={`font-medium leading-tight ${isActive ? "text-[#001F54] font-bold" : "text-gray-500"}`}
-                      sx={{ fontSize: { xs: "10px", md: "12px" } }}
-                    >
-                      {step.title.replace(/^Section\s\d+:\s/, "")}
-                    </Typography>
-                  </div>
+                  {index + 1}
                 </div>
 
-                {/* Connecting Line */}
-                {index < steps.length - 1 && (
-                  <div
-                    className={`h-0.5 w-8 sm:w-12 md:w-20 mt-5 mx-1 sm:mx-2 transition-colors duration-500 ${
-                      isCompleted ? "bg-[#001EC5]" : "bg-gray-200"
+                <div className="mt-2.5 w-24 md:w-32 text-center px-1">
+                  <span
+                    className={`block font-sans text-xs leading-snug ${
+                      isActive
+                        ? "text-navy font-semibold"
+                        : isCompleted
+                          ? "text-charcoal font-medium"
+                          : "text-slate font-normal"
                     }`}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </Box>
-    </Box>
+                  >
+                    {shortTitle}
+                  </span>
+                </div>
+              </button>
+
+              {index < steps.length - 1 && (
+                <div
+                  className={`h-0.5 w-8 md:w-16 lg:w-20 mt-5 mx-1 transition-colors ${
+                    isCompleted ? "bg-gold" : "bg-bordergray"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 

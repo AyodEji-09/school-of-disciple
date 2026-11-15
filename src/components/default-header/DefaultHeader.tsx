@@ -333,13 +333,17 @@ const DefaultHeader = ({
 
   const renderBrand = () => (
     <Link to="/">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center">
         <img
           src="/images/logo.png"
           alt="School of Disciples Logo"
-          className="h-10"
+          className="h-9 sm:h-11 w-auto"
         />
-        <img src="/images/rcg.png" alt="RCCG Logo" className="h-10" />
+        <img
+          src="/images/sod-logo.png"
+          alt="School of Disciples Logo"
+          className="h-9 sm:h-11 w-auto"
+        />
       </div>
     </Link>
   );
@@ -358,10 +362,10 @@ const DefaultHeader = ({
                     navigate(item.url);
                     onNavigate?.();
                   }}
-                  className={`w-full text-left cursor-pointer capitalize h-9 pl-3 pr-3 flex items-center border-l-4 text-sm transition-colors ${
+                  className={`w-full text-left cursor-pointer capitalize h-9 px-3 rounded-md flex items-center text-sm transition-colors ${
                     active
-                      ? "text-[#001EC5] font-semibold border-[#001EC5]"
-                      : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:border-[#001EC5]"
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-charcoal hover:bg-coolgray hover:text-primary"
                   }`}
                 >
                   {item.name}
@@ -399,10 +403,10 @@ const DefaultHeader = ({
                         navigate(item.url);
                         onNavigate?.();
                       }}
-                      className={`w-full text-left cursor-pointer capitalize h-9 pl-3 pr-3 ml-3 flex items-center border-l-4 text-sm transition-colors ${
+                      className={`w-full text-left cursor-pointer capitalize h-9 px-3 ml-2 rounded-md flex items-center text-sm transition-colors ${
                         active
-                          ? "text-[#001EC5] font-semibold border-[#001EC5]"
-                          : "border-transparent text-[#001F54] hover:text-[#001EC5] hover:border-[#001EC5]"
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-charcoal hover:bg-coolgray hover:text-primary"
                       }`}
                     >
                       {item.name}
@@ -505,7 +509,7 @@ const DefaultHeader = ({
             {notifications.filter((n: any) => !(n.type === "transaction_pending" && n.isRead)).length === 0 ? (
               <Box sx={{ py: 5, px: 3, textAlign: "center" }}>
                 <Typography level="body-sm" textColor="neutral.400">
-                  All caught up — no new notifications.
+                  All caught up. No new notifications.
                 </Typography>
               </Box>
             ) : (
@@ -784,7 +788,10 @@ const DefaultHeader = ({
                     color: "white",
                     borderRadius: "25px",
                     border: "none",
-                    background: "#001EC5",
+                    background: "#1B2A5C",
+                    "&:hover": {
+                      background: "#253A7A",
+                    },
                   }}
                   onClick={() => setMobileOpen((v) => !v)}
                   aria-label="Toggle navigation"
@@ -793,8 +800,10 @@ const DefaultHeader = ({
                 </IconButton>
                 <Typography
                   level="title-lg"
-                  textColor="#001F54"
+                  textColor="#1B2A5C"
                   sx={{
+                    fontFamily: "var(--font-serif)",
+                    fontWeight: 700,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",

@@ -2,6 +2,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect } from "react";
+import ScrollToTop from "./components/scroll-to-top/ScrollToTop";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Nav from "./components/nav/Nav";
@@ -119,6 +120,7 @@ const App = () => {
   return (
     <>
       <ToastContainer position="top-right" />
+      <ScrollToTop />
       <Routes>
         <Route path="/profile" element={<ProfileRoute />} />
         <Route
@@ -137,8 +139,8 @@ const App = () => {
           <Route index element={<SmartRedirect />} />
 
           <Route element={<PublicRoute />}>
+            <Route path="/about" element={<About />} />
             <Route path="/team" element={<Team />} />
-            <Route path="/about-us" element={<About />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

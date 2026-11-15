@@ -1,4 +1,3 @@
-import { Card, Typography } from "@mui/joy";
 import type { ReactNode } from "react";
 
 const SectionCard = ({
@@ -10,17 +9,19 @@ const SectionCard = ({
   subtitle: string;
   children: ReactNode;
 }) => (
-  <Card variant="outlined" className="p-0">
-    <div className="border-b border-[#E5E7EB] px-4 py-4 md:px-6">
-      <Typography level="title-md" textColor="#001F54">
+  <div className="bg-surface-container-lowest border border-bordergray rounded-card shadow-sm overflow-hidden">
+    <div className="border-b border-bordergray bg-[#fcfcfc] px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
+      <h2 className="font-serif text-lg sm:text-xl font-bold text-navy leading-snug">
         {title}
-      </Typography>
-      <Typography level="body-xs" textColor="#6B7280" sx={{ mt: 0.5 }}>
+      </h2>
+      <p className="font-sans text-xs sm:text-sm text-slate mt-1 leading-relaxed">
         {subtitle}
-      </Typography>
+      </p>
     </div>
-    <div className="space-y-4 px-4 py-4 md:px-6">{children}</div>
-  </Card>
+    <div className="space-y-6 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+      {children}
+    </div>
+  </div>
 );
 
 export default SectionCard;

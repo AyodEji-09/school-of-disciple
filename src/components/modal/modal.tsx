@@ -36,10 +36,12 @@ const AppModal = ({
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            borderRadius: "md",
-            p: 3,
-            boxShadow: "lg",
-            color: color || "#000000",
+            borderRadius: "16px",
+            border: "1px solid #E4E1DA",
+            backgroundColor: "#FFFFFF",
+            p: 3.5,
+            boxShadow: "0 4px 20px rgba(27, 42, 92, 0.08)",
+            color: color || "#2B2F3A",
           }}
         >
           {icon && <ModalClose variant="plain" sx={{ m: 1 }} />}
@@ -47,10 +49,11 @@ const AppModal = ({
             component="h2"
             id="modal-title"
             level="h4"
-            textColor="inherit"
+            textColor="#1B2A5C"
             fontWeight="lg"
             mb={1}
             textTransform={"capitalize"}
+            sx={{ fontFamily: '"Source Serif 4", Georgia, serif' }}
           >
             {title}
           </Typography>
