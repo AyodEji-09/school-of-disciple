@@ -22,6 +22,8 @@ export interface AcademicSession {
   name: string;
   startYear: number;
   endYear: number;
+  startMonth?: number;
+  endMonth?: number;
   isCurrent: boolean;
   activatedAt?: string;
   createdAt: string;
@@ -325,7 +327,14 @@ export const academicApi = createApi({
     // ── Session mutations ─────────────────────────────────────────────────────
     createSession: builder.mutation<
       AcademicSession,
-      { name: string; startYear: number; endYear: number; isCurrent?: boolean }
+      {
+        name: string;
+        startYear: number;
+        endYear: number;
+        startMonth?: number;
+        endMonth?: number;
+        isCurrent?: boolean;
+      }
     >({
       query: (body) => ({ url: "/academic/sessions", method: "POST", body }),
       transformResponse: (res: unknown) => unwrapOne<AcademicSession>(res),
@@ -333,7 +342,15 @@ export const academicApi = createApi({
     }),
     updateSession: builder.mutation<
       AcademicSession,
-      { id: string; name: string; startYear: number; endYear: number; isCurrent?: boolean }
+      {
+        id: string;
+        name: string;
+        startYear: number;
+        endYear: number;
+        startMonth?: number;
+        endMonth?: number;
+        isCurrent?: boolean;
+      }
     >({
       query: ({ id, ...body }) => ({
         url: `/academic/sessions/${id}`,

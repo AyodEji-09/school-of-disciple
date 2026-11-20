@@ -222,6 +222,8 @@ type AcademicSession = {
   name: string;
   startYear: number;
   endYear: number;
+  startMonth?: number;
+  endMonth?: number;
   isCurrent: boolean;
   createdAt: string;
   updatedAt: string;
