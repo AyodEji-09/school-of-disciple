@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-20T00:33:00+01:00",
+  "title": "Design System: RCCG School of Disciples (Americas-1)",
+  "extensions": {
+    "colorMeta": {
+      "primary-cobalt": {
+        "role": "primary",
+        "displayName": "Primary Cobalt",
+        "canonical": "#001EC5",
+        "tonalRamp": ["#050B38", "#0A1560", "#001EC5", "#2442E0", "#5570EE", "#8EA2F7", "#C6D1FC", "#EEF2FF"]
+      },
+      "deep-navy": {
+        "role": "primary",
+        "displayName": "Deep Navy",
+        "canonical": "#001F54",
+        "tonalRamp": ["#000C24", "#00153A", "#001F54", "#173975", "#385B96", "#6482B8", "#9EB4D8", "#DCE6F5"]
+      },
+      "amber-gold": {
+        "role": "secondary",
+        "displayName": "Warm Amber Gold",
+        "canonical": "#FFC107",
+        "tonalRamp": ["#3D2C00", "#6E5000", "#A67A00", "#D9A100", "#FFC107", "#FFD24D", "#FFE494", "#FFF6DB"]
+      },
+      "crimson-alert": {
+        "role": "tertiary",
+        "displayName": "Crimson Alert",
+        "canonical": "#FF3739",
+        "tonalRamp": ["#450708", "#7A0D0E", "#B8191B", "#FF3739", "#FF6668", "#FF999A", "#FFCCCC", "#FFF0F0"]
+      },
+      "surface-white": {
+        "role": "neutral",
+        "displayName": "Pure White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["#121921", "#22272F", "#475569", "#64748B", "#94A3B8", "#CBD5E1", "#E5E7EB", "#FFFFFF"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headlines and major page banners." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings and dashboard welcome headers." },
+      "title": { "displayName": "Title", "purpose": "Card titles and modal headers." },
+      "body": { "displayName": "Body", "purpose": "General copy, table cells, and narrative text." },
+      "label": { "displayName": "Label", "purpose": "Form labels, button text, and metadata captions." }
+    },
+    "shadows": [
+      { "name": "card-subtle", "value": "0 1px 2px rgba(0, 0, 0, 0.05)", "purpose": "Minimal lift on interactive cards or overlays." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Standard transition for buttons, inputs, and drawers." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary cobalt action button for form submission and key portal actions.",
+      "html": "<button class=\"ds-btn-primary\">Continue</button>",
+      "css": ".ds-btn-primary { font-family: 'Poppins', sans-serif; height: 40px; padding: 0 32px; border-radius: 6px; background: #001EC5; color: #FFFFFF; font-size: 14px; font-weight: 600; border: none; cursor: pointer; white-space: nowrap; transition: background 0.15s ease, transform 0.1s ease; } .ds-btn-primary:hover { background: #00189E; } .ds-btn-primary:focus-visible { outline: 2px solid #001EC5; outline-offset: 2px; }"
+    },
+    {
+      "name": "Outlined Button",
+      "kind": "button",
+      "refersTo": "button-outlined",
+      "description": "Secondary outlined button with cobalt border for non-primary actions.",
+      "html": "<button class=\"ds-btn-outlined\">Cancel</button>",
+      "css": ".ds-btn-outlined { font-family: 'Poppins', sans-serif; height: 40px; padding: 0 32px; border-radius: 6px; background: #FFFFFF; color: #001EC5; border: 1px solid #001EC5; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s ease; } .ds-btn-outlined:hover { background: rgba(0, 30, 197, 0.06); } .ds-btn-outlined:focus-visible { outline: 2px solid #001EC5; outline-offset: 2px; }"
+    },
+    {
+      "name": "Public Nav CTA",
+      "kind": "button",
+      "refersTo": "button-nav-cta",
+      "description": "Warm amber pill CTA used in the public navigation bar.",
+      "html": "<button class=\"ds-btn-nav-cta\">Register</button>",
+      "css": ".ds-btn-nav-cta { font-family: 'Poppins', sans-serif; background: #FFC107; color: #22272F; border-radius: 20px; padding: 6px 20px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; transition: filter 0.15s ease; } .ds-btn-nav-cta:hover { filter: brightness(0.95); } .ds-btn-nav-cta:focus-visible { outline: 2px solid #001F54; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Labeled text field with Deep Navy label and 6px rounded border.",
+      "html": "<label class=\"ds-input-wrap\"><span class=\"ds-input-label\">Email Address</span><input class=\"ds-input\" type=\"email\" placeholder=\"student@example.com\" /></label>",
+      "css": ".ds-input-wrap { display: flex; flex-direction: column; gap: 4px; font-family: 'Poppins', sans-serif; } .ds-input-label { font-size: 14px; font-weight: 500; color: #001F54; } .ds-input { width: 100%; border-radius: 6px; border: 1px solid #C9C9C9; padding: 12px; font-size: 14px; font-weight: 500; color: #22272F; background: #FFFFFF; outline: none; transition: border-color 0.15s ease; } .ds-input::placeholder { color: #C9C9C9; font-weight: 400; } .ds-input:focus { border-color: #001EC5; }"
+    },
+    {
+      "name": "Outlined Info Card",
+      "kind": "card",
+      "description": "Flat outlined container with hairline row dividers for student and admin details.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-row\"><span class=\"ds-card-key\">Matric No.</span><span class=\"ds-card-val\">SOD-2026-0142</span></div><div class=\"ds-card-row\"><span class=\"ds-card-key\">Center</span><span class=\"ds-card-val\">Americas-1 Main</span></div></div>",
+      "css": ".ds-card { font-family: 'Poppins', sans-serif; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; } .ds-card-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F3F4F6; font-size: 14px; } .ds-card-row:last-child { border-bottom: none; } .ds-card-key { color: #64748B; font-weight: 500; } .ds-card-val { color: #001EC5; font-weight: 600; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Structured Sanctuary",
+    "overview": "RCCG School of Disciples (Americas-1) balances the welcoming warmth of a church discipleship community with the clarity and accountability of an academic institution. Public surfaces invite prospective students into a clear, trustworthy story, while authenticated student, coordinator, and admin portals prioritize scanability, disciplined hierarchy, and zero-ambiguity form and payment workflows.\n\nThe system is grounded in a crisp, flat-by-default visual language: high-legibility geometric sans-serif typography (`Poppins`), authoritative deep-navy and cobalt-blue anchors, and restrained warm amber reserved for primary public calls to action.",
+    "keyCharacteristics": [
+      "Geometric clarity with Poppins across every display, form, and operational surface.",
+      "High-contrast cobalt and deep-navy authority paired with clean white and subtle cool-gray surfaces.",
+      "Flat-by-default containers separated by crisp 1px hairline borders rather than heavy drop shadows.",
+      "Responsive, mobile-first clarity for students registering and checking results on any device."
+    ],
+    "rules": [
+      { "name": "The Cobalt-For-Action Rule", "body": "Reserve Primary Cobalt for interactive controls, active selections, and key academic identifiers (like matric numbers); never flood entire backgrounds with it.", "section": "colors" },
+      { "name": "The Amber-CTA Rule", "body": "Warm Amber Gold appears on the public navigation CTA and status indicators, never as a generic body background.", "section": "colors" },
+      { "name": "The Single-Family Hierarchy Rule", "body": "Establish contrast through weight (400, 500, 600) and ink tone (#001F54 vs. #22272F vs. #64748B) rather than mixing additional font families.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Cards and data panels rest flat with 1px hairline borders; reserve elevation for overlays, dropdowns, and intentional hover feedback.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Primary Cobalt (#001EC5) for primary buttons, active states, and key student identifiers.",
+      "Do pair form inputs with Deep Navy (#001F54) labels and 6px (rounded-md) corners.",
+      "Do keep cards flat with 1px borders and clean whitespace (space-y-6).",
+      "Do preserve official RCCG/SOD logos and leadership photography from public/images/."
+    ],
+    "donts": [
+      "Don't introduce competing font families outside Poppins.",
+      "Don't stack heavy drop shadows on every card or table container.",
+      "Don't use Crimson Alert (#FF3739) for non-destructive actions.",
+      "Don't hide essential student actions (registration, payment status, results) behind hover-only interactions on mobile."
+    ]
+  }
+}
