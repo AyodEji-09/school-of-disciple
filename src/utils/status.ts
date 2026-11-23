@@ -70,6 +70,13 @@ export const TX_TYPE_STATUS: Record<string, StatusEntry> = {
   manual_order: { label: "Manual Order", color: "success" },
 };
 
+export const APPOINTMENT_STATUS: Record<string, StatusEntry> = {
+  pending: { label: "Pending Approval", color: "warning" },
+  approved: { label: "Approved", color: "success" },
+  rescheduled: { label: "Rescheduled (Confirmed)", color: "primary" },
+  cancelled: { label: "Cancelled", color: "danger" },
+};
+
 export function resolveStatus(
   map: Record<string, StatusEntry>,
   value: string | undefined | null,

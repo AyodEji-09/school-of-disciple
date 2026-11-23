@@ -61,6 +61,7 @@ import ZelleConfigPage from "./admin/configurations/zelle";
 
 // Academic Results pages
 import ResultsPage from "./admin/results";
+import ExamAppointmentsPage from "./admin/appointments";
 import UploadResultPage from "./admin/results/upload";
 import BulkUploadPage from "./admin/results/bulk-upload";
 import EditResultPage from "./admin/results/edit";
@@ -222,6 +223,10 @@ const App = () => {
 
           {/* Academic Results */}
           <Route path="/dashboard/results" element={<ResultsPage />} />
+          <Route
+            path="/dashboard/appointments"
+            element={<ExamAppointmentsPage />}
+          />
           <Route
             path="/dashboard/results/upload"
             element={<UploadResultPage />}

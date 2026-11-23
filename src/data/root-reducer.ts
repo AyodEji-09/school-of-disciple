@@ -10,6 +10,7 @@ import { manualOrderApi } from "./rtk/manual-order";
 import { transactionApi } from "./rtk/transaction";
 import { notificationApi } from "./rtk/notification";
 import { academicApi } from "./rtk/academic";
+import { appointmentApi } from "./rtk/appointment";
 
 const rootReducer = combineReducers({
   user: UserSlice,
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
   [transactionApi.reducerPath]: transactionApi.reducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
   [academicApi.reducerPath]: academicApi.reducer,
+  [appointmentApi.reducerPath]: appointmentApi.reducer,
 });
 
 export default rootReducer;
