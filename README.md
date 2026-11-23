@@ -1,54 +1,153 @@
-# React + TypeScript + Vite
+# RCCG School of Disciples (SOD) — Americas-1 Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Official web application for the **Redeemed Christian Church of God (RCCG) School of Disciples — Americas-1**, uniting public discovery, student registration and intake onboarding, Stripe/Zelle payment verification, manual ordering, exam appointment scheduling, and academic result management in a single React + TypeScript SPA.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features by Role
 
-## Expanding the ESLint configuration
+### Public & Students
+- **Public Discovery:** Landing, About, and Leadership Team pages.
+- **Auth & Multi-Step Intake Onboarding:** Registration, login, password reset, and required intake onboarding (`/onboarding/*`) gated before full portal access.
+- **Student Self-Service:** Student dashboard, profile management, Stripe/Zelle fee payment submission and payment history, and academic results (`/my-results`).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Center Coordinators
+- **Center Roster:** Manage center-assigned students.
+- **Manual Ordering & Appointments:** Submit manual orders and schedule center exam appointments.
+- **Coordinator Reports:** Session-filtered reporting tools (`src/coordinator/`).
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### Admins & Super-Admins
+- **Operations & User Management:** Manage centers, coordinator invitations/assignments, credit admins, and enrolled students.
+- **Payments & Fulfilment:** Review pending payment approvals, track remittances, manage manual orders, and maintain manuals catalog.
+- **Configuration:** Registration settings, fee structures, and Zelle payment configuration.
+- **Exam Appointments & Academic Results:** Administer exam appointments, configure academic sessions (including 10-month same-year sessions), single and bulk result uploads, score edits, corrections, analytics, and reports.
+
+---
+
+## Tech Stack
+
+- **Core:** React 19, TypeScript (~5.8), Vite 6
+- **UI & Styling:** Tailwind CSS v4, MUI Joy & Material Icons, React Icons, React Toastify
+- **State, Routing & Forms:** Redux Toolkit & RTK Query, React Router v7, React Hook Form
+- **Realtime & Utilities:** Socket.IO Client, Axios, Moment
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+ and npm
+
+### Installation
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Environment Variables
+Create a `.env.local` file in the project root with the API base URL (read via `import.meta.env.VITE_BASE_URL` in `src/data/config.ts`):
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```env
+VITE_BASE_URL=http://localhost:5000/api/v1
 ```
+
+### Available Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the Vite development server with HMR |
+| `npm run build` | Build the production bundle (`vite build`) |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Run ESLint across the project |
+| `npx tsc -p tsconfig.app.json --noEmit` | Run TypeScript typechecking against `tsconfig.app.json` (root `tsconfig.json` uses project references) |
+
+---
+
+## Project Structure
+
+```text
+school-of-disciple/
+├── public/
+│   └── images/                  # Official institutional logos, portraits, and page imagery
+├── src/
+│   ├── admin/
+│   │   ├── appointments/        # Exam appointment administration & date/time scheduling
+│   │   ├── configurations/      # Registration, fee, and Zelle settings
+│   │   ├── coordinators/        # Coordinator directory & details
+│   │   ├── credit-admin/        # Admin credit tools
+│   │   ├── dashboard/           # Admin overview dashboard
+│   │   ├── manage-centers/      # Center directory & assignments
+│   │   ├── manual-orders/       # Manual order oversight
+│   │   ├── manuals/             # Course manuals management
+│   │   ├── payments/            # Transactions, remittances, and pending approvals
+│   │   ├── results/             # Session setup, uploads, bulk uploads, edits, corrections, analytics & reports
+│   │   └── students/            # Student directory
+│   ├── coordinator/             # Coordinator reports and center views
+│   ├── pages/                   # Public, auth, onboarding, student dashboard, payment & results pages
+│   ├── components/              # Shared UI, layout frames, navigation, modals, and form controls
+│   ├── data/                    # Redux store, RTK Query APIs, Axios config, and Socket.IO hooks
+│   └── utils/                   # Route guards, status mappings, and shared helpers
+├── DESIGN.md                    # Visual design tokens and component guidelines
+├── PRODUCT.md                   # Product scope, roles, and UX principles
+└── render.yaml                  # Render static-site SPA rewrite configuration
+```
+
+---
+
+## Git Branching & Release Workflow
+
+```text
+feat/* | fix/* | redesign/*  ──►  dev  ──►  stage  ──►  main (production)
+```
+
+| Branch | Purpose |
+|---|---|
+| `main` | Live production branch (deployed automatically by Render) |
+| `stage` | Pre-production QA and client UAT verification branch |
+| `dev` | Active integration branch for the next release |
+| `feat/*`, `fix/*`, `docs/*`, `redesign/*` | Short-lived topic branches created off `dev` (personal or experimental UI work stays on `redesign/*` until approved) |
+| `archive/legacy-master` | Read-only historical archive of the legacy `master` branch |
+
+### Common Commands
+
+**1. Start a new feature, bugfix, or redesign from `dev`:**
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feat/<short-name>   # or fix/<name>, docs/<name>, redesign/<name>
+```
+
+**2. Merge into `dev` and promote `dev -> stage -> main`:**
+```bash
+# Integrate completed topic branch into dev
+git checkout dev
+git merge --no-ff feat/<short-name>
+
+# Promote dev to stage for QA / client review
+git checkout stage
+git merge --no-ff dev
+git push origin stage
+
+# Promote stage to main for production release
+git checkout main
+git merge --no-ff stage
+git push origin main
+```
+
+**3. Handle an urgent production hotfix:**
+```bash
+# Branch directly from main
+git checkout main
+git pull origin main
+git checkout -b fix/<hotfix-name>
+
+# After fixing and verifying, merge back into main, stage, and dev
+git checkout main && git merge --no-ff fix/<hotfix-name> && git push origin main
+git checkout stage && git merge --no-ff fix/<hotfix-name> && git push origin stage
+git checkout dev && git merge --no-ff fix/<hotfix-name> && git push origin dev
+```
+
+---
+
+## Deployment
+
+The app is deployed on **Render** tracking the **`main`** branch. Client-side routing is handled by [`render.yaml`](./render.yaml), which rewrites all routes (`/*`) to `/index.html`.
