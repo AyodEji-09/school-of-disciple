@@ -25,6 +25,40 @@ import { handleError } from "../../utils";
 import { Delete, Add, Edit } from "@mui/icons-material";
 import PageCard from "../../components/feedback/PageCard";
 
+const MONTHS = [
+  { value: 1, short: "Jan", label: "January" },
+  { value: 2, short: "Feb", label: "February" },
+  { value: 3, short: "Mar", label: "March" },
+  { value: 4, short: "Apr", label: "April" },
+  { value: 5, short: "May", label: "May" },
+  { value: 6, short: "Jun", label: "June" },
+  { value: 7, short: "Jul", label: "July" },
+  { value: 8, short: "Aug", label: "August" },
+  { value: 9, short: "Sep", label: "September" },
+  { value: 10, short: "Oct", label: "October" },
+  { value: 11, short: "Nov", label: "November" },
+  { value: 12, short: "Dec", label: "December" },
+];
+
+const formatSessionSpan = (s: AcademicSession) => {
+  if (s.startMonth && s.endMonth) {
+    const sm = MONTHS.find((m) => m.value === s.startMonth)?.short ?? "";
+    const em = MONTHS.find((m) => m.value === s.endMonth)?.short ?? "";
+    return `${sm} ${s.startYear} – ${em} ${s.endYear}`;
+  }
+  return s.startYear === s.endYear
+    ? String(s.startYear)
+    : `${s.startYear} – ${s.endYear}`;
+};
+
+const addMonths = (year: number, month: number, offset: number) => {
+  const total = year * 12 + (month - 1) + offset;
+  return {
+    year: Math.floor(total / 12),
+    month: (total % 12) + 1,
+  };
+};
+
 const SessionsSection = () => {
   const { data: sessionsData = [], isLoading } = useGetSessionsQuery();
   const sessions = sessionsData as unknown as AcademicSession[];
@@ -40,19 +74,67 @@ const SessionsSection = () => {
   const [name, setName] = useState("");
   const [startYear, setStartYear] = useState("");
   const [endYear, setEndYear] = useState("");
+  const [startMonth, setStartMonth] = useState<string>("");
+  const [endMonth, setEndMonth] = useState<string>("");
 
   const resetForm = () => {
     setName("");
     setStartYear("");
     setEndYear("");
+    setStartMonth("");
+    setEndMonth("");
+  };
+
+  const applyDefaultTenMonthEnd = (syStr: string, smStr: string) => {
+    const sy = Number(syStr);
+    const sm = Number(smStr);
+    if (sy >= 1900 && sm >= 1 && sm <= 12) {
+      // 10-month inclusive span (e.g. Jan 2027 -> Oct 2027)
+      const end = addMonths(sy, sm, 9);
+      setEndYear(String(end.year));
+      setEndMonth(String(end.month));
+    }
+  };
+
+  const validateSessionDates = (requireMonths: boolean) => {
+    if (!name.trim() || !startYear || !endYear) {
+      toast.error("Fill all required fields");
+      return false;
+    }
+    const sy = Number(startYear);
+    const ey = Number(endYear);
+    const hasStartMonth = startMonth !== "";
+    const hasEndMonth = endMonth !== "";
+
+    if (requireMonths && (!hasStartMonth || !hasEndMonth)) {
+      toast.error("Select both start and end months");
+      return false;
+    }
+    if (hasStartMonth !== hasEndMonth) {
+      toast.error("Select both start and end months, or leave both blank");
+      return false;
+    }
+    if (ey < sy) {
+      toast.error("End year cannot be before start year");
+      return false;
+    }
+    if (ey - sy > 10) {
+      toast.error("Session span cannot exceed 10 years");
+      return false;
+    }
+    if (hasStartMonth && hasEndMonth) {
+      const sm = Number(startMonth);
+      const em = Number(endMonth);
+      if (ey * 12 + em <= sy * 12 + sm) {
+        toast.error("End month and year must be after start month and year");
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleCreate = async () => {
-    if (!name || !startYear || !endYear) return toast.error("Fill all fields");
-    if (Number(endYear) <= Number(startYear))
-      return toast.error("End year must be after start year");
-    if (Number(endYear) - Number(startYear) > 10)
-      return toast.error("Session span cannot exceed 10 years");
+    if (!validateSessionDates(true)) return;
     const duplicate = sessions.find((s) => s.startYear === Number(startYear));
     if (duplicate) {
       const confirmed = window.confirm(
@@ -62,9 +144,11 @@ const SessionsSection = () => {
     }
     try {
       await createSession({
-        name,
+        name: name.trim(),
         startYear: Number(startYear),
         endYear: Number(endYear),
+        ...(startMonth !== "" && { startMonth: Number(startMonth) }),
+        ...(endMonth !== "" && { endMonth: Number(endMonth) }),
       }).unwrap();
       setCreateModalOpen(false);
       resetForm();
@@ -92,16 +176,13 @@ const SessionsSection = () => {
     setName(session.name);
     setStartYear(String(session.startYear));
     setEndYear(String(session.endYear));
+    setStartMonth(session.startMonth ? String(session.startMonth) : "");
+    setEndMonth(session.endMonth ? String(session.endMonth) : "");
     setEditModalOpen(true);
   };
 
   const handleUpdate = async () => {
-    if (!editingSession || !name || !startYear || !endYear)
-      return toast.error("Fill all fields");
-    if (Number(endYear) <= Number(startYear))
-      return toast.error("End year must be after start year");
-    if (Number(endYear) - Number(startYear) > 10)
-      return toast.error("Session span cannot exceed 10 years");
+    if (!editingSession || !validateSessionDates(false)) return;
     const duplicate = sessions.find(
       (s) => s._id !== editingSession._id && s.startYear === Number(startYear),
     );
@@ -114,9 +195,11 @@ const SessionsSection = () => {
     try {
       await updateSession({
         id: editingSession._id,
-        name,
+        name: name.trim(),
         startYear: Number(startYear),
         endYear: Number(endYear),
+        ...(startMonth !== "" && { startMonth: Number(startMonth) }),
+        ...(endMonth !== "" && { endMonth: Number(endMonth) }),
       }).unwrap();
       setEditModalOpen(false);
       resetForm();
@@ -158,7 +241,7 @@ const SessionsSection = () => {
   return (
     <PageCard
       title="Academic Sessions"
-      subtitle="e.g. 2024/2025, 2025/2026"
+      subtitle="e.g. Jan – Oct 2027 Academic Session (10-month cycle)"
       action={
         <AppButton onClick={() => setCreateModalOpen(true)} size="sm">
           <Add sx={{ fontSize: 16, mr: 0.5 }} /> Add Session
@@ -171,32 +254,71 @@ const SessionsSection = () => {
         title="Add New Session"
         icon
       >
-        <div className="w-[min(440px,80vw)] mt-2 grid gap-4">
+        <div className="w-[min(460px,84vw)] mt-2 grid gap-4">
           <FormControl required>
             <FormLabel>Name</FormLabel>
             <Input
-              placeholder="e.g. 2025/2026 Academic Session"
+              placeholder="e.g. Jan – Oct 2027 Academic Session"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </FormControl>
           <div className="grid grid-cols-2 gap-3">
             <FormControl required>
+              <FormLabel>Start Month</FormLabel>
+              <Select
+                placeholder="Month"
+                value={startMonth || null}
+                slotProps={{ listbox: { sx: { zIndex: 1500 } } }}
+                onChange={(_, val) => {
+                  const next = val ? String(val) : "";
+                  setStartMonth(next);
+                  applyDefaultTenMonthEnd(startYear, next);
+                }}
+              >
+                {MONTHS.map((m) => (
+                  <Option key={m.value} value={String(m.value)}>
+                    {m.label}
+                  </Option>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl required>
               <FormLabel>Start Year</FormLabel>
               <Input
                 type="number"
-                placeholder="2025"
+                placeholder="2027"
                 slotProps={{ input: { min: 1900, max: new Date().getFullYear() + 5 } }}
                 value={startYear}
-                onChange={(e) => setStartYear(e.target.value)}
+                onChange={(e) => {
+                  setStartYear(e.target.value);
+                  applyDefaultTenMonthEnd(e.target.value, startMonth);
+                }}
               />
+            </FormControl>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <FormControl required>
+              <FormLabel>End Month</FormLabel>
+              <Select
+                placeholder="Month"
+                value={endMonth || null}
+                slotProps={{ listbox: { sx: { zIndex: 1500 } } }}
+                onChange={(_, val) => setEndMonth(val ? String(val) : "")}
+              >
+                {MONTHS.map((m) => (
+                  <Option key={m.value} value={String(m.value)}>
+                    {m.label}
+                  </Option>
+                ))}
+              </Select>
             </FormControl>
             <FormControl required>
               <FormLabel>End Year</FormLabel>
               <Input
                 type="number"
-                placeholder="2026"
-                slotProps={{ input: { min: 1901, max: new Date().getFullYear() + 5 } }}
+                placeholder="2027"
+                slotProps={{ input: { min: 1900, max: new Date().getFullYear() + 5 } }}
                 value={endYear}
                 onChange={(e) => setEndYear(e.target.value)}
               />
@@ -223,32 +345,64 @@ const SessionsSection = () => {
         title={`Edit ${editingSession?.name ?? "Session"}`}
         icon
       >
-        <div className="w-[min(440px,80vw)] mt-2 grid gap-4">
+        <div className="w-[min(460px,84vw)] mt-2 grid gap-4">
           <FormControl required>
             <FormLabel>Name</FormLabel>
             <Input
-              placeholder="e.g. 2025/2026 Academic Session"
+              placeholder="e.g. Jan – Oct 2027 Academic Session"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </FormControl>
           <div className="grid grid-cols-2 gap-3">
+            <FormControl>
+              <FormLabel>Start Month</FormLabel>
+              <Select
+                placeholder="Month (optional)"
+                value={startMonth || null}
+                slotProps={{ listbox: { sx: { zIndex: 1500 } } }}
+                onChange={(_, val) => setStartMonth(val ? String(val) : "")}
+              >
+                {MONTHS.map((m) => (
+                  <Option key={m.value} value={String(m.value)}>
+                    {m.label}
+                  </Option>
+                ))}
+              </Select>
+            </FormControl>
             <FormControl required>
               <FormLabel>Start Year</FormLabel>
               <Input
                 type="number"
-                placeholder="2025"
+                placeholder="2027"
                 slotProps={{ input: { min: 1900, max: new Date().getFullYear() + 5 } }}
                 value={startYear}
                 onChange={(e) => setStartYear(e.target.value)}
               />
             </FormControl>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <FormControl>
+              <FormLabel>End Month</FormLabel>
+              <Select
+                placeholder="Month (optional)"
+                value={endMonth || null}
+                slotProps={{ listbox: { sx: { zIndex: 1500 } } }}
+                onChange={(_, val) => setEndMonth(val ? String(val) : "")}
+              >
+                {MONTHS.map((m) => (
+                  <Option key={m.value} value={String(m.value)}>
+                    {m.label}
+                  </Option>
+                ))}
+              </Select>
+            </FormControl>
             <FormControl required>
               <FormLabel>End Year</FormLabel>
               <Input
                 type="number"
-                placeholder="2026"
-                slotProps={{ input: { min: 1901, max: new Date().getFullYear() + 5 } }}
+                placeholder="2027"
+                slotProps={{ input: { min: 1900, max: new Date().getFullYear() + 5 } }}
                 value={endYear}
                 onChange={(e) => setEndYear(e.target.value)}
               />
@@ -280,12 +434,15 @@ const SessionsSection = () => {
               key={s._id}
               className="flex items-center justify-between border border-[#E6ECFF] rounded-xl px-4 py-3 gap-3"
             >
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <span className="font-semibold text-[#001F54] text-sm truncate">
                   {s.name}
                 </span>
+                <span className="text-xs text-[#64748B] tabular-nums shrink-0">
+                  {formatSessionSpan(s)}
+                </span>
                 {s.isCurrent && (
-                  <span className="text-[11px] font-bold text-[#15803D] bg-[#D1FAE5] border border-[#6EE7B7] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="text-[11px] font-bold text-[#15803D] bg-[#D1FAE5] border border-[#6EE7B7] px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">
                     Current
                   </span>
                 )}
