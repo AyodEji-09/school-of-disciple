@@ -3,6 +3,7 @@ import { useAppDispatch } from "./hooks";
 import { useAppSelector } from "./hooks";
 import { selectUser } from "./selectors/authSelector";
 import { notificationApi } from "./rtk/notification";
+import { appointmentApi } from "./rtk/appointment";
 import { connectSocket, disconnectSocket } from "./socket";
 import { toast } from "react-toastify";
 
@@ -22,6 +23,15 @@ export const useNotificationSocket = () => {
     const handleNewNotification = (notification: any) => {
       dispatch(notificationApi.util.invalidateTags(["NotificationList"]));
 
+      if (String(notification?.type || "").startsWith("appointment_")) {
+        dispatch(
+          appointmentApi.util.invalidateTags([
+            "AppointmentList",
+            "AppointmentSummary",
+          ]),
+        );
+      }
+
       if (!notification.isRead) {
         const labels: Record<string, string> = {
           transaction_pending: "New pending payment approval",
@@ -29,6 +39,10 @@ export const useNotificationSocket = () => {
           transaction_rejected: "Payment rejected",
           results_published: "Results published",
           order_placed: "New manual order",
+          appointment_created: "New exam appointment request",
+          appointment_approved: "Exam appointment approved",
+          appointment_cancelled: "Exam appointment cancelled",
+          appointment_rescheduled: "Exam appointment rescheduled",
         };
         toast.info(labels[notification.type] || "New notification");
       }
