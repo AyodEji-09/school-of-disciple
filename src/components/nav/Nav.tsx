@@ -16,6 +16,7 @@ const routes = [
   { id: 1, name: "Home", url: "/" },
   // { id: 2, name: "Courses", url: "/courses" },
   { id: 3, name: "Team", url: "/team" },
+  { id: 5, name: "FAQ", url: "/#faq" },
   { id: 4, name: "Login", url: "/login" },
 ];
 const Nav = () => {
@@ -27,12 +28,23 @@ const Nav = () => {
     setOpen(newOpen);
   };
 
+  const handleNavAction = (url: string) => {
+    if (url === "/#faq" && location.pathname === "/") {
+      document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" });
+      if (location.hash !== "#faq") {
+        navigate("/#faq");
+      }
+      return;
+    }
+    navigate(url);
+  };
+
   const DrawerList = (
     <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
       <List>
         {routes.map((route) => (
           <ListItem key={route.id} disablePadding>
-            <ListItemButton onClick={() => navigate(route.url)}>
+            <ListItemButton onClick={() => handleNavAction(route.url)}>
               <ListItemText primary={route.name} />
             </ListItemButton>
           </ListItem>
@@ -85,11 +97,22 @@ const Nav = () => {
                 </Button>
               </div>
               <div className="menu hidden md:flex gap-4 items-center">
-                {routes.map((route) => (
-                  <Link key={route.id} to={route.url} className="">
-                    {route.name}
-                  </Link>
-                ))}
+                {routes.map((route) =>
+                  route.url === "/#faq" ? (
+                    <button
+                      key={route.id}
+                      type="button"
+                      onClick={() => handleNavAction(route.url)}
+                      className="cursor-pointer"
+                    >
+                      {route.name}
+                    </button>
+                  ) : (
+                    <Link key={route.id} to={route.url} className="">
+                      {route.name}
+                    </Link>
+                  ),
+                )}
                 <div>
                   <Button
                     variant="contained"
