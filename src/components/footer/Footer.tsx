@@ -23,6 +23,9 @@ const Footer = () => {
             <div className="flex gap-8">
               <ul className="text-white space-y-4">
                 <li>
+                  <Link to="/#faq">FAQ</Link>
+                </li>
+                <li>
                   <Link to="/register">Register</Link>
                 </li>
                 <li>

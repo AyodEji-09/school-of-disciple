@@ -1,6 +1,6 @@
 import { Button } from "@mui/material";
 import Hero from "../components/hero/Hero";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import MatricCard from "../components/matrics/MatricCard";
@@ -11,11 +11,13 @@ import Itinerary from "../components/itinerary/Itinerary";
 import { IoDiamondOutline } from "react-icons/io5";
 import { RiProfileLine } from "react-icons/ri";
 import ParallaxSection from "../components/parallax-section/ParralaxSection";
+import FaqSection from "../components/faq/FaqSection";
 
 const Home = () => {
   const [searchParams] = useSearchParams();
   const paid = searchParams.get("success");
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (paid === "true") {
@@ -24,6 +26,12 @@ const Home = () => {
       toast.error("Payment failed, contact website host");
     }
   }, [paid]);
+
+  useEffect(() => {
+    if (location.hash === "#faq") {
+      document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [location.hash]);
 
   return (
     <div>
@@ -134,6 +142,7 @@ const Home = () => {
           </div>
         </div>
       </ParallaxSection>
+      <FaqSection />
     </div>
   );
 };
